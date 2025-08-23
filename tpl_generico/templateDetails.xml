@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="template" client="site">
+	<name>generico</name>
+	<version>1.0</version>
+	<creationDate>2017-02</creationDate>
+	<author>Jorge Demetrio</author>
+	<authorEmail>jorgedemetrio@gmail.com</authorEmail>
+	<description>TPL_GENERICO_XML_DESCRIPTION</description>
+	<inheritable>1</inheritable>
+	<files>
+		<filename>component.php</filename>
+		<filename>error.php</filename>
+		<filename>index.php</filename>
+		<filename>joomla.asset.json</filename>
+		<filename>offline.php</filename>
+		<filename>templateDetails.xml</filename>
+		<folder>css</folder>
+		<folder>html</folder>
+		<folder>images</folder>
+		<folder>js</folder>
+		<folder>language</folder>
+	</files>
+	<positions>
+		<position>topbar</position>
+		<position>below-top</position>
+		<position>menu</position>
+		<position>search</position>
+		<position>banner</position>
+		<position>top-a</position>
+		<position>top-b</position>
+		<position>main-top</position>
+		<position>main-bottom</position>
+		<position>breadcrumbs</position>
+		<position>sidebar-left</position>
+		<position>sidebar-right</position>
+		<position>bottom-a</position>
+		<position>bottom-b</position>
+		<position>bottom</position>
+		<position>footer</position>
+		<position>debug</position>
+		<position>message</position>
+		<position>error-403</position>
+		<position>error-404</position>
+	</positions>
+	<languages folder="language">
+		<language tag="en-GB">en-GB/tpl_generico.ini</language>
+		<language tag="en-GB">en-GB/tpl_generico.sys.ini</language>
+		<language tag="pt-BR">pt-BR/tpl_generico.ini</language>
+		<language tag="pt-BR">pt-BR/tpl_generico.sys.ini</language>
+		<language tag="es-ES">es-ES/tpl_generico.ini</language>
+		<language tag="es-ES">es-ES/tpl_generico.sys.ini</language>
+		<language tag="de-DE">de-DE/tpl_generico.ini</language>
+		<language tag="de-DE">de-DE/tpl_generico.sys.ini</language>
+		<language tag="fr-FR">fr-FR/tpl_generico.ini</language>
+		<language tag="fr-FR">fr-FR/tpl_generico.sys.ini</language>
+		<language tag="it-IT">it-IT/tpl_generico.ini</language>
+		<language tag="it-IT">it-IT/tpl_generico.sys.ini</language>
+		<language tag="ja-JP">ja-JP/tpl_generico.ini</language>
+		<language tag="ja-JP">ja-JP/tpl_generico.sys.ini</language>
+		<language tag="zh-CN">zh-CN/tpl_generico.ini</language>
+		<language tag="zh-CN">zh-CN/tpl_generico.sys.ini</language>
+	</languages>
+	<config>
+		<fields name="params">
+			<fieldset name="appearance" label="TPL_GENERICO_APPEARANCE_LABEL">
+				<field name="primaryColor" type="color" label="TPL_GENERICO_COLOR_PRIMARY_LABEL" default="#1F4E79" />
+				<field name="secondaryColor" type="color" label="TPL_GENERICO_COLOR_SECONDARY_LABEL" default="#2E7D32" />
+				<field name="ctaColor" type="color" label="TPL_GENERICO_COLOR_CTA_LABEL" default="#2F80ED" />
+				<field name="textColor" type="color" label="TPL_GENERICO_COLOR_TEXT_LABEL" default="#222222" />
+				<field name="textSecondaryColor" type="color" label="TPL_GENERICO_COLOR_TEXT_SECONDARY_LABEL" default="#6B7280" />
+				<field name="surfaceLightColor" type="color" label="TPL_GENERICO_COLOR_SURFACE_LIGHT_LABEL" default="#FFFFFF" />
+				<field name="surfaceAltColor" type="color" label="TPL_GENERICO_COLOR_SURFACE_ALT_LABEL" default="#F5F7FA" />
+				<field name="borderColor" type="color" label="TPL_GENERICO_COLOR_BORDER_LABEL" default="#E5E7EB" />
+				<field name="footerColor" type="color" label="TPL_GENERICO_COLOR_FOOTER_LABEL" default="#0F172A" />
+				<field name="fontFamilyPrimary" type="text" label="TPL_GENERICO_FONT_FAMILY_LABEL" default="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" description="TPL_GENERICO_FONT_FAMILY_DESC" />
+				<field name="fontSizeBase" type="text" label="TPL_GENERICO_FONT_SIZE_BASE_LABEL" default="1rem" description="TPL_GENERICO_FONT_SIZE_BASE_DESC" />
+				<field name="fontWeightNormal" type="number" label="TPL_GENERICO_FONT_WEIGHT_NORMAL_LABEL" default="400" step="100" min="100" max="900" />
+				<field name="fontWeightHeadings" type="number" label="TPL_GENERICO_FONT_WEIGHT_HEADINGS_LABEL" default="700" step="100" min="100" max="900" />
+				<field name="layoutWidth" type="radio" label="TPL_GENERICO_LAYOUT_WIDTH_LABEL" default="boxed" layout="joomla.form.field.radio.switcher">
+					<option value="boxed">TPL_GENERICO_LAYOUT_WIDTH_BOXED</option>
+					<option value="full-width">TPL_GENERICO_LAYOUT_WIDTH_FULL</option>
+				</field>
+				<field name="logoFile" type="media" label="TPL_GENERICO_LOGO_LABEL" />
+				<field name="logoWidth" type="number" label="TPL_GENERICO_LOGO_WIDTH_LABEL" description="TPL_GENERICO_LOGO_WIDTH_DESC" default="150" min="50" step="10" />
+				<field name="stickyHeader" type="radio" label="TPL_GENERICO_STICKY_HEADER_LABEL" default="1" layout="joomla.form.field.radio.switcher">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="headerHeight" type="radio" label="TPL_GENERICO_HEADER_HEIGHT_LABEL" default="compact" layout="joomla.form.field.radio.switcher">
+					<option value="compact">TPL_GENERICO_HEADER_HEIGHT_COMPACT</option>
+					<option value="normal">TPL_GENERICO_HEADER_HEIGHT_NORMAL</option>
+				</field>
+				<field name="headerShadow" type="radio" label="TPL_GENERICO_HEADER_SHADOW_LABEL" default="1" layout="joomla.form.field.radio.switcher">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="headerSeparator" type="radio" label="TPL_GENERICO_HEADER_SEPARATOR_LABEL" default="1" layout="joomla.form.field.radio.switcher">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="borderRadius" type="number" label="TPL_GENERICO_BORDER_RADIUS_LABEL" default="4" min="0" step="1" />
+				<field name="verticalSpacing" type="list" label="TPL_GENERICO_VERTICAL_SPACING_LABEL" default="M">
+					<option value="S">TPL_GENERICO_SPACING_SMALL</option>
+					<option value="M">TPL_GENERICO_SPACING_MEDIUM</option>
+					<option value="L">TPL_GENERICO_SPACING_LARGE</option>
+				</field>
+			</fieldset>
+			<fieldset name="functional" label="TPL_GENERICO_FUNCTIONAL_LABEL">
+				<field name="mobileMenuBehavior" type="radio" label="TPL_GENERICO_MOBILE_MENU_BEHAVIOR_LABEL" default="offcanvas" layout="joomla.form.field.radio.switcher">
+					<option value="offcanvas">TPL_GENERICO_MOBILE_MENU_OFFCANVAS</option>
+					<option value="collapse">TPL_GENERICO_MOBILE_MENU_COLLAPSE</option>
+				</field>
+				<field name="searchPosition" type="radio" label="TPL_GENERICO_SEARCH_POSITION_LABEL" default="below" layout="joomla.form.field.radio.switcher">
+					<option value="below">TPL_GENERICO_SEARCH_POSITION_BELOW</option>
+					<option value="inline">TPL_GENERICO_SEARCH_POSITION_INLINE</option>
+				</field>
+				<field name="footerColumns" type="list" label="TPL_GENERICO_FOOTER_COLUMNS_LABEL" default="4">
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+				</field>
+			</fieldset>
+			<fieldset name="integrations" label="TPL_GENERICO_INTEGRATIONS_LABEL">
+				<field name="gtmId" type="text" label="TPL_GENERICO_GTM_ID_LABEL" description="TPL_GENERICO_GTM_ID_DESC" filter="string" />
+				<field name="fbPixelId" type="text" label="TPL_GENERICO_FB_PIXEL_ID_LABEL" description="TPL_GENERICO_FB_PIXEL_ID_DESC" filter="string" />
+			</fieldset>
+		</fields>
+	</config>
+</extension>
