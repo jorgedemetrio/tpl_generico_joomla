@@ -17,7 +17,7 @@ Ele utiliza **Bootstrap 5.3.3 via CDN** e **jQuery via CDN**.
 
 ## 🧱 Estrutura do Template
 
-"""plaintext
+```plaintext
 /templates/tpl_generico/
 ├── css/                 # Arquivos CSS adicionais
 ├── js/                  # Scripts do template
@@ -26,7 +26,7 @@ Ele utiliza **Bootstrap 5.3.3 via CDN** e **jQuery via CDN**.
 ├── language/            # Arquivos de idioma (8 idiomas)
 ├── index.php            # Estrutura principal do template
 └── templateDetails.xml  # Manifesto do template Joomla
-"""
+```
 
 ---
 
