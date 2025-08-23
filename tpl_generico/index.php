@@ -14,9 +14,21 @@ $input = $app->getInput();
 $wa    = $this->getWebAssetManager();
 
 // Favicon
-if (file_exists(JPATH_BASE . '/images/favicon.ico'))
-{
-	$this->addHeadLink(HTMLHelper::_('image', 'favicon.ico', '', [], true, 1), 'icon', 'rel', ['type' => 'image/vnd.microsoft.icon']);
+$faviconFile = $this->params->get('faviconFile');
+if ($faviconFile) {
+    $faviconUrl = Uri::root(false) . htmlspecialchars($faviconFile, ENT_QUOTES);
+    $mime = '';
+    $ext = pathinfo($faviconUrl, PATHINFO_EXTENSION);
+    if ($ext === 'ico') {
+        $mime = 'image/vnd.microsoft.icon';
+    } elseif ($ext === 'png') {
+        $mime = 'image/png';
+    } elseif ($ext === 'svg') {
+        $mime = 'image/svg+xml';
+    }
+    if ($mime) {
+        $this->addHeadLink($faviconUrl, 'icon', 'rel', ['type' => $mime]);
+    }
 }
 
 // CSS Variable Generation
@@ -89,7 +101,6 @@ if ($fbPixelId) {
 <html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>">
 <head>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <link href="/templates/generico/favicon.ico" rel="icon" type="image/vnd.microsoft.icon">
     <jdoc:include type="head" />
 </head>
 <body class="site <?php echo $option . ' view-' . $view . ($layout ? ' layout-' . $layout : '') . ($pageclass ? ' ' . $pageclass : ''); ?>">
