@@ -1,0 +1,176 @@
+/* ========================================================================
+   Component: Base
+ ========================================================================== */
+body {
+    font-family: var(--familia-fonte-primaria, system-ui, sans-serif);
+    font-size: var(--tamanho-base-fonte, 1rem);
+    font-weight: var(--peso-fonte-normal, 400);
+    color: var(--cor-texto, #222222);
+    background-color: var(--cor-superficie-clara, #FFFFFF);
+    line-height: 1.6;
+}
+
+a {
+    color: var(--cor-cta, #2F80ED);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover,
+a:focus {
+    color: var(--cor-primaria, #1F4E79);
+    text-decoration: underline;
+    outline: none;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: var(--peso-fonte-titulos, 700);
+    color: var(--cor-primaria, #1F4E79);
+    margin-top: var(--espacamento-vertical-global, 2rem);
+    margin-bottom: 1rem;
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+hr {
+    border-color: var(--cor-borda, #E5E7EB);
+    margin: var(--espacamento-vertical-global, 2rem) 0;
+}
+
+/* ========================================================================
+   Component: Header
+ ========================================================================== */
+.header {
+    background-color: var(--cor-superficie-clara, #FFFFFF);
+    transition: padding 0.3s ease-in-out;
+}
+
+.header .navbar {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Header Height Variants */
+.header.header-compact .navbar {
+    min-height: 50px;
+}
+
+.header.header-normal .navbar {
+    min-height: 80px;
+}
+
+.header .navbar-brand .site-title {
+    color: var(--cor-primaria, #1F4E79);
+    font-weight: var(--peso-fonte-titulos, 700);
+    font-size: 1.5rem;
+}
+
+/* ========================================================================
+   Component: Forms & Buttons
+ ========================================================================== */
+.btn-primary {
+    background-color: var(--cor-cta, #2F80ED);
+    border-color: var(--cor-cta, #2F80ED);
+    border-radius: var(--raio-borda-global, 4px);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--cor-primaria, #1F4E79);
+    border-color: var(--cor-primaria, #1F4E79);
+}
+
+.btn-secondary {
+    background-color: var(--cor-secundaria, #2E7D32);
+    border-color: var(--cor-secundaria, #2E7D32);
+    color: #fff;
+    border-radius: var(--raio-borda-global, 4px);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    opacity: 0.9;
+}
+
+.form-control,
+.form-select {
+    border-radius: var(--raio-borda-global, 4px);
+    border-color: var(--cor-borda, #E5E7EB);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--cor-cta, #2F80ED);
+    box-shadow: 0 0 0 0.25rem rgba(var(--cor-cta, #2F80ED), 0.25);
+}
+
+
+/* ========================================================================
+   Component: Joomla Specific
+ ========================================================================== */
+.card,
+div.moduletable,
+div.module {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    border: 1px solid var(--cor-borda, #E5E7EB);
+    border-radius: var(--raio-borda-global, 4px);
+    padding: 1.5rem;
+    margin-bottom: var(--espacamento-vertical-global, 2rem);
+}
+
+.alert {
+    border-radius: var(--raio-borda-global, 4px);
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    padding: 0.75rem 1rem;
+    border-radius: var(--raio-borda-global, 4px);
+}
+
+/* ========================================================================
+   Component: Footer
+ ========================================================================== */
+.footer {
+    background-color: var(--cor-footer, #0F172A);
+    color: var(--cor-texto-secundario, #6B7280);
+    padding-top: var(--espacamento-vertical-global, 2rem);
+    padding-bottom: var(--espacamento-vertical-global, 2rem);
+}
+
+.footer a {
+    color: var(--cor-superficie-clara, #FFFFFF);
+}
+
+.footer a:hover,
+.footer a:focus {
+    color: var(--cor-cta, #2F80ED);
+}
+
+.footer .module-title,
+.footer h1, .footer h2, .footer h3, .footer h4, .footer h5 {
+    color: var(--cor-superficie-clara, #FFFFFF);
+    font-weight: var(--peso-fonte-titulos, 700);
+    margin-bottom: 1rem;
+}
+
+.footer ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.footer ul li {
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================================================
+   Accessibility
+ ========================================================================== */
+:focus-visible {
+  outline: 3px solid var(--cor-cta, #2F80ED);
+  outline-offset: 2px;
+  border-radius: var(--raio-borda-global, 4px);
+}

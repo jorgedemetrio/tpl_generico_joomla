@@ -1,0 +1,30 @@
+name: Deploy Template via FTPS
+
+on:
+  push:
+    tags:
+      - 'v*' # Aciona o workflow em tags como v1.0, v2.3.4, etc.
+
+jobs:
+  deploy:
+    name: Deploy to FTPS Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Extrair versão da tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Tornar o script de deploy executável
+        run: chmod +x .github/scripts/deploy.sh
+
+      - name: Executar o script de deploy
+        env:
+          FTP_URL: ${{ secrets.FTP_URL }}
+          FTP_USER: ${{ secrets.FTP_USUARIO }}
+          FTP_PASSWORD: ${{ secrets.FTP_SENHA }}
+        run: .github/scripts/deploy.sh $VERSION
