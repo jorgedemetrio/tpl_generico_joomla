@@ -88,16 +88,6 @@ if [ -z "$FTP_URL" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
 fi
 
 # Usa lftp para o upload. É um cliente de linha de comando robusto que suporta FTPS.
-# -c: Executa os comandos e sai.
-# set ftp:ssl-allow yes: Permite a conexão FTPS.
-# set ssl:verify-certificate no: Desativa a verificação do certificado (ajustar se você tiver um certificado válido).
-# open: Conecta ao servidor usando as credenciais.
-# mirror -R: Sincroniza (upload) o diretório local para o remoto.
-# -p: Permite o upload paralelo.
-# --delete: Deleta arquivos no destino que não existem na origem.
-# --only-newer: Envia apenas arquivos mais novos.
-#
-# O comando 'mirror' não é ideal para apenas dois arquivos. Usaremos 'put' e 'mkdir'
 lftp -c "set ftp:ssl-allow yes; set ssl:verify-certificate no;
 open -u ${FTP_USER},${FTP_PASSWORD} ${FTP_URL};
 mkdir -p /${APP_NAME};
