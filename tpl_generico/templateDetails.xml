@@ -81,6 +81,9 @@
 					<option value="full-width">TPL_GENERICO_LAYOUT_WIDTH_FULL</option>
 				</field>
 				<field name="logoFile" type="media" label="TPL_GENERICO_LOGO_LABEL" />
+				<field name="faviconIco" type="text" label="TPL_GENERICO_FAVICON_ICO_LABEL" description="TPL_GENERICO_FAVICON_ICO_DESC" filter="string" />
+				<field name="faviconPng32" type="text" label="TPL_GENERICO_FAVICON_PNG32_LABEL" description="TPL_GENERICO_FAVICON_PNG32_DESC" filter="string" />
+				<field name="faviconApple" type="text" label="TPL_GENERICO_FAVICON_APPLE_LABEL" description="TPL_GENERICO_FAVICON_APPLE_DESC" filter="string" />
 				<field name="logoWidth" type="number" label="TPL_GENERICO_LOGO_WIDTH_LABEL" description="TPL_GENERICO_LOGO_WIDTH_DESC" default="150" min="50" step="10" />
 				<field name="stickyHeader" type="radio" label="TPL_GENERICO_STICKY_HEADER_LABEL" default="1" layout="joomla.form.field.radio.switcher">
 					<option value="1">JYES</option>
@@ -126,4 +129,7 @@
 			</fieldset>
 		</fields>
 	</config>
+	<updateservers>
+		<server type="extension" priority="1" name="Servidor de Atualização do tpl_generico">http://apps.sobieskiproducoes.com.br/tpl_generico/atualizacao.xml</server>
+	</updateservers>
 </extension>

@@ -14,9 +14,14 @@ $input = $app->getInput();
 $wa    = $this->getWebAssetManager();
 
 // Favicon
-if (file_exists(JPATH_BASE . '/images/favicon.ico'))
-{
-	$this->addHeadLink(HTMLHelper::_('image', 'favicon.ico', '', [], true, 1), 'icon', 'rel', ['type' => 'image/vnd.microsoft.icon']);
+if ($faviconIco = $this->params->get('faviconIco')) {
+    $this->addHeadLink(Uri::root(true) . '/' . htmlspecialchars($faviconIco), 'icon', 'rel', ['type' => 'image/vnd.microsoft.icon']);
+}
+if ($faviconPng32 = $this->params->get('faviconPng32')) {
+    $this->addHeadLink(Uri::root(true) . '/' . htmlspecialchars($faviconPng32), 'icon', 'rel', ['type' => 'image/png', 'sizes' => '32x32']);
+}
+if ($faviconApple = $this->params->get('faviconApple')) {
+    $this->addHeadLink(Uri::root(true) . '/' . htmlspecialchars($faviconApple), 'apple-touch-icon', 'rel', ['sizes' => '180x180']);
 }
 
 // CSS Variable Generation
@@ -89,7 +94,6 @@ if ($fbPixelId) {
 <html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>">
 <head>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <link href="/templates/generico/favicon.ico" rel="icon" type="image/vnd.microsoft.icon">
     <jdoc:include type="head" />
 </head>
 <body class="site <?php echo $option . ' view-' . $view . ($layout ? ' layout-' . $layout : '') . ($pageclass ? ' ' . $pageclass : ''); ?>">
