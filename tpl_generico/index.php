@@ -47,7 +47,7 @@ if ($spacing === 'L') $spacingValue = '3rem';
 $cssVars .= "--espacamento-vertical-global: {$spacingValue};";
 
 // Enable assets
-HTMLHelper::_('bootstrap.framework');
+//HTMLHelper::_('bootstrap.framework');
 $wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
 
 // Page Info
