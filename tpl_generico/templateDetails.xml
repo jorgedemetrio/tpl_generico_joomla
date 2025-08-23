@@ -126,4 +126,7 @@
 			</fieldset>
 		</fields>
 	</config>
+	<updateservers>
+		<server type="extension" priority="1" name="Servidor de Atualização do tpl_generico">http://apps.sobieskiproducoes.com.br/tpl_generico/atualizacao.xml</server>
+	</updateservers>
 </extension>
