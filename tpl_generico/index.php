@@ -14,21 +14,14 @@ $input = $app->getInput();
 $wa    = $this->getWebAssetManager();
 
 // Favicon
-$faviconFile = $this->params->get('faviconFile');
-if ($faviconFile) {
-    $faviconUrl = Uri::root(false) . htmlspecialchars($faviconFile, ENT_QUOTES);
-    $mime = '';
-    $ext = pathinfo($faviconUrl, PATHINFO_EXTENSION);
-    if ($ext === 'ico') {
-        $mime = 'image/vnd.microsoft.icon';
-    } elseif ($ext === 'png') {
-        $mime = 'image/png';
-    } elseif ($ext === 'svg') {
-        $mime = 'image/svg+xml';
-    }
-    if ($mime) {
-        $this->addHeadLink($faviconUrl, 'icon', 'rel', ['type' => $mime]);
-    }
+if ($faviconIco = $this->params->get('faviconIco')) {
+    $this->addHeadLink(Uri::root(true) . '/' . htmlspecialchars($faviconIco), 'icon', 'rel', ['type' => 'image/vnd.microsoft.icon']);
+}
+if ($faviconPng32 = $this->params->get('faviconPng32')) {
+    $this->addHeadLink(Uri::root(true) . '/' . htmlspecialchars($faviconPng32), 'icon', 'rel', ['type' => 'image/png', 'sizes' => '32x32']);
+}
+if ($faviconApple = $this->params->get('faviconApple')) {
+    $this->addHeadLink(Uri::root(true) . '/' . htmlspecialchars($faviconApple), 'apple-touch-icon', 'rel', ['sizes' => '180x180']);
 }
 
 // CSS Variable Generation
