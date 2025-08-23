@@ -62,9 +62,9 @@ cat > atualizacao.xml << EOL
         <element>generico</element>
         <type>template</type>
         <version>${PLAIN_VERSION}</version>
-        <infourl title="Sobieski Produções">http://apps.sobieskiproducoes.com.br/${APP_NAME}/atualizacao.xml</infourl>
+        <infourl title="Sobieski Produções">https://apps.sobieskiproducoes.com.br/${APP_NAME}/atualizacao.xml</infourl>
         <downloads>
-            <downloadurl type="full" format="zip">http://apps.sobieskiproducoes.com.br/${APP_NAME}/${ZIP_FILE}</downloadurl>
+            <downloadurl type="full" format="zip">https://apps.sobieskiproducoes.com.br/${APP_NAME}/${ZIP_FILE}</downloadurl>
         </downloads>
         <tags>
             <tag>stable</tag>
