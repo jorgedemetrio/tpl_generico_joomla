@@ -1,0 +1,46 @@
+{
+  "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+  "name": "tpl_generico",
+  "version": "1.0.0",
+  "description": "Assets for the tpl_generico template.",
+  "license": "GPL-2.0-or-later",
+  "assets": [
+    {
+      "name": "tpl_generico.css",
+      "type": "style",
+      "uri": "template.css",
+      "dependencies": [
+        "fontawesome"
+      ]
+    },
+    {
+      "name": "tpl_generico.js",
+      "type": "script",
+      "uri": "template.js",
+      "dependencies": [
+        "core"
+      ],
+      "attributes": {
+        "defer": true
+      }
+    },
+    {
+      "name": "tpl_generico.preset",
+      "type": "preset",
+      "dependencies": [
+        "tpl_generico.css#style",
+        "tpl_generico.js#script"
+      ]
+    },
+    {
+      "name": "tpl_generico.offline",
+      "type": "style",
+      "uri": "offline.css"
+    },
+    {
+      "name": "fontawesome",
+      "type": "style",
+      "uri": "system/joomla-fontawesome.min.css"
+    }
+  ]
+}
