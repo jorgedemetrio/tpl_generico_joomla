@@ -32,6 +32,7 @@ $cssVars .= "--cor-cta: {$this->params->get('ctaColor', '#2F80ED')};";
 $cssVars .= "--cor-texto: {$this->params->get('textColor', '#222222')};";
 $cssVars .= "--cor-texto-secundario: {$this->params->get('textSecondaryColor', '#6B7280')};";
 $cssVars .= "--cor-superficie-clara: {$this->params->get('surfaceLightColor', '#FFFFFF')};";
+$cssVars .= "--cor-superficie-clara-topo: {$this->params->get('surfaceLightColorTopo', '#FFFFFF')};";
 $cssVars .= "--cor-superficie-alt: {$this->params->get('surfaceAltColor', '#F5F7FA')};";
 $cssVars .= "--cor-borda: {$this->params->get('borderColor', '#E5E7EB')};";
 $cssVars .= "--cor-footer: {$this->params->get('footerColor', '#0F172A')};";
@@ -49,6 +50,21 @@ $cssVars .= "--espacamento-vertical-global: {$spacingValue};";
 // Enable assets
 //HTMLHelper::_('bootstrap.framework');
 $wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
+
+
+$doc = Factory::getApplication()->getDocument();
+$templatePath = 'media/templates/site/' . $this->template;
+$doc->addStyleSheet($templatePath . '/css/template.css');
+//$doc->addScript($templatePath . '/js/template.js', ['defer' => true]);
+
+
+
+
+
+
+
+
+
 
 // Page Info
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
@@ -185,6 +201,5 @@ if ($fbPixelId) {
     <?php endif; ?>
     <jdoc:include type="modules" name="debug" style="none" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
 </body>
 </html>

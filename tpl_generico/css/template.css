@@ -43,7 +43,7 @@ hr {
    Component: Header
  ========================================================================== */
 .header {
-    background-color: var(--cor-superficie-clara, #FFFFFF);
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
     transition: padding 0.3s ease-in-out;
 }
 

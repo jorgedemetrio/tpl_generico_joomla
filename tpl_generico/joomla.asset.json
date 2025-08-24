@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
-  "name": "tpl_generico",
+  "name": "generico",
   "version": "1.0.0",
   "description": "Assets for the tpl_generico template.",
   "license": "GPL-2.0-or-later",
