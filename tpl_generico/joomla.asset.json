@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
-  "name": "tpl_generico",
+  "name": "generico",
   "version": "1.0.0",
   "description": "Assets for the tpl_generico template.",
   "license": "GPL-2.0-or-later",
@@ -8,16 +8,18 @@
     {
       "name": "tpl_generico.css",
       "type": "style",
-      "uri": "css/template.css",
+      "uri": "template.css",
       "dependencies": [
+        "bootstrap.css",
         "fontawesome"
       ]
     },
     {
       "name": "tpl_generico.js",
       "type": "script",
-      "uri": "js/template.js",
+      "uri": "template.js",
       "dependencies": [
+        "jquery",
         "core"
       ],
       "attributes": {

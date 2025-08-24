@@ -32,8 +32,11 @@ $cssVars .= "--cor-cta: {$this->params->get('ctaColor', '#2F80ED')};";
 $cssVars .= "--cor-texto: {$this->params->get('textColor', '#222222')};";
 $cssVars .= "--cor-texto-secundario: {$this->params->get('textSecondaryColor', '#6B7280')};";
 $cssVars .= "--cor-superficie-clara: {$this->params->get('surfaceLightColor', '#FFFFFF')};";
+$cssVars .= "--cor-superficie-clara-topo: {$this->params->get('surfaceLightColorTopo', '#FFFFFF')};";
 $cssVars .= "--cor-superficie-alt: {$this->params->get('surfaceAltColor', '#F5F7FA')};";
 $cssVars .= "--cor-borda: {$this->params->get('borderColor', '#E5E7EB')};";
+$cssVars .= "--espaco-interno-titulo-card: {$this->params->get('espacoInternoTituloCard', '1.5rem')};";
+$cssVars .= "--margin-topo-titulo-card: {$this->params->get('margemTopoTituloCard', '10px')};";
 $cssVars .= "--cor-footer: {$this->params->get('footerColor', '#0F172A')};";
 $cssVars .= "--familia-fonte-primaria: {$this->params->get('fontFamilyPrimary', 'system-ui, sans-serif')};";
 $cssVars .= "--tamanho-base-fonte: {$this->params->get('fontSizeBase', '1rem')};";
@@ -47,10 +50,10 @@ if ($spacing === 'L') $spacingValue = '3rem';
 $cssVars .= "--espacamento-vertical-global: {$spacingValue};";
 
 // Enable assets
-HTMLHelper::_('bootstrap.framework');
+//HTMLHelper::_('bootstrap.framework');
 $wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
 
-// Page Info
+
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
 $option   = $input->getCmd('option', '');
 $view     = $input->getCmd('view', '');
@@ -61,7 +64,7 @@ $pageclass = $app->getMenu()->getActive() ? $app->getMenu()->getActive()->getPar
 $logoWidth = $this->params->get('logoWidth', 150);
 $logo = '';
 if ($this->params->get('logoFile')) {
-    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" style="width: ' . (int) $logoWidth . 'px;" loading="lazy" />';
+    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: ' . (int) $logoWidth . 'px;" loading="lazy" />';
 } else {
     $logo = '<span class="site-title" title="' . $sitename . '">' . htmlspecialchars($this->params->get('siteTitle', $sitename), ENT_COMPAT, 'UTF-8') . '</span>';
 }
@@ -93,7 +96,6 @@ if ($fbPixelId) {
 <!DOCTYPE html>
 <html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>">
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <jdoc:include type="head" />
 </head>
 <body class="site <?php echo $option . ' view-' . $view . ($layout ? ' layout-' . $layout : '') . ($pageclass ? ' ' . $pageclass : ''); ?>">
@@ -184,7 +186,5 @@ if ($fbPixelId) {
     </footer>
     <?php endif; ?>
     <jdoc:include type="modules" name="debug" style="none" />
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
 </body>
 </html>
