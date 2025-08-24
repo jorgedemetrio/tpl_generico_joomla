@@ -79,17 +79,13 @@ cat > nova_entrada.xml << EOL
     </update>
 EOL
 echo "Nova entrada de atualização gerada em nova_entrada.xml."
-
 # --- Combinação do XML de Atualização ---
 echo "Preparando o arquivo atualizacao.xml final..."
 
-# Conecta ao FTP e tenta baixar o arquivo de atualização existente.
+# Tenta baixar o arquivo de atualização existente via wget.
 FILE_EXISTS=true
-echo "Tentando baixar o arquivo atualizacao.xml existente do servidor..."
-lftp -c "set sftp:auto-confirm yes; set ftp:ssl-allow yes; set ssl:verify-certificate no;
-open -u ${FTP_USER},${FTP_PASSWORD} sftp://${FTP_URL};
-cd /${APP_NAME};
-get -o atualizacao_remota.xml atualizacao.xml" > /dev/null 2>&1 || FILE_EXISTS=false
+echo "Tentando baixar o arquivo atualizacao.xml existente de https://apps.sobieskiproducoes.com.br/${APP_NAME}/atualizacao.xml..."
+wget -O atualizacao_remota.xml "https://apps.sobieskiproducoes.com.br/${APP_NAME}/atualizacao.xml" > /dev/null 2>&1 || FILE_EXISTS=false
 
 if [ "$FILE_EXISTS" = false ]; then
   echo "Arquivo atualizacao.xml não encontrado no servidor. Criando um novo."
@@ -104,7 +100,6 @@ else
   sed '2r nova_entrada.xml' atualizacao_remota.xml > atualizacao.xml
 fi
 echo "Arquivo atualizacao.xml final gerado com sucesso."
-
 
 # --- Deploy via SFTP ---
 echo "Iniciando o deploy para o servidor SFTP..."
