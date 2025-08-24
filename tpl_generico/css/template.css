@@ -122,7 +122,12 @@ div.module {
     background-color: var(--cor-superficie-alt, #F5F7FA);
     border: 1px solid var(--cor-borda, #E5E7EB);
     border-radius: var(--raio-borda-global, 4px);
-    padding: var(--espaco-interno-titulo-card, 1.5rem);
+    padding: var(--espaco-interno-card, 1.5rem);
+    margin-top: var(--margin-topo-card, 10px);
+    margin-bottom: var(--espacamento-vertical-global, 2rem);
+}
+
+div.card .card-header {
     margin-top: var(--margin-topo-titulo-card, 10px);
     margin-bottom: var(--espacamento-vertical-global, 2rem);
 }
