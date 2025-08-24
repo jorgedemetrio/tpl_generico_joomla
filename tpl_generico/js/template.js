@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+/*document.addEventListener('DOMContentLoaded', function () {
   const header = document.getElementById('header');
   const mainContent = document.getElementById('main-content');
 
@@ -14,4 +14,4 @@ document.addEventListener('DOMContentLoaded', function () {
     // Adjust padding on window resize
     window.addEventListener('resize', setMainContentPadding);
   }
-});
+});*/
