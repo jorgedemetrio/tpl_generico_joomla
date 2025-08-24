@@ -1,8 +1,12 @@
+permissions:
+  contents: read
 name: Build
 on:
   push:
     branches:
       - master
+      - develop
+      - release
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:

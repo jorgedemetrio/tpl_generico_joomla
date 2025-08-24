@@ -79,7 +79,6 @@ cat > nova_entrada.xml << EOL
     </update>
 EOL
 echo "Nova entrada de atualização gerada em nova_entrada.xml."
-
 # --- Combinação do XML de Atualização ---
 echo "Preparando o arquivo atualizacao.xml final..."
 
@@ -101,7 +100,6 @@ else
   sed '2r nova_entrada.xml' atualizacao_remota.xml > atualizacao.xml
 fi
 echo "Arquivo atualizacao.xml final gerado com sucesso."
-
 
 # --- Deploy via SFTP ---
 echo "Iniciando o deploy para o servidor SFTP..."
