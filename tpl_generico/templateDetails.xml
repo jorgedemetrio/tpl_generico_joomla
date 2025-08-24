@@ -14,12 +14,14 @@
 		<filename>joomla.asset.json</filename>
 		<filename>offline.php</filename>
 		<filename>templateDetails.xml</filename>
-		<folder>css</folder>
 		<folder>html</folder>
-		<folder>images</folder>
-		<folder>js</folder>
 		<folder>language</folder>
 	</files>
+	<media destination="templates/site/generico" folder="media">
+		<folder>js</folder>
+		<folder>css</folder>
+		<folder>images</folder>
+	</media>
 	<positions>
 		<position>topbar</position>
 		<position>below-top</position>
@@ -68,6 +70,7 @@
 				<field name="ctaColor" type="color" label="TPL_GENERICO_COLOR_CTA_LABEL" default="#2F80ED" />
 				<field name="textColor" type="color" label="TPL_GENERICO_COLOR_TEXT_LABEL" default="#222222" />
 				<field name="textSecondaryColor" type="color" label="TPL_GENERICO_COLOR_TEXT_SECONDARY_LABEL" default="#6B7280" />
+				<field name="surfaceLightColorTopo" type="color" label="TPL_GENERICO_COLOR_SURFACE_LIGHT_TOPO_LABEL" default="#FFFFFF" />
 				<field name="surfaceLightColor" type="color" label="TPL_GENERICO_COLOR_SURFACE_LIGHT_LABEL" default="#FFFFFF" />
 				<field name="surfaceAltColor" type="color" label="TPL_GENERICO_COLOR_SURFACE_ALT_LABEL" default="#F5F7FA" />
 				<field name="borderColor" type="color" label="TPL_GENERICO_COLOR_BORDER_LABEL" default="#E5E7EB" />

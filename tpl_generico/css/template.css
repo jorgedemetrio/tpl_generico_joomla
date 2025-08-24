@@ -39,13 +39,19 @@ hr {
     margin: var(--espacamento-vertical-global, 2rem) 0;
 }
 
+#Passkey {
+    display: none;
+}
+
+
 /* ========================================================================
    Component: Header
  ========================================================================== */
 .header {
-    background-color: var(--cor-superficie-clara, #FFFFFF);
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
     transition: padding 0.3s ease-in-out;
 }
+
 
 .header .navbar {
     padding-top: 0;
