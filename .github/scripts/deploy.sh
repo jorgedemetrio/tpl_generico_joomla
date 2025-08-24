@@ -109,10 +109,8 @@ if [ -z "$FTP_URL" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
     echo "Erro: As variáveis de ambiente FTP_URL, FTP_USER e FTP_PASSWORD devem ser configuradas."
     exit 1
 fi
-
-# Usa lftp para o upload.
 lftp -c "set sftp:auto-confirm yes; set ftp:ssl-allow yes; set ssl:verify-certificate no;
-open -u ${FTP_USER},${FTP_PASSWORD} sftp://${FTP_URL};
+open -u ${FTP_USER},${FTP_PASSWORD} ${FTP_URL};
 mkdir -p /${APP_NAME};
 cd /${APP_NAME};
 put -O . ${ZIP_FILE};
