@@ -44,7 +44,7 @@ echo "Atualizando a versão no templateDetails.xml para ${PLAIN_VERSION}..."
 sed -i "s|<version>.*</version>|<version>${PLAIN_VERSION}</version>|g" "${BUILD_DIR}/templateDetails.xml"
 echo "Versão atualizada com sucesso."
 echo "Atualizando a versão no joomla.asset.json para ${PLAIN_VERSION}..."
-sed -i "s|\"version\":*,|\"version\": \"${PLAIN_VERSION}</version>|g" "${BUILD_DIR}/joomla.asset.json"
+sed -i "s|\"version\":*,|\"version\": \"${PLAIN_VERSION}\",|g" "${BUILD_DIR}/joomla.asset.json"
 echo "Versão atualizada com sucesso."
   
 
