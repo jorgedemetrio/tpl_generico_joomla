@@ -10,6 +10,68 @@
 
 defined('_JEXEC') or die;
 
+// JSON-LD Data Structure
+try {
+    $app = Factory::getApplication();
+    $document = $app->getDocument();
+    $template = $app->getTemplate(true);
+
+    // Determine Article Type
+    $publishDate = Factory::getDate($this->item->publish_up)->format('Y-m-d');
+    $today = Factory::getDate('now', $app->get('offset'))->format('Y-m-d');
+    $articleType = ($publishDate === $today) ? 'NewsArticle' : 'Article';
+
+    // Publisher Info
+    $siteName = $app->get('sitename');
+    $logoFile = $template->params->get('logoFile');
+    $logoUrl = $logoFile ? Uri::base() . htmlspecialchars($logoFile) : '';
+
+    // Image Info
+    $images = json_decode($this->item->images);
+    $imageUrl = !empty($images->image_fulltext) ? Uri::base() . htmlspecialchars($images->image_fulltext) : '';
+
+    $jsonLdData = [
+        '@context'      => 'https://schema.org',
+        '@type'         => $articleType,
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id'   => Uri::getInstance()->toString(),
+        ],
+        'headline'      => $this->escape($this->item->title),
+        'datePublished' => HTMLHelper::_('date', $this->item->publish_up, 'c'),
+        'dateModified'  => HTMLHelper::_('date', $this->item->modified, 'c'),
+        'author'        => [
+            '@type' => 'Person',
+            'name'  => $this->item->author,
+        ],
+        'publisher'     => [
+            '@type' => 'Organization',
+            'name'  => $siteName,
+        ],
+    ];
+
+    if ($imageUrl) {
+        $jsonLdData['image'] = [
+            '@type' => 'ImageObject',
+            'url' => $imageUrl,
+        ];
+    }
+
+    if ($logoUrl) {
+        $jsonLdData['publisher']['logo'] = [
+            '@type' => 'ImageObject',
+            'url' => $logoUrl,
+        ];
+    }
+
+    $jsonLd = json_encode($jsonLdData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $scriptTag = '<script type="application/ld+json">' . PHP_EOL . $jsonLd . PHP_EOL . '</script>';
+    $document->addCustomTag($scriptTag);
+
+} catch (Exception $e) {
+    // Never break the site
+}
+
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Associations;
