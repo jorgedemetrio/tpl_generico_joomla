@@ -35,8 +35,6 @@ $cssVars .= "--cor-superficie-clara: {$this->params->get('surfaceLightColor', '#
 $cssVars .= "--cor-superficie-clara-topo: {$this->params->get('surfaceLightColorTopo', '#FFFFFF')};";
 $cssVars .= "--cor-superficie-alt: {$this->params->get('surfaceAltColor', '#F5F7FA')};";
 $cssVars .= "--cor-borda: {$this->params->get('borderColor', '#E5E7EB')};";
-$cssVars .= "--espaco-interno-titulo-card: {$this->params->get('espacoInternoTituloCard', '1.5rem')};";
-$cssVars .= "--margin-topo-titulo-card: {$this->params->get('margemTopoTituloCard', '10px')};";
 $cssVars .= "--cor-footer: {$this->params->get('footerColor', '#0F172A')};";
 $cssVars .= "--familia-fonte-primaria: {$this->params->get('fontFamilyPrimary', 'system-ui, sans-serif')};";
 $cssVars .= "--tamanho-base-fonte: {$this->params->get('fontSizeBase', '1rem')};";
@@ -138,7 +136,6 @@ if ($fbPixelId) {
             <?php if ($this->countModules('breadcrumbs', true)) : ?>
             <div class="row"><div class="col-12"><nav aria-label="breadcrumb"><jdoc:include type="modules" name="breadcrumbs" style="none" /></nav></div></div>
             <?php endif; ?>
-            <div id="system-message-container"><jdoc:include type="message" /></div>
             <?php if ($this->countModules('top-a', true) || $this->countModules('top-b', true)) : ?>
             <div class="row">
                 <?php if ($this->countModules('top-a', true)) : ?><div class="col-md-6"><jdoc:include type="modules" name="top-a" style="card" /></div><?php endif; ?>
@@ -148,6 +145,7 @@ if ($fbPixelId) {
             <div class="row">
                 <?php if ($sidebarLeft) : ?><aside id="sidebar-left" class="col-lg-3" role="complementary"><jdoc:include type="modules" name="sidebar-left" style="card" /></aside><?php endif; ?>
                 <div id="component-area" class="<?php echo $mainClass; ?>">
+                    <div id="system-message-container"><jdoc:include type="message" /></div>
                     <?php if ($this->countModules('main-top', true)) : ?><jdoc:include type="modules" name="main-top" style="card" /><?php endif; ?>
                     <jdoc:include type="component" />
                     <?php if ($this->countModules('main-bottom', true)) : ?><jdoc:include type="modules" name="main-bottom" style="card" /><?php endif; ?>
