@@ -1,7 +1,7 @@
 # 🎨 Template Joomla 5 — tpl_generico
 
 Este repositório contém o **template oficial Joomla 5** chamado **tpl_generico**, desenvolvido para ser um **tema base genérico**, **responsivo**, **acessível** e **otimizado para SEO**.  
-Ele utiliza **Bootstrap 5.3.3 via CDN** e **jQuery via CDN**.
+Ele utiliza **Bootstrap 5.3.3** e **jQuery**.
 
 ---
 

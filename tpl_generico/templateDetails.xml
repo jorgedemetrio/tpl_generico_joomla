@@ -74,6 +74,8 @@
 				<field name="surfaceLightColor" type="color" label="TPL_GENERICO_COLOR_SURFACE_LIGHT_LABEL" default="#FFFFFF" />
 				<field name="surfaceAltColor" type="color" label="TPL_GENERICO_COLOR_SURFACE_ALT_LABEL" default="#F5F7FA" />
 				<field name="borderColor" type="color" label="TPL_GENERICO_COLOR_BORDER_LABEL" default="#E5E7EB" />
+				<field name="espacoInternoCard" type="text" label="TPL_GENERICO_ESPACO_INTERNO_CARD_LABEL" default="1.5rem" />
+				<field name="margemTopoCard" type="text" label="TPL_GENERICO_MARGEM_TOPO_CARD_LABEL" default="10px" />
 				<field name="espacoInternoTituloCard" type="text" label="TPL_GENERICO_ESPACO_INTERNO_TITULO_CARD_LABEL" default="1.5rem" />
 				<field name="margemTopoTituloCard" type="text" label="TPL_GENERICO_MARGEM_TOPO_TITULO_CARD_LABEL" default="10px" />
 				<field name="footerColor" type="color" label="TPL_GENERICO_COLOR_FOOTER_LABEL" default="#0F172A" />
