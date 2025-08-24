@@ -39,10 +39,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body class="site offline">
-    <div class="offline-card" style="
-    width: 500px;
-    margin: 0 auto;
-">
+    <div class="offline-card" style=" width: 500px; margin: 0 auto;">
         <div class="header">
             <h1><?php echo $logo; ?></h1>
         </div>
