@@ -15,6 +15,7 @@ $app = Factory::getApplication();
 // Load template's offline CSS
 $wa = $this->getWebAssetManager();
 HTMLHelper::_('bootstrap.framework');
+
 $params = $app->getTemplate(true)->params;
 
 // CSS Variable Generation
