@@ -52,11 +52,6 @@ $cssVars .= "--espacamento-vertical-global: {$spacingValue};";
 $wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
 
 
-$doc = Factory::getApplication()->getDocument();
-$templatePath = 'media/templates/site/' . $this->template;
-$doc->addStyleSheet($templatePath . '/css/template.css');
-//$doc->addScript($templatePath . '/js/template.js', ['defer' => true]);
-// Page Info
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
 $option   = $input->getCmd('option', '');
 $view     = $input->getCmd('view', '');
