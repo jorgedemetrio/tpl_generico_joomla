@@ -10,6 +10,7 @@
       "type": "style",
       "uri": "template.css",
       "dependencies": [
+        "bootstrap.css",
         "fontawesome"
       ]
     },
@@ -18,6 +19,7 @@
       "type": "script",
       "uri": "template.js",
       "dependencies": [
+        "jquery",
         "core"
       ],
       "attributes": {
