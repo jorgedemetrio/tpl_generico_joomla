@@ -5,10 +5,10 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Helper\ModuleHelper;
 
 /** @var Joomla\CMS\Document\HtmlDocument $this */
-
 $app   = Factory::getApplication();
 $input = $app->getInput();
 $wa    = $this->getWebAssetManager();
@@ -50,7 +50,7 @@ if ($spacing === 'L') $spacingValue = '3rem';
 $cssVars .= "--espacamento-vertical-global: {$spacingValue};";
 
 // Enable assets
-//HTMLHelper::_('bootstrap.framework');
+HTMLHelper::_('bootstrap.framework');
 $wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
 
 
@@ -131,13 +131,14 @@ if ($fbPixelId) {
 
     <?php if ($this->countModules('banner', true)) : ?><section id="banner" role="banner"><jdoc:include type="modules" name="banner" style="none" /></section><?php endif; ?>
 
-    <div id="system-message-container"><jdoc:include type="message" /></div>
+
 
     <main id="main-content" role="main">
         <div class="<?php echo $containerClass; ?>">
             <?php if ($this->countModules('breadcrumbs', true)) : ?>
             <div class="row"><div class="col-12"><nav aria-label="breadcrumb"><jdoc:include type="modules" name="breadcrumbs" style="none" /></nav></div></div>
             <?php endif; ?>
+            <div id="system-message-container"><jdoc:include type="message" /></div>
             <?php if ($this->countModules('top-a', true) || $this->countModules('top-b', true)) : ?>
             <div class="row">
                 <?php if ($this->countModules('top-a', true)) : ?><div class="col-md-6"><jdoc:include type="modules" name="top-a" style="card" /></div><?php endif; ?>

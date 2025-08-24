@@ -37,7 +37,11 @@
     {
       "name": "tpl_generico.offline",
       "type": "style",
-      "uri": "offline.css"
+      "uri": "offline.css",
+      "dependencies": [
+        "bootstrap.css",
+        "fontawesome"
+      ]
     },
     {
       "name": "fontawesome",
