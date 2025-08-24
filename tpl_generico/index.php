@@ -56,16 +56,6 @@ $doc = Factory::getApplication()->getDocument();
 $templatePath = 'media/templates/site/' . $this->template;
 $doc->addStyleSheet($templatePath . '/css/template.css');
 //$doc->addScript($templatePath . '/js/template.js', ['defer' => true]);
-
-
-
-
-
-
-
-
-
-
 // Page Info
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
 $option   = $input->getCmd('option', '');
@@ -77,7 +67,7 @@ $pageclass = $app->getMenu()->getActive() ? $app->getMenu()->getActive()->getPar
 $logoWidth = $this->params->get('logoWidth', 150);
 $logo = '';
 if ($this->params->get('logoFile')) {
-    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" style="width: ' . (int) $logoWidth . 'px;" loading="lazy" />';
+    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: ' . (int) $logoWidth . 'px;" loading="lazy" />';
 } else {
     $logo = '<span class="site-title" title="' . $sitename . '">' . htmlspecialchars($this->params->get('siteTitle', $sitename), ENT_COMPAT, 'UTF-8') . '</span>';
 }
