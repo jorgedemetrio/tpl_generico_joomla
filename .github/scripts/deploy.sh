@@ -56,11 +56,9 @@ zip -r ../${ZIP_FILE} .
 cd ..
 echo "Pacote ZIP criado com sucesso em $(pwd)/${ZIP_FILE}"
 
-# --- Geração do atualizacao.xml ---
-echo "Gerando o arquivo atualizacao.xml..."
-cat > atualizacao.xml << EOL
-<?xml version="1.0" encoding="utf-8"?>
-<updates>
+# --- Geração da Entrada de Atualização ---
+echo "Gerando a nova entrada de atualização..."
+cat > nova_entrada.xml << EOL
     <update>
         <name>${APP_NAME}</name>
         <description>Template Genérico para Joomla 5</description>
@@ -79,12 +77,34 @@ cat > atualizacao.xml << EOL
         <targetplatform name="joomla" version="5.*"/>
         <php_minimum>8.1</php_minimum>
     </update>
-</updates>
 EOL
-echo "atualizacao.xml gerado com sucesso."
+echo "Nova entrada de atualização gerada em nova_entrada.xml."
 
-# --- Deploy via FTPS ---
-echo "Iniciando o deploy para o servidor FTPS..."
+# --- Combinação do XML de Atualização ---
+echo "Preparando o arquivo atualizacao.xml final..."
+
+# Tenta baixar o arquivo de atualização existente via wget.
+FILE_EXISTS=true
+echo "Tentando baixar o arquivo atualizacao.xml existente de https://apps.sobieskiproducoes.com.br/${APP_NAME}/atualizacao.xml..."
+wget -O atualizacao_remota.xml "https://apps.sobieskiproducoes.com.br/${APP_NAME}/atualizacao.xml" > /dev/null 2>&1 || FILE_EXISTS=false
+
+if [ "$FILE_EXISTS" = false ]; then
+  echo "Arquivo atualizacao.xml não encontrado no servidor. Criando um novo."
+  (
+    echo '<?xml version="1.0" encoding="utf-8"?>'
+    echo '<updates>'
+    cat nova_entrada.xml
+    echo '</updates>'
+  ) > atualizacao.xml
+else
+  echo "Arquivo atualizacao.xml encontrado. Adicionando nova entrada."
+  sed '2r nova_entrada.xml' atualizacao_remota.xml > atualizacao.xml
+fi
+echo "Arquivo atualizacao.xml final gerado com sucesso."
+
+
+# --- Deploy via SFTP ---
+echo "Iniciando o deploy para o servidor SFTP..."
 
 # Verifica se as variáveis de ambiente de FTP estão configuradas.
 if [ -z "$FTP_URL" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
@@ -92,9 +112,9 @@ if [ -z "$FTP_URL" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
     exit 1
 fi
 
-# Usa lftp para o upload. É um cliente de linha de comando robusto que suporta FTPS.
-lftp -c "set ftp:ssl-allow yes; set ssl:verify-certificate no;
-open -u ${FTP_USER},${FTP_PASSWORD} ${FTP_URL};
+# Usa lftp para o upload.
+lftp -c "set sftp:auto-confirm yes; set ftp:ssl-allow yes; set ssl:verify-certificate no;
+open -u ${FTP_USER},${FTP_PASSWORD} sftp://${FTP_URL};
 mkdir -p /${APP_NAME};
 cd /${APP_NAME};
 put -O . ${ZIP_FILE};
@@ -107,6 +127,7 @@ echo "Deploy concluído com sucesso!"
 echo "Limpando arquivos temporários..."
 rm -rf ${BUILD_DIR}
 rm ${ZIP_FILE}
-rm atualizacao.xml
+rm nova_entrada.xml
+rm -f atualizacao.xml atualizacao_remota.xml
 
 echo "Processo finalizado."

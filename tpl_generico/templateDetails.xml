@@ -74,6 +74,8 @@
 				<field name="surfaceLightColor" type="color" label="TPL_GENERICO_COLOR_SURFACE_LIGHT_LABEL" default="#FFFFFF" />
 				<field name="surfaceAltColor" type="color" label="TPL_GENERICO_COLOR_SURFACE_ALT_LABEL" default="#F5F7FA" />
 				<field name="borderColor" type="color" label="TPL_GENERICO_COLOR_BORDER_LABEL" default="#E5E7EB" />
+				<field name="espacoInternoTituloCard" type="text" label="TPL_GENERICO_ESPACO_INTERNO_TITULO_CARD_LABEL" default="1.5rem" />
+				<field name="margemTopoTituloCard" type="text" label="TPL_GENERICO_MARGEM_TOPO_TITULO_CARD_LABEL" default="10px" />
 				<field name="footerColor" type="color" label="TPL_GENERICO_COLOR_FOOTER_LABEL" default="#0F172A" />
 				<field name="fontFamilyPrimary" type="text" label="TPL_GENERICO_FONT_FAMILY_LABEL" default="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" description="TPL_GENERICO_FONT_FAMILY_DESC" />
 				<field name="fontSizeBase" type="text" label="TPL_GENERICO_FONT_SIZE_BASE_LABEL" default="1rem" description="TPL_GENERICO_FONT_SIZE_BASE_DESC" />
