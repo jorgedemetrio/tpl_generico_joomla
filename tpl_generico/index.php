@@ -7,6 +7,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Helper\ModuleHelper;
+require_once __DIR__ . '/helper.php';
 
 /** @var Joomla\CMS\Document\HtmlDocument $this */
 $app   = Factory::getApplication();
@@ -25,31 +26,7 @@ if ($faviconApple = $this->params->get('faviconApple')) {
 }
 
 // CSS Variable Generation
-$cssVars = '';
-$cssVars .= "--cor-primaria: {$this->params->get('primaryColor', '#1F4E79')};";
-$cssVars .= "--cor-secundaria: {$this->params->get('secondaryColor', '#2E7D32')};";
-$cssVars .= "--cor-cta: {$this->params->get('ctaColor', '#2F80ED')};";
-$cssVars .= "--cor-texto: {$this->params->get('textColor', '#222222')};";
-$cssVars .= "--cor-texto-secundario: {$this->params->get('textSecondaryColor', '#6B7280')};";
-$cssVars .= "--cor-superficie-clara: {$this->params->get('surfaceLightColor', '#FFFFFF')};";
-$cssVars .= "--cor-superficie-clara-topo: {$this->params->get('surfaceLightColorTopo', '#FFFFFF')};";
-$cssVars .= "--espaco-interno-card: {$this->params->get('espacoInternoCard', '1.5rem')};";
-$cssVars .= "--margin-topo-card: {$this->params->get('margemTopoCard', '10px')};";
-$cssVars .= "--espaco-interno-titulo-card: {$this->params->get('espacoInternoTituloCard', '1.5rem')};";
-$cssVars .= "--margin-topo-titulo-card: {$this->params->get('margemTopoTituloCard', '10px')};";
-$cssVars .= "--cor-superficie-alt: {$this->params->get('surfaceAltColor', '#F5F7FA')};";
-$cssVars .= "--cor-borda: {$this->params->get('borderColor', '#E5E7EB')};";
-$cssVars .= "--cor-footer: {$this->params->get('footerColor', '#0F172A')};";
-$cssVars .= "--familia-fonte-primaria: {$this->params->get('fontFamilyPrimary', 'system-ui, sans-serif')};";
-$cssVars .= "--tamanho-base-fonte: {$this->params->get('fontSizeBase', '1rem')};";
-$cssVars .= "--peso-fonte-normal: {$this->params->get('fontWeightNormal', '400')};";
-$cssVars .= "--peso-fonte-titulos: {$this->params->get('fontWeightHeadings', '700')};";
-$cssVars .= "--raio-borda-global: {$this->params->get('borderRadius', '4')}px;";
-$spacing = $this->params->get('verticalSpacing', 'M');
-$spacingValue = '2rem';
-if ($spacing === 'S') $spacingValue = '1rem';
-if ($spacing === 'L') $spacingValue = '3rem';
-$cssVars .= "--espacamento-vertical-global: {$spacingValue};";
+$cssVars = TplGenericoHelper::buildCssVars($this->params);
 
 // Enable assets
 HTMLHelper::_('bootstrap.framework');
