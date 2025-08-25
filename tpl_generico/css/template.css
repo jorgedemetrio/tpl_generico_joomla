@@ -162,7 +162,7 @@ div.card .card-header {
     color: var(--cor-texto-secundario, #6B7280);
     padding-top: var(--espacamento-vertical-global, 2rem);
     padding-bottom: var(--espacamento-vertical-global, 2rem);
-    min-height: 300px;
+    min-height: var(--footer-min-height, 300px);
 }
 
 .footer a {
