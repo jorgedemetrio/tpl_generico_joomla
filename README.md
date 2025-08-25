@@ -94,6 +94,26 @@ A URL onde é gerado a atualização : [`https://apps.sobieskiproducoes.com.br/t
 
 ---
 
+## ⚡ Instalação Rápida com Script
+
+Para uma instalação ou atualização rápida e automatizada, você pode usar o script `installTemplate.php`. Este script baixa a versão mais recente do template diretamente do repositório oficial e a instala no seu Joomla.
+
+### Como Usar
+
+1.  **Faça o upload do script**: Envie o arquivo `installTemplate.php` para o diretório raiz da sua instalação do Joomla (a mesma pasta onde se encontram os arquivos `configuration.php` e `index.php`).
+2.  **Execute o script**: Acesse o script diretamente no seu navegador. Por exemplo: `https://seusite.com.br/installTemplate.php`.
+3.  **Acompanhe o processo**: O script exibirá mensagens de status indicando o progresso do download e da instalação.
+4.  **Remoção (Opcional, mas recomendado)**: Após a conclusão, por segurança, é uma boa prática remover o arquivo `installTemplate.php` do seu servidor.
+
+### Pré-requisitos do Servidor
+
+Para que o script funcione corretamente, seu servidor precisa ter as seguintes extensões PHP habilitadas:
+-   `SimpleXML` (para ler o arquivo de atualização)
+-   `cURL` ou `allow_url_fopen` habilitado (para baixar os arquivos)
+-   `ZipArchive` (para descompactar o template)
+
+---
+
 ## 🧭 Padrões de Desenvolvimento
 
 - Seguir as diretrizes em `DEVELOPMENT_GUIDELINES.md`.  
