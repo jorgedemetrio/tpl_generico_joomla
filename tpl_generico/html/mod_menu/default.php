@@ -44,7 +44,7 @@ if (!function_exists('renderMenuItems')) {
                 $linkAttrs[] = 'data-bs-toggle="dropdown"';
                 $linkAttrs[] = 'aria-expanded="false"';
             } else {
-                $linkAttrs[] = 'href="' . $item->flink . '"';
+                $linkAttrs[] = 'href="' . htmlspecialchars($item->flink, ENT_QUOTES, 'UTF-8') . '"';
             }
             if ($item->browserNav == 1) {
                 $linkAttrs[] = 'target="_blank"';
