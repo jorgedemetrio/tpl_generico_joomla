@@ -90,15 +90,21 @@ if ($fbPixelId) {
         <?php endif; ?>
         <nav class="navbar navbar-expand-lg" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_LABEL'); ?>">
             <div class="<?php echo $containerClass; ?>">
+                <?php if ($sidebarLeft) : ?>
+                <button class="navbar-toggler sidebar-toggler d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar-left" aria-controls="sidebar-left" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_LEFT_TOGGLE'); ?>"><i class="fas fa-bars" aria-hidden="true"></i></button>
+                <?php endif; ?>
                 <a class="navbar-brand" href="<?php echo $this->baseurl; ?>/"><?php echo $logo; ?></a>
+                <?php if ($sidebarRight) : ?>
+                <button class="navbar-toggler sidebar-toggler d-lg-none ms-auto me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar-right" aria-controls="sidebar-right" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_RIGHT_TOGGLE'); ?>"><i class="fas fa-ellipsis-v" aria-hidden="true"></i></button>
+                <?php endif; ?>
                 <?php if ($this->countModules('menu', true)) :
                     $mobileMenuBehavior = $this->params->get('mobileMenuBehavior', 'offcanvas');
-                ?><button class="navbar-toggler" type="button" data-bs-toggle="<?php echo $mobileMenuBehavior; ?>" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+                ?><button class="navbar-toggler<?php echo $sidebarRight ? '' : ' ms-auto'; ?>" type="button" data-bs-toggle="<?php echo $mobileMenuBehavior; ?>" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-expanded="false" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_TOGGLE'); ?>"><span class="navbar-toggler-icon"></span></button>
                     <?php if ($mobileMenuBehavior === 'collapse') : ?>
                         <div class="collapse navbar-collapse" id="mobileMenu"><jdoc:include type="modules" name="menu" style="none" /></div>
                     <?php else : ?>
                         <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
-                            <div class="offcanvas-header"><h5 class="offcanvas-title" id="mobileMenuLabel"><?php echo Text::_('TPL_GENERICO_MENU_TITLE'); ?></h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button></div>
+                            <div class="offcanvas-header"><h5 class="offcanvas-title" id="mobileMenuLabel"><?php echo Text::_('TPL_GENERICO_MENU_TITLE'); ?></h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button></div>
                             <div class="offcanvas-body"><jdoc:include type="modules" name="menu" style="none" /></div>
                         </div>
                     <?php endif; ?>
@@ -124,14 +130,30 @@ if ($fbPixelId) {
             </div>
             <?php endif; ?>
             <div class="row">
-                <?php if ($sidebarLeft) : ?><aside id="sidebar-left" class="col-lg-3" role="complementary"><jdoc:include type="modules" name="sidebar-left" style="card" /></aside><?php endif; ?>
+                <?php if ($sidebarLeft) : ?>
+                <aside id="sidebar-left" class="col-lg-3 offcanvas-lg offcanvas-start" tabindex="-1" role="complementary" aria-labelledby="sidebar-left-label">
+                    <div class="offcanvas-header d-lg-none">
+                        <h5 class="offcanvas-title" id="sidebar-left-label"><?php echo Text::_('TPL_GENERICO_SIDEBAR_LEFT_TITLE'); ?></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar-left" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
+                    </div>
+                    <div class="offcanvas-body"><jdoc:include type="modules" name="sidebar-left" style="card" /></div>
+                </aside>
+                <?php endif; ?>
                 <div id="component-area" class="<?php echo $mainClass; ?>">
                     <div id="system-message-container"><jdoc:include type="message" /></div>
                     <?php if ($this->countModules('main-top', true)) : ?><jdoc:include type="modules" name="main-top" style="card" /><?php endif; ?>
                     <jdoc:include type="component" />
                     <?php if ($this->countModules('main-bottom', true)) : ?><jdoc:include type="modules" name="main-bottom" style="card" /><?php endif; ?>
                 </div>
-                <?php if ($sidebarRight) : ?><aside id="sidebar-right" class="col-lg-3" role="complementary"><jdoc:include type="modules" name="sidebar-right" style="card" /></aside><?php endif; ?>
+                <?php if ($sidebarRight) : ?>
+                <aside id="sidebar-right" class="col-lg-3 offcanvas-lg offcanvas-end" tabindex="-1" role="complementary" aria-labelledby="sidebar-right-label">
+                    <div class="offcanvas-header d-lg-none">
+                        <h5 class="offcanvas-title" id="sidebar-right-label"><?php echo Text::_('TPL_GENERICO_SIDEBAR_RIGHT_TITLE'); ?></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar-right" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
+                    </div>
+                    <div class="offcanvas-body"><jdoc:include type="modules" name="sidebar-right" style="card" /></div>
+                </aside>
+                <?php endif; ?>
             </div>
             <?php if ($this->countModules('bottom-a', true) || $this->countModules('bottom-b', true)) : ?>
             <div class="row">
