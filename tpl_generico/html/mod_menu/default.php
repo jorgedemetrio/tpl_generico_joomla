@@ -65,6 +65,6 @@ if (!function_exists('renderMenuItems')) {
 
 $id = $params->get('tag_id', 'main-menu-' . $module->id);
 ?>
-<ul class="navbar-nav ms-auto" id="<?php echo $id; ?>">
+<ul class="navbar-nav me-auto" id="<?php echo $id; ?>">
     <?php renderMenuItems($list); ?>
 </ul>
