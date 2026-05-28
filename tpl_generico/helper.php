@@ -67,7 +67,50 @@ if (!class_exists('TplGenericoHelper', false)) {
             }
             $cssVars .= "--espacamento-vertical-global: {$spacingValue};";
 
+            // Sincroniza as variaveis do Bootstrap 5 com as cores do template,
+            // garantindo que componentes do core (alerts, badges, navs, links,
+            // dropdowns, paginacao, etc.) respeitem as cores definidas no admin.
+            $primaryRgb   = self::hexToRgb($get('primaryColor', '#1F4E79'));
+            $secondaryRgb = self::hexToRgb($get('secondaryColor', '#2E7D32'));
+            $ctaRgb       = self::hexToRgb($get('ctaColor', '#2F80ED'));
+
+            $cssVars .= '--bs-primary: var(--cor-primaria);';
+            $cssVars .= '--bs-secondary: var(--cor-secundaria);';
+            $cssVars .= "--bs-primary-rgb: {$primaryRgb};";
+            $cssVars .= "--bs-secondary-rgb: {$secondaryRgb};";
+            $cssVars .= '--bs-link-color: var(--cor-cta);';
+            $cssVars .= "--bs-link-color-rgb: {$ctaRgb};";
+            $cssVars .= '--bs-link-hover-color: var(--cor-primaria);';
+            $cssVars .= "--bs-link-hover-color-rgb: {$primaryRgb};";
+            $cssVars .= '--bs-body-color: var(--cor-texto);';
+            $cssVars .= '--bs-body-bg: var(--cor-superficie-clara);';
+            $cssVars .= '--bs-border-color: var(--cor-borda);';
+            $cssVars .= '--bs-border-radius: var(--raio-borda-global);';
+            $cssVars .= '--bs-font-sans-serif: var(--familia-fonte-primaria);';
+            $cssVars .= '--bs-body-font-family: var(--familia-fonte-primaria);';
+            $cssVars .= '--bs-body-font-size: var(--tamanho-base-fonte);';
+            $cssVars .= '--bs-body-font-weight: var(--peso-fonte-normal);';
+
             return $cssVars;
+        }
+
+        /**
+         * Converte um valor hexadecimal (#RGB ou #RRGGBB) na tripla "R, G, B"
+         * usada pelas variaveis `--bs-*-rgb` do Bootstrap 5.
+         */
+        private static function hexToRgb($hex): string
+        {
+            $hex = is_string($hex) ? trim($hex) : '';
+            $hex = ltrim($hex, '#');
+
+            if (strlen($hex) === 3) {
+                $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+            }
+            if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+                return '0, 0, 0';
+            }
+
+            return hexdec(substr($hex, 0, 2)) . ', ' . hexdec(substr($hex, 2, 2)) . ', ' . hexdec(substr($hex, 4, 2));
         }
 
         /**

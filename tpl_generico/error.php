@@ -6,6 +6,8 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 
+require_once __DIR__ . '/helper.php';
+
 /** @var Joomla\CMS\Document\ErrorDocument $this */
 
 $app = Factory::getApplication();
@@ -21,9 +23,13 @@ try {
 	$logoFile = $params->get('logoFile');
 	$siteTitle = $params->get('siteTitle');
 } catch (\Exception $e) {
+	$params = null;
 	$logoFile = '';
 	$siteTitle = '';
 }
+
+// Aplica as cores do admin tambem na pagina de erro.
+$this->addStyleDeclaration(':root { ' . TplGenericoHelper::buildCssVars($params) . ' }');
 
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
 // Tamanho fixo do logo na pagina de erro (independe do parametro do template).
