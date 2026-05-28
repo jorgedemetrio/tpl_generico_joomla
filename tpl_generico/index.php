@@ -30,7 +30,11 @@ $cssVars = TplGenericoHelper::buildCssVars($this->params);
 
 // Enable assets
 HTMLHelper::_('bootstrap.framework');
-$wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
+$wa->usePreset('tpl_generico.preset');
+// addStyleDeclaration entra no buffer de inline styles do documento, garantindo
+// que estas variaveis sejam renderizadas DEPOIS de bootstrap.css/template.css,
+// vencendo qualquer :root anterior e fazendo as cores do admin de fato valerem.
+$this->addStyleDeclaration(":root { $cssVars }");
 
 
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');

@@ -23,8 +23,10 @@ $params = $app->getTemplate(true)->params;
 $cssVars = TplGenericoHelper::buildCssVars($params);
 
 // Enable assets
-$wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
+$wa->usePreset('tpl_generico.preset');
 $wa->useStyle('tpl_generico.offline');
+// Inline depois dos <link>s garante que as cores do admin sobrescrevam o CSS base.
+$this->addStyleDeclaration(":root { $cssVars }");
 
 
 // Logo file or site title param
