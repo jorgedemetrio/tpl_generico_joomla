@@ -26,10 +26,12 @@ try {
 }
 
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
+// Tamanho fixo do logo na pagina de erro (independe do parametro do template).
+const TPL_GENERICO_ERROR_LOGO_WIDTH = 200;
 $logo = '';
 
 if ($logoFile) {
-    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($logoFile, ENT_QUOTES) . '" alt="' . $sitename . '" loading="eager" />';
+    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($logoFile, ENT_QUOTES) . '" alt="' . $sitename . '" style="width: ' . TPL_GENERICO_ERROR_LOGO_WIDTH . 'px; height: auto; display: block;" loading="eager" />';
 } elseif ($siteTitle) {
     $logo = '<span title="' . $sitename . '">' . htmlspecialchars($siteTitle, ENT_COMPAT, 'UTF-8') . '</span>';
 } else {

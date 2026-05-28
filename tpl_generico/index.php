@@ -37,7 +37,10 @@ $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
 $option   = $input->getCmd('option', '');
 $view     = $input->getCmd('view', '');
 $layout   = $input->getCmd('layout', '');
-$pageclass = $app->getMenu()->getActive() ? $app->getMenu()->getActive()->getParams()->get('pageclass_sfx', '') : '';
+$menu        = method_exists($app, 'getMenu') ? $app->getMenu() : null;
+$activeMenu  = $menu ? $menu->getActive() : null;
+$activeParams = ($activeMenu && method_exists($activeMenu, 'getParams')) ? $activeMenu->getParams() : null;
+$pageclass   = $activeParams ? (string) $activeParams->get('pageclass_sfx', '') : '';
 
 // Logo
 $logoWidth = $this->params->get('logoWidth', 150);
