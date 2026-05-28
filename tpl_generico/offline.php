@@ -28,15 +28,13 @@ $wa->useStyle('tpl_generico.offline');
 
 
 // Logo file or site title param
-$sitename  = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
-$logoWidth = (int) ($params ? $params->get('logoWidth', 150) : 150);
-if ($logoWidth <= 0) {
-    $logoWidth = 150;
-}
+$sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
+// Tamanho fixo do logo na pagina offline (independe do parametro do template).
+const TPL_GENERICO_OFFLINE_LOGO_WIDTH = 240;
 $logo = '';
 try {
     if ($params && $params->get('logoFile')) {
-        $logo = '<img src="' . Uri::root(false) . htmlspecialchars($params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: ' . $logoWidth . 'px; margin: 0 auto;" loading="lazy" />';
+        $logo = '<img src="' . Uri::root(false) . htmlspecialchars($params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: ' . TPL_GENERICO_OFFLINE_LOGO_WIDTH . 'px; height: auto; display: block; margin: 0 auto;" loading="lazy" />';
     } else {
         $title = $params ? $params->get('siteTitle', $sitename) : $sitename;
         $logo = '<span title="' . $sitename . '">' . htmlspecialchars($title, ENT_COMPAT, 'UTF-8') . '</span>';
