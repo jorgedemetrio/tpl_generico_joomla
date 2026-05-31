@@ -116,6 +116,17 @@ if ($gtmId) {
 if ($fbPixelId) {
     $this->addScriptDeclaration("!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', '" . htmlspecialchars($fbPixelId) . "');fbq('track', 'PageView');");
 }
+
+// Codigo livre do administrador (snippets completos: GTM, Pixel, verificacao
+// de dominio, widgets de chat, etc.). Sao injetados crus — os campos usam
+// filter="raw" no XML e so o gerenciador de templates (super admin) os edita.
+$customHeadCode       = (string) $this->params->get('customHeadCode', '');
+$customBodyTopCode    = (string) $this->params->get('customBodyTopCode', '');
+$customBodyBottomCode = (string) $this->params->get('customBodyBottomCode', '');
+if ($customHeadCode !== '') {
+    // addCustomTag insere markup cru dentro do <head> (via jdoc:include head).
+    $this->addCustomTag($customHeadCode);
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>">
@@ -125,6 +136,8 @@ if ($fbPixelId) {
 <body class="site <?php echo $option . ' view-' . $view . ($layout ? ' layout-' . $layout : '') . ($pageclass ? ' ' . $pageclass : ''); ?>">
     <?php if ($gtmId) : ?><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo htmlspecialchars($gtmId); ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><?php endif; ?>
     <?php if ($fbPixelId) : ?><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?php echo htmlspecialchars($fbPixelId); ?>&ev=PageView&noscript=1" /></noscript><?php endif; ?>
+    <?php // Codigo livre logo apos a abertura do <body> (ex.: <noscript> do GTM).
+    echo $customBodyTopCode; ?>
 
     <header id="header" class="header <?php echo $stickyHeader . ' ' . $headerShadow . ' ' . $headerSeparator . ' ' . $headerHeightClass; ?>" role="banner">
         <?php if ($this->countModules('topbar', true)) : ?>
@@ -236,5 +249,7 @@ if ($fbPixelId) {
     </footer>
     <?php endif; ?>
     <jdoc:include type="modules" name="debug" style="none" />
+    <?php // Codigo livre antes do fechamento do </body> (ex.: scripts de rodape, chat).
+    echo $customBodyBottomCode; ?>
 </body>
 </html>
