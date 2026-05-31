@@ -3,6 +3,12 @@
  ========================================================================== */
 html {
     height: 100%;
+    /* Compensa o header fixo ao navegar para ancoras (#id) — substitui o
+       antigo ajuste via JavaScript. O valor e atualizado pelo template.js
+       conforme a altura real do header. */
+    scroll-padding-top: var(--generico-header-height, 80px);
+    /* Scroll suave respeitando quem prefere movimento reduzido (ver media query). */
+    scroll-behavior: smooth;
 }
 
 body.site {
@@ -21,6 +27,13 @@ body.site {
     flex-grow: 1;
 }
 
+/* Container "boxed" com largura maxima configuravel no admin. */
+@media (min-width: 1200px) {
+    .container {
+        max-width: var(--generico-container-max-width, 1140px);
+    }
+}
+
 a {
     color: var(--cor-cta, #2F80ED);
     text-decoration: none;
@@ -34,15 +47,30 @@ a:focus {
     outline: none;
 }
 
+/* Tipografia fluida: escala suavemente entre mobile e desktop sem media queries. */
+h1, .h1 { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.5rem); }
+h2, .h2 { font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2rem); }
+h3, .h3 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.6rem); }
+
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-weight: var(--peso-fonte-titulos, 700);
     color: var(--cor-primaria, #1F4E79);
     margin-top: var(--espacamento-vertical-global, 2rem);
     margin-bottom: 1rem;
+    line-height: 1.25;
+    overflow-wrap: break-word;
 }
 
 p {
     margin-bottom: 1rem;
+}
+
+/* Midia nunca estoura o container — base de responsividade. */
+img,
+video,
+iframe {
+    max-width: 100%;
+    height: auto;
 }
 
 hr {
@@ -60,9 +88,13 @@ hr {
  ========================================================================== */
 .header {
     background-color: var(--cor-superficie-clara-topo, #FFFFFF);
-    transition: padding 0.3s ease-in-out;
+    transition: padding 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
+/* z-index acima do conteudo quando fixo (sticky-top do Bootstrap ja cuida do flow). */
+.header.sticky-top {
+    z-index: 1030;
+}
 
 .header .navbar {
     padding-top: 0;
@@ -78,10 +110,20 @@ hr {
     min-height: 80px;
 }
 
+/* Encolhe levemente o header ao rolar (classe adicionada via template.js). */
+.header.is-scrolled .navbar {
+    min-height: 50px;
+}
+
 .header .navbar-brand .site-title {
     color: var(--cor-primaria, #1F4E79);
     font-weight: var(--peso-fonte-titulos, 700);
-    font-size: 1.5rem;
+    font-size: clamp(1.1rem, 0.9rem + 1vw, 1.5rem);
+}
+
+.header .navbar-brand img {
+    height: auto;
+    transition: max-height 0.3s ease-in-out;
 }
 
 /* ========================================================================
@@ -120,16 +162,23 @@ hr {
 .form-control:focus,
 .form-select:focus {
     border-color: var(--cor-cta, #2F80ED);
-    box-shadow: 0 0 0 0.25rem rgba(var(--cor-cta, #2F80ED), 0.25);
+    /* Usa a tripla RGB gerada no helper.php — rgba() nao aceita hex em var(). */
+    box-shadow: 0 0 0 0.25rem rgba(var(--cor-cta-rgb, 47, 128, 237), 0.25);
 }
 
 
 /* ========================================================================
    Component: Joomla Specific
  ========================================================================== */
+/* Cards explicitos e modulos no conteudo principal/sidebars recebem o estilo
+   de cartao. Evita "encartonar" menu, busca e footer (que tem layout proprio). */
 .card,
-div.moduletable,
-div.module {
+#component-area div.moduletable,
+#component-area div.module,
+#sidebar-left div.moduletable,
+#sidebar-left div.module,
+#sidebar-right div.moduletable,
+#sidebar-right div.module {
     background-color: var(--cor-superficie-alt, #F5F7FA);
     border: 1px solid var(--cor-borda, #E5E7EB);
     border-radius: var(--raio-borda-global, 4px);
@@ -199,6 +248,20 @@ div.card .card-header {
   border-radius: var(--raio-borda-global, 4px);
 }
 
+/* Respeita usuarios que pedem menos movimento (sistema operacional). */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 
 @media (width >= 992px) {
     .col-lg-3 {
@@ -248,4 +311,24 @@ div.card .card-header {
         display: block;
         padding: 0;
     }
+}
+
+/* ========================================================================
+   Color scheme: Dark mode (data-bs-theme="dark" no <html>)
+   Preserva as cores de marca (primaria/secundaria/cta) definidas no admin e
+   apenas inverte superficies e texto, aproveitando o suporte nativo do
+   Bootstrap 5.3 a data-bs-theme.
+ ========================================================================== */
+[data-bs-theme="dark"] {
+    --cor-texto: #E5E7EB;
+    --cor-texto-secundario: #9CA3AF;
+    --cor-superficie-clara: #0F172A;
+    --cor-superficie-clara-topo: #111827;
+    --cor-superficie-alt: #1E293B;
+    --cor-borda: #334155;
+    color-scheme: dark;
+}
+
+[data-bs-theme="dark"] .footer {
+    border-top: 1px solid var(--cor-borda, #334155);
 }

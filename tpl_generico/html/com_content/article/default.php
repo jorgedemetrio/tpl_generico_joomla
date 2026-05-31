@@ -105,9 +105,14 @@ if($this->item && $this->item->metakey){
 }
 
 
+// Dispara o evento ViewContent do Facebook Pixel quando ele estiver presente.
+// Vanilla JS (o template nao carrega mais jQuery) e com guarda: se o Pixel nao
+// estiver configurado, `fbq` nao existe e o script simplesmente nao faz nada.
 $document->addScriptDeclaration("
-	$(document).ready(function(){
-		fbq('track', 'ViewContent');
+	document.addEventListener('DOMContentLoaded', function () {
+		if (typeof fbq === 'function') {
+			fbq('track', 'ViewContent');
+		}
 	});
 ");
 

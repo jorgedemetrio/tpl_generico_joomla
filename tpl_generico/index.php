@@ -36,6 +36,18 @@ $wa->usePreset('tpl_generico.preset');
 // vencendo qualquer :root anterior e fazendo as cores do admin de fato valerem.
 $this->addStyleDeclaration(":root { $cssVars }");
 
+// Fonte do Google (opcional): cole a URL completa do Google Fonts no admin.
+// Faz preconnect (handshake antecipado) e carrega a folha de estilo.
+$googleFontUrl = $this->params->get('googleFontUrl');
+if ($googleFontUrl) {
+    $preload = $this->getPreloadManager();
+    $preload->preconnect('https://fonts.googleapis.com', ['crossorigin' => 'anonymous']);
+    $preload->preconnect('https://fonts.gstatic.com', ['crossorigin' => 'anonymous']);
+    // URL crua: o campo e type="url"/filter="url" (ja sanitizado) e o Joomla
+    // escapa o href na renderizacao — escapar aqui causaria duplo-escape do "&".
+    $wa->registerAndUseStyle('tpl_generico.googlefont', $googleFontUrl, [], ['crossorigin' => 'anonymous']);
+}
+
 
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
 $option   = $input->getCmd('option', '');
@@ -46,11 +58,12 @@ $activeMenu  = $menu ? $menu->getActive() : null;
 $activeParams = ($activeMenu && method_exists($activeMenu, 'getParams')) ? $activeMenu->getParams() : null;
 $pageclass   = $activeParams ? (string) $activeParams->get('pageclass_sfx', '') : '';
 
-// Logo
-$logoWidth = $this->params->get('logoWidth', 150);
+// Logo — esta acima da dobra: carrega com prioridade (eager + fetchpriority)
+// e reserva espaco com width para reduzir layout shift (CLS).
+$logoWidth = (int) $this->params->get('logoWidth', 150);
 $logo = '';
 if ($this->params->get('logoFile')) {
-    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: ' . (int) $logoWidth . 'px;" loading="lazy" />';
+    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" width="' . $logoWidth . '" style="width: ' . $logoWidth . 'px; height: auto;" loading="eager" fetchpriority="high" decoding="async" />';
 } else {
     $logo = '<span class="site-title" title="' . $sitename . '">' . htmlspecialchars($this->params->get('siteTitle', $sitename), ENT_COMPAT, 'UTF-8') . '</span>';
 }
@@ -67,11 +80,36 @@ $containerClass = ($this->params->get('layoutWidth', 'boxed') === 'full-width') 
 $stickyHeader = $this->params->get('stickyHeader', '1') === '1' ? 'sticky-top' : '';
 $headerShadow = $this->params->get('headerShadow', '1') === '1' ? 'shadow-sm' : '';
 $headerSeparator = $this->params->get('headerSeparator', '1') === '1' ? 'border-bottom' : '';
-$headerHeightClass = 'header-' . $this->params->get('headerHeight', 'normal');
+// Default alinhado ao templateDetails.xml (compact).
+$headerHeightClass = 'header-' . $this->params->get('headerHeight', 'compact');
+
+// Posicao da busca: 'inline' (dentro da navbar) ou 'below' (barra abaixo do header).
+$searchPosition = $this->params->get('searchPosition', 'below');
+$hasSearch      = $this->countModules('search', true);
+
+// Esquema de cores: light | dark | auto (auto segue o sistema do visitante).
+$colorScheme = $this->params->get('colorScheme', 'light');
+$htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 'light';
+if ($colorScheme === 'auto') {
+    // Aplica o tema do sistema antes da pintura, evitando flash de cor errada.
+    $this->addScriptDeclaration("(function(){try{var m=window.matchMedia('(prefers-color-scheme: dark)');var a=function(){document.documentElement.setAttribute('data-bs-theme',m.matches?'dark':'light');};a();m.addEventListener('change',a);}catch(e){}})();");
+}
 
 // Integrations
 $gtmId = $this->params->get('gtmId');
 $fbPixelId = $this->params->get('fbPixelId');
+// Handshake antecipado com os dominios de terceiros (reduz latencia do tracking).
+if ($gtmId || $fbPixelId) {
+    $preload = $this->getPreloadManager();
+    if ($gtmId) {
+        $preload->dnsPrefetch('https://www.googletagmanager.com');
+        $preload->preconnect('https://www.googletagmanager.com');
+    }
+    if ($fbPixelId) {
+        $preload->dnsPrefetch('https://connect.facebook.net');
+        $preload->preconnect('https://connect.facebook.net');
+    }
+}
 if ($gtmId) {
     $this->addScriptDeclaration("(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','" . htmlspecialchars($gtmId) . "');");
 }
@@ -80,7 +118,7 @@ if ($fbPixelId) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>">
+<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>">
 <head>
     <jdoc:include type="head" />
 </head>
@@ -116,9 +154,12 @@ if ($fbPixelId) {
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
-                <?php if ($this->countModules('search', true)) : ?><div id="search-header"><jdoc:include type="modules" name="search" style="none" /></div><?php endif; ?>
+                <?php if ($hasSearch && $searchPosition === 'inline') : ?><div id="search-header"><jdoc:include type="modules" name="search" style="none" /></div><?php endif; ?>
             </div>
         </nav>
+        <?php if ($hasSearch && $searchPosition === 'below') : ?>
+        <div id="search-below" class="border-top"><div class="<?php echo $containerClass; ?> py-2"><jdoc:include type="modules" name="search" style="none" /></div></div>
+        <?php endif; ?>
     </header>
 
     <?php if ($this->countModules('banner', true)) : ?><section id="banner" role="banner"><jdoc:include type="modules" name="banner" style="none" /></section><?php endif; ?>
