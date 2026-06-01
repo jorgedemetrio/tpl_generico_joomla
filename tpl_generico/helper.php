@@ -41,6 +41,10 @@ if (!class_exists('TplGenericoHelper', false)) {
             $cssVars  = "--cor-primaria: {$get('primaryColor', '#1F4E79')};";
             $cssVars .= "--cor-secundaria: {$get('secondaryColor', '#2E7D32')};";
             $cssVars .= "--cor-cta: {$get('ctaColor', '#2F80ED')};";
+            // Triplas RGB das cores de marca, usadas em rgba() (focus rings, overlays).
+            $cssVars .= '--cor-primaria-rgb: ' . self::hexToRgb($get('primaryColor', '#1F4E79')) . ';';
+            $cssVars .= '--cor-secundaria-rgb: ' . self::hexToRgb($get('secondaryColor', '#2E7D32')) . ';';
+            $cssVars .= '--cor-cta-rgb: ' . self::hexToRgb($get('ctaColor', '#2F80ED')) . ';';
             $cssVars .= "--cor-texto: {$get('textColor', '#222222')};";
             $cssVars .= "--cor-texto-secundario: {$get('textSecondaryColor', '#6B7280')};";
             $cssVars .= "--cor-superficie-clara: {$get('surfaceLightColor', '#FFFFFF')};";
@@ -66,6 +70,13 @@ if (!class_exists('TplGenericoHelper', false)) {
                 $spacingValue = '3rem';
             }
             $cssVars .= "--espacamento-vertical-global: {$spacingValue};";
+
+            // Largura maxima do container "boxed". Aceita valor livre (px/rem) vindo do admin;
+            // se vazio, usa o comportamento padrao do Bootstrap (sem limite extra).
+            $maxWidth = $get('containerMaxWidth', '');
+            if ($maxWidth !== '') {
+                $cssVars .= "--generico-container-max-width: {$maxWidth};";
+            }
 
             // Sincroniza as variaveis do Bootstrap 5 com as cores do template,
             // garantindo que componentes do core (alerts, badges, navs, links,
