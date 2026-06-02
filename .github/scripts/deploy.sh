@@ -74,7 +74,7 @@ cat > nova_entrada.xml << EOL
         </tags>
         <maintainer>Jorge Demetrio</maintainer>
         <maintainerurl>https://www.sobieskiproducoes.com.br</maintainerurl>
-        <targetplatform name="joomla" version="5.*"/>
+        <targetplatform name="joomla" version="(5|6)\.*"/>
         <php_minimum>8.1</php_minimum>
     </update>
 EOL
