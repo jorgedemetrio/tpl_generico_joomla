@@ -41,20 +41,23 @@ A URL onde é gerado a atualização : [`https://apps.sobieskiproducoes.com.br/t
 - `topbar` — barra superior (idiomas, login, atalhos)  
 - `below-top` — faixa de avisos/campanhas  
 - `menu` — navegação principal (header fixo)  
+- `mobile-menu` — área exclusiva para menu mobile (largura total, scroll vertical)
 - `search` — busca global  
 - `banner` — herói/carrossel  
 - `top-a`, `top-b` — blocos de destaque/CTAs  
 - `main-top`, `main-bottom` — acima/abaixo do componente principal  
 - `breadcrumbs` — trilha de navegação  
-- `sidebar-left`, `sidebar-right` — colunas laterais  
+- `sidebar-left`, `sidebar-right` — colunas laterais (ocultas em telas pequenas para melhor performance e layout)
 - `bottom-a`, `bottom-b`, `bottom` — blocos finais de conteúdo  
 - `footer` — rodapé escuro configurável  
 - `debug` — saída técnica apenas para administradores  
 - `message` — mensagens do Joomla  
 
 **Regras de layout responsivo:**  
-- Duas sidebars: conteúdo central ocupa 6 colunas.  
-- Uma sidebar: conteúdo central ocupa 9 colunas.  
+- **Mobile First**: Menu mobile dedicado na posição `mobile-menu` com suporte a scroll e largura total.
+- **Sidebars**: Ocultas em telas pequenas (`d-none d-lg-block`) para evitar que ocupem espaço vertical desnecessário.
+- Duas sidebars (Desktop): conteúdo central ocupa 6 colunas.  
+- Uma sidebar (Desktop): conteúdo central ocupa 9 colunas.  
 - Sem sidebar: conteúdo ocupa 12 colunas (100%).  
 
 ---
@@ -65,10 +68,21 @@ A URL onde é gerado a atualização : [`https://apps.sobieskiproducoes.com.br/t
 - **Fontes**: família tipográfica, tamanho base e pesos.  
 - **Layout**: centralizado (boxed) ou expandido (full-width).  
 - **Header**: sticky on/off, altura (compacta/normal), sombra.  
-- **Menu mobile**: offcanvas ou collapse.  
+- **Menu mobile**: offcanvas ou collapse (para a posição `menu`).  
 - **Footer**: número de colunas (2/3/4) e ordem.  
 
 > Todas as mudanças são aplicadas via **CSS custom properties** sem rebuild.
+
+---
+
+## 🔍 Validação e Qualidade
+
+O projeto segue rigorosos padrões de qualidade automatizados via GitHub Actions:
+
+- **PHP Syntax**: Validação de erros de sintaxe em todos os arquivos (`php -l`).
+- **PHPMD (PHP Mess Detector)**: Análise de complexidade e padrões de nomenclatura, adaptado para Joomla 5 (ignorando objetos legados com prefixo `J`).
+- **SonarQube**: Análise profunda de segurança e qualidade.
+- **Foco**: Performance, segurança, configurabilidade e responsividade total.
 
 ---
 

@@ -27,6 +27,7 @@
 		<position>topbar</position>
 		<position>below-top</position>
 		<position>menu</position>
+		<position>mobile-menu</position>
 		<position>search</position>
 		<position>banner</position>
 		<position>top-a</position>

@@ -20,7 +20,7 @@ O `tpl_generico` segue a estrutura padrão de templates do Joomla. Os arquivos e
     -   `template.css`: O principal arquivo de estilos. As customizações de CSS devem ser feitas aqui.
 
 -   `/js`: Contém os arquivos JavaScript do template.
-    -   `template.js`: O principal arquivo de scripts. Funcionalidades customizadas em JavaScript/jQuery devem ser adicionadas aqui.
+    -   `template.js`: O principal arquivo de scripts (JavaScript puro/vanilla). Funcionalidades customizadas devem ser adicionadas aqui.
 
 -   `/html`: Este diretório é usado para overrides (sobrescritas) de views de componentes e módulos do Joomla. Por exemplo, `html/com_content/article/default.php` sobrescreveria a view padrão de um artigo.
 
@@ -52,14 +52,14 @@ O template utiliza um sistema moderno e flexível de variáveis CSS (CSS Custom 
 
 ### 3.2. Scripts (JavaScript)
 
-O template disponibiliza as seguintes bibliotecas JavaScript, carregadas via CDN no `index.php`:
+O template carrega o JavaScript pelo Web Asset Manager do Joomla (não via CDN):
 -   **Bootstrap 5.3.3**: O framework completo de componentes e plugins.
--   **JQuery 3.7.1**: Embora o Joomla 5 não o inclua por padrão, este template o carrega para facilitar a manipulação do DOM e garantir compatibilidade com scripts que dependam dele.
+-   **jQuery NÃO é carregado.** O Joomla 5 não embarca jQuery e este template também não — o `template.js` é JavaScript puro (vanilla). Se um módulo/extensão precisar de jQuery, ele deve carregá-lo por conta própria.
 
 **Arquivo de Scripts Customizados:**
 -   As funcionalidades específicas do template devem ser adicionadas em `js/template.js`.
 -   Atualmente, este arquivo contém um script em JavaScript puro (vanilla JS) para ajustar o espaçamento do header fixo.
--   Você pode escrever código novo usando tanto JQuery (`$(document).ready(...)`) quanto JavaScript puro, conforme a necessidade.
+-   Escreva código novo em JavaScript puro (vanilla), seguindo o padrão do `template.js` (sem dependência de jQuery).
 
 ### 3.3. Gerenciamento de Assets (`joomla.asset.json`)
 
@@ -82,6 +82,7 @@ O template oferece uma ampla gama de posições de módulo para flexibilizar a o
 - topbar
 - below-top
 - menu
+- mobile-menu
 - search
 - banner
 - top-a
@@ -106,6 +107,14 @@ O template oferece uma ampla gama de posições de módulo para flexibilizar a o
 2. Crie ou edite um módulo.
 3. No campo "Posição", selecione uma das posições disponíveis do template `generico`.
 
+### 4.2. Menu mobile full-width e sidebars (responsividade)
+
+Em telas pequenas (abaixo do breakpoint `lg`, 992px) o template adota um menu **full-width** dedicado, em vez de espremer menus laterais:
+
+-   **Posição `mobile-menu`**: coloque aqui **apenas o(s) módulo(s)** que devem aparecer no botão de menu móvel (ex.: o módulo de Menu principal). O conteúdo é renderizado dentro de `#mobileMenuArea`, um *offcanvas* que ocupa **toda a largura e altura** da tela, com **botão de fechar** no topo e **rolagem interna** quando o conteúdo passa da altura visível.
+-   **Sidebars desktop-only**: `sidebar-left` e `sidebar-right` usam `d-none d-lg-block` — **somem abaixo de `lg`**. Em mobile elas seriam empilhadas e ocupariam a tela inteira; por isso a navegação móvel vai para a posição `mobile-menu`. No desktop voltam como colunas fixas (e *sticky*).
+-   O botão `mobile-menu` (ícone `fa-bars`) só aparece abaixo de `lg`. A posição `menu` continua existindo para o menu principal, com comportamento mobile próprio configurável (`offcanvas`/`collapse`) — use uma ou outra conforme o layout para não duplicar botões.
+
 ## 5. Testes e Boas Práticas
 
 ### 5.1. Fluxo de Teste
@@ -123,6 +132,23 @@ Como não há um ambiente de homologação formal, todo desenvolvimento deve ser
 -   **Comentários:** Comente seções de código complexas ou que não sejam óbvias.
 -   **Overrides:** Para modificar a saída de um módulo ou componente do Joomla, utilize o sistema de `overrides` no diretório `/html` em vez de editar os arquivos do core do Joomla.
 -   **Commits:** Escreva mensagens de commit claras e descritivas.
+
+### 5.3. Validação automatizada (qualidade e padronização)
+
+Antes de entregar na master ou criar a tag `v*`, rode o validador local:
+
+```bash
+.claude/skills/validacao-pre-producao/validar.sh
+```
+
+Ele **bloqueia (FAIL)** em: erro de `php -l`, falta de paridade i18n nos 8 idiomas (`.ini`/`.sys.ini`), `.php` da raiz não declarado em `<files>` do manifesto e `joomla.asset.json` inválido. Gera **WARN** (revisar à mão) para PHPMD, posições não declaradas, uso de objetos legados `J*` (no Joomla 5 use as classes COM namespace: `Joomla\CMS\Factory`, `HTMLHelper`, `Text`, `Route`, `Uri`, `ModuleHelper`) e pastas de mídia sem `index.html`.
+
+Na CI:
+
+-   **`build.yml`** (todo push/PR): `php -l` em todo `.php`, PHPMD (`phpmd.xml`, não-bloqueante) e SonarQube.
+-   **`validacao-pre-master.yml`** (PR/push para `master`): roda o `validar.sh` e **bloqueia o merge** em qualquer FAIL.
+
+Foco da validação: **performance**, **segurança**, **configurável/flexível** e, sobretudo, **responsividade**. A versão atual em produção é o maior `<version>` em `https://apps.sobieskiproducoes.com.br/tpl_generico/atualizacao.xml`.
 
 ## 6. Deploy e Atualizações
 

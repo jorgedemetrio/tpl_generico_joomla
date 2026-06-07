@@ -13,6 +13,12 @@ SOURCE_DIR="tpl_generico"
 # Diretório de build temporário.
 BUILD_DIR="build_temp"
 
+# Verificação do certificado TLS no upload FTPS. Por segurança o padrão é "yes"
+# (impede MITM no pipeline). Se o servidor usar certificado self-signed ou com
+# host divergente, defina o secret/variável FTP_SSL_VERIFY=no para liberar
+# temporariamente — de preferência configure o CA correto em vez de desligar.
+FTP_SSL_VERIFY="${FTP_SSL_VERIFY:-yes}"
+
 # --- Validação ---
 # Verifica se a versão foi passada como argumento.
 if [ -z "$1" ]; then
@@ -44,9 +50,10 @@ echo "Atualizando a versão no templateDetails.xml para ${PLAIN_VERSION}..."
 sed -i "s|<version>.*</version>|<version>${PLAIN_VERSION}</version>|g" "${BUILD_DIR}/templateDetails.xml"
 echo "Versão atualizada com sucesso."
 echo "Atualizando a versão no joomla.asset.json para ${PLAIN_VERSION}..."
-sed -i "s|\"version\":*,|\"version\": \"${PLAIN_VERSION}\",|g" "${BUILD_DIR}/joomla.asset.json"
+# Substitui o valor entre aspas do campo "version" (ex.: "version": "1.0.2"),
+# independentemente do espaçamento. Importante para o cache busting dos assets.
+sed -i -E "s|(\"version\"[[:space:]]*:[[:space:]]*\")[^\"]*\"|\1${PLAIN_VERSION}\"|" "${BUILD_DIR}/joomla.asset.json"
 echo "Versão atualizada com sucesso."
-  
 
 
 # --- Geração do Pacote ZIP ---
@@ -101,15 +108,15 @@ else
 fi
 echo "Arquivo atualizacao.xml final gerado com sucesso."
 
-# --- Deploy via SFTP ---
-echo "Iniciando o deploy para o servidor SFTP..."
+# --- Deploy via FTPS ---
+echo "Iniciando o deploy para o servidor FTPS..."
 
 # Verifica se as variáveis de ambiente de FTP estão configuradas.
 if [ -z "$FTP_URL" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
     echo "Erro: As variáveis de ambiente FTP_URL, FTP_USER e FTP_PASSWORD devem ser configuradas."
     exit 1
 fi
-lftp -c "set sftp:auto-confirm yes; set ftp:ssl-allow yes; set ssl:verify-certificate no;
+lftp -c "set sftp:auto-confirm yes; set ftp:ssl-allow yes; set ssl:verify-certificate ${FTP_SSL_VERIFY};
 open -u ${FTP_USER},${FTP_PASSWORD} ${FTP_URL};
 mkdir -p /${APP_NAME};
 cd /${APP_NAME};

@@ -148,20 +148,32 @@ if ($customHeadCode !== '') {
         <?php endif; ?>
         <nav class="navbar navbar-expand-lg" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_LABEL'); ?>">
             <div class="<?php echo $containerClass; ?>">
-                <?php if ($sidebarLeft) : ?>
-                <button class="navbar-toggler sidebar-toggler d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar-left" aria-controls="sidebar-left" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_LEFT_TOGGLE'); ?>"><i class="fas fa-bars" aria-hidden="true"></i></button>
-                <?php endif; ?>
                 <a class="navbar-brand" href="<?php echo $this->baseurl; ?>/"><?php echo $logo; ?></a>
-                <?php if ($sidebarRight) : ?>
-                <button class="navbar-toggler sidebar-toggler d-lg-none ms-auto me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar-right" aria-controls="sidebar-right" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_RIGHT_TOGGLE'); ?>"><i class="fas fa-ellipsis-v" aria-hidden="true"></i></button>
-                <?php endif; ?>
-                <?php if ($this->countModules('menu', true)) :
-                    $mobileMenuBehavior = $this->params->get('mobileMenuBehavior', 'offcanvas');
-                ?><button class="navbar-toggler<?php echo $sidebarRight ? '' : ' ms-auto'; ?>" type="button" data-bs-toggle="<?php echo $mobileMenuBehavior; ?>" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-expanded="false" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_TOGGLE'); ?>"><span class="navbar-toggler-icon"></span></button>
+
+                <div class="d-flex align-items-center ms-auto">
+                    <?php if ($this->countModules('mobile-menu', true)) : ?>
+                        <button class="navbar-toggler d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenuArea" aria-controls="mobileMenuArea" aria-label="<?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TOGGLE'); ?>">
+                            <i class="fas fa-bars" aria-hidden="true"></i>
+                        </button>
+                    <?php endif; ?>
+
+                    <?php if ($this->countModules('menu', true)) :
+                        $mobileMenuBehavior = $this->params->get('mobileMenuBehavior', 'offcanvas');
+                        // Id unico por comportamento: evita "duplicate id" (o collapse e o
+                        // offcanvas usam a mesma posicao 'menu', mas so um renderiza por vez).
+                        $menuTargetId       = $mobileMenuBehavior === 'collapse' ? 'mobileMenuCollapse' : 'mobileMenuOffcanvas';
+                    ?>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="<?php echo $mobileMenuBehavior; ?>" data-bs-target="#<?php echo $menuTargetId; ?>" aria-controls="<?php echo $menuTargetId; ?>" aria-expanded="false" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_TOGGLE'); ?>">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($this->countModules('menu', true)) : ?>
                     <?php if ($mobileMenuBehavior === 'collapse') : ?>
-                        <div class="collapse navbar-collapse" id="mobileMenu"><jdoc:include type="modules" name="menu" style="none" /></div>
+                        <div class="collapse navbar-collapse" id="<?php echo $menuTargetId; ?>"><jdoc:include type="modules" name="menu" style="none" /></div>
                     <?php else : ?>
-                        <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+                        <div class="offcanvas offcanvas-end" tabindex="-1" id="<?php echo $menuTargetId; ?>" aria-labelledby="mobileMenuLabel">
                             <div class="offcanvas-header"><h5 class="offcanvas-title" id="mobileMenuLabel"><?php echo Text::_('TPL_GENERICO_MENU_TITLE'); ?></h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button></div>
                             <div class="offcanvas-body"><jdoc:include type="modules" name="menu" style="none" /></div>
                         </div>
@@ -170,6 +182,17 @@ if ($customHeadCode !== '') {
                 <?php if ($hasSearch && $searchPosition === 'inline') : ?><div id="search-header"><jdoc:include type="modules" name="search" style="none" /></div><?php endif; ?>
             </div>
         </nav>
+        <?php if ($this->countModules('mobile-menu', true)) : ?>
+            <div class="offcanvas offcanvas-start w-100 h-100 border-0 d-lg-none" tabindex="-1" id="mobileMenuArea" aria-labelledby="mobileMenuAreaLabel">
+                <div class="offcanvas-header border-bottom">
+                    <h5 class="offcanvas-title" id="mobileMenuAreaLabel"><?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TITLE'); ?></h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
+                </div>
+                <div class="offcanvas-body overflow-auto">
+                    <jdoc:include type="modules" name="mobile-menu" style="none" />
+                </div>
+            </div>
+        <?php endif; ?>
         <?php if ($hasSearch && $searchPosition === 'below') : ?>
         <div id="search-below" class="border-top"><div class="<?php echo $containerClass; ?> py-2"><jdoc:include type="modules" name="search" style="none" /></div></div>
         <?php endif; ?>
@@ -192,12 +215,8 @@ if ($customHeadCode !== '') {
             <?php endif; ?>
             <div class="row">
                 <?php if ($sidebarLeft) : ?>
-                <aside id="sidebar-left" class="col-lg-3 offcanvas-lg offcanvas-start" tabindex="-1" role="complementary" aria-labelledby="sidebar-left-label">
-                    <div class="offcanvas-header d-lg-none">
-                        <h5 class="offcanvas-title" id="sidebar-left-label"><?php echo Text::_('TPL_GENERICO_SIDEBAR_LEFT_TITLE'); ?></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar-left" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
-                    </div>
-                    <div class="offcanvas-body"><jdoc:include type="modules" name="sidebar-left" style="card" /></div>
+                <aside id="sidebar-left" class="col-lg-3 d-none d-lg-block" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_LEFT_TITLE'); ?>">
+                    <div class="sidebar-content"><jdoc:include type="modules" name="sidebar-left" style="card" /></div>
                 </aside>
                 <?php endif; ?>
                 <div id="component-area" class="<?php echo $mainClass; ?>">
@@ -207,12 +226,8 @@ if ($customHeadCode !== '') {
                     <?php if ($this->countModules('main-bottom', true)) : ?><jdoc:include type="modules" name="main-bottom" style="card" /><?php endif; ?>
                 </div>
                 <?php if ($sidebarRight) : ?>
-                <aside id="sidebar-right" class="col-lg-3 offcanvas-lg offcanvas-end" tabindex="-1" role="complementary" aria-labelledby="sidebar-right-label">
-                    <div class="offcanvas-header d-lg-none">
-                        <h5 class="offcanvas-title" id="sidebar-right-label"><?php echo Text::_('TPL_GENERICO_SIDEBAR_RIGHT_TITLE'); ?></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar-right" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
-                    </div>
-                    <div class="offcanvas-body"><jdoc:include type="modules" name="sidebar-right" style="card" /></div>
+                <aside id="sidebar-right" class="col-lg-3 d-none d-lg-block" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_RIGHT_TITLE'); ?>">
+                    <div class="sidebar-content"><jdoc:include type="modules" name="sidebar-right" style="card" /></div>
                 </aside>
                 <?php endif; ?>
             </div>
