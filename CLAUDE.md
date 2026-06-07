@@ -34,4 +34,6 @@ Orientações para o Claude Code trabalhar neste repositório.
 - **Assets** via Web Asset Manager: `$wa->usePreset('tpl_generico.preset')`, com tudo registrado no `joomla.asset.json`.
 - **Idiomas** em `language/<tag>/` (en-GB, pt-BR, es-ES, de-DE, fr-FR, it-IT, ja-JP, zh-CN).
 - Sem ambiente de homologação formal: testar localmente (responsividade desktop/tablet/mobile + regressão) antes de versionar.
-- Qualidade de código monitorada por SonarQube (`sonar-project.properties`, workflow `.github/workflows/build.yml`).
+- Qualidade de código monitorada por SonarQube, PHP Syntax Check (`php -l`) e PHPMD (PHP Mess Detector). 
+- O fluxo de CI (`build.yml`) valida todos os arquivos PHP do repositório.
+- A versão final em produção pode ser consultada em: `https://apps.sobieskiproducoes.com.br/tpl_generico/atualizacao.xml` (buscando o maior valor da tag `<version>`).
