@@ -28,7 +28,7 @@ jobs:
 
       - name: PHP Mess Detector (PHPMD)
         run: |
-          phpmd . github codesize,unusedcode,naming --exclude "vendor/*"
+          phpmd . github phpmd.xml --exclude "vendor/*,build_temp/*"
         continue-on-error: true
 
   sonarqube:

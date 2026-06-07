@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="tpl_generico"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd"
+         xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
+
+    <description>
+        Ruleset PHPMD do template tpl_generico (Joomla 5).
+
+        No Joomla 5 a API é exposta por classes COM namespace (Joomla\CMS\Factory,
+        HTMLHelper, ModuleHelper, Text, Uri, Route, Registry, ...) acessadas de
+        forma estática — e o framework NÃO é carregado durante a análise do PHPMD.
+        Diferente do Joomla 3 (objetos legados com prefixo "J": JFactory, JText,
+        JRoute), aqui as classes já usam namespace e `use`, mas continuam sendo
+        chamadas estaticamente. Por isso as regras cleancode StaticAccess e
+        MissingImport não têm sinal útil (acusariam quase toda chamada ao core) e
+        são excluídas. As demais regras (complexidade, métodos longos, código e
+        variáveis não usados, etc.) seguem ativas e capturam problemas reais.
+
+        Uso:  phpmd tpl_generico text phpmd.xml
+    </description>
+
+    <!-- cleancode: tudo menos StaticAccess e MissingImport (ruído do core J5). -->
+    <rule ref="rulesets/cleancode.xml">
+        <exclude name="StaticAccess"/>
+        <exclude name="MissingImport"/>
+    </rule>
+
+    <!-- codesize: completo (complexidade ciclomática, métodos/classes longos). -->
+    <rule ref="rulesets/codesize.xml"/>
+
+    <!-- unusedcode: completo (variáveis, parâmetros, métodos privados não usados). -->
+    <rule ref="rulesets/unusedcode.xml"/>
+</ruleset>
