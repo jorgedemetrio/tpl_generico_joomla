@@ -13,11 +13,13 @@ SOURCE_DIR="tpl_generico"
 # Diretório de build temporário.
 BUILD_DIR="build_temp"
 
-# Verificação do certificado TLS no upload FTPS. Por segurança o padrão é "yes"
-# (impede MITM no pipeline). Se o servidor usar certificado self-signed ou com
-# host divergente, defina o secret/variável FTP_SSL_VERIFY=no para liberar
-# temporariamente — de preferência configure o CA correto em vez de desligar.
-FTP_SSL_VERIFY="${FTP_SSL_VERIFY:-yes}"
+# Verificação do certificado TLS no upload FTPS. A hospedagem é compartilhada e
+# apresenta o certificado do provedor (CN = ftp.alldreams.com.br), que não bate
+# com o FTP_URL — com a verificação ligada o lftp aborta ("certificate common
+# name doesn't match"). Por isso o padrão é "no" (era o comportamento que
+# funcionava). É configurável: defina o secret/variável FTP_SSL_VERIFY=yes
+# quando/se o certificado for emitido para o próprio FTP_URL.
+FTP_SSL_VERIFY="${FTP_SSL_VERIFY:-no}"
 
 # --- Validação ---
 # Verifica se a versão foi passada como argumento.
