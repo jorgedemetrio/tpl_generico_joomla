@@ -30,20 +30,40 @@ $cssVars = TplGenericoHelper::buildCssVars($this->params);
 
 // Enable assets
 HTMLHelper::_('bootstrap.framework');
-$wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
+$wa->usePreset('tpl_generico.preset');
+// addStyleDeclaration entra no buffer de inline styles do documento, garantindo
+// que estas variaveis sejam renderizadas DEPOIS de bootstrap.css/template.css,
+// vencendo qualquer :root anterior e fazendo as cores do admin de fato valerem.
+$this->addStyleDeclaration(":root { $cssVars }");
+
+// Fonte do Google (opcional): cole a URL completa do Google Fonts no admin.
+// Faz preconnect (handshake antecipado) e carrega a folha de estilo.
+$googleFontUrl = $this->params->get('googleFontUrl');
+if ($googleFontUrl) {
+    $preload = $this->getPreloadManager();
+    $preload->preconnect('https://fonts.googleapis.com', ['crossorigin' => 'anonymous']);
+    $preload->preconnect('https://fonts.gstatic.com', ['crossorigin' => 'anonymous']);
+    // URL crua: o campo e type="url"/filter="url" (ja sanitizado) e o Joomla
+    // escapa o href na renderizacao — escapar aqui causaria duplo-escape do "&".
+    $wa->registerAndUseStyle('tpl_generico.googlefont', $googleFontUrl, [], ['crossorigin' => 'anonymous']);
+}
 
 
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
 $option   = $input->getCmd('option', '');
 $view     = $input->getCmd('view', '');
 $layout   = $input->getCmd('layout', '');
-$pageclass = $app->getMenu()->getActive() ? $app->getMenu()->getActive()->getParams()->get('pageclass_sfx', '') : '';
+$menu        = method_exists($app, 'getMenu') ? $app->getMenu() : null;
+$activeMenu  = $menu ? $menu->getActive() : null;
+$activeParams = ($activeMenu && method_exists($activeMenu, 'getParams')) ? $activeMenu->getParams() : null;
+$pageclass   = $activeParams ? (string) $activeParams->get('pageclass_sfx', '') : '';
 
-// Logo
-$logoWidth = $this->params->get('logoWidth', 150);
+// Logo — esta acima da dobra: carrega com prioridade (eager + fetchpriority)
+// e reserva espaco com width para reduzir layout shift (CLS).
+$logoWidth = (int) $this->params->get('logoWidth', 150);
 $logo = '';
 if ($this->params->get('logoFile')) {
-    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: ' . (int) $logoWidth . 'px;" loading="lazy" />';
+    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" width="' . $logoWidth . '" style="width: ' . $logoWidth . 'px; height: auto;" loading="eager" fetchpriority="high" decoding="async" />';
 } else {
     $logo = '<span class="site-title" title="' . $sitename . '">' . htmlspecialchars($this->params->get('siteTitle', $sitename), ENT_COMPAT, 'UTF-8') . '</span>';
 }
@@ -60,26 +80,64 @@ $containerClass = ($this->params->get('layoutWidth', 'boxed') === 'full-width') 
 $stickyHeader = $this->params->get('stickyHeader', '1') === '1' ? 'sticky-top' : '';
 $headerShadow = $this->params->get('headerShadow', '1') === '1' ? 'shadow-sm' : '';
 $headerSeparator = $this->params->get('headerSeparator', '1') === '1' ? 'border-bottom' : '';
-$headerHeightClass = 'header-' . $this->params->get('headerHeight', 'normal');
+// Default alinhado ao templateDetails.xml (compact).
+$headerHeightClass = 'header-' . $this->params->get('headerHeight', 'compact');
+
+// Posicao da busca: 'inline' (dentro da navbar) ou 'below' (barra abaixo do header).
+$searchPosition = $this->params->get('searchPosition', 'below');
+$hasSearch      = $this->countModules('search', true);
+
+// Esquema de cores: light | dark | auto (auto segue o sistema do visitante).
+$colorScheme = $this->params->get('colorScheme', 'light');
+$htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 'light';
+if ($colorScheme === 'auto') {
+    // Aplica o tema do sistema antes da pintura, evitando flash de cor errada.
+    $this->addScriptDeclaration("(function(){try{var m=window.matchMedia('(prefers-color-scheme: dark)');var a=function(){document.documentElement.setAttribute('data-bs-theme',m.matches?'dark':'light');};a();m.addEventListener('change',a);}catch(e){}})();");
+}
 
 // Integrations
 $gtmId = $this->params->get('gtmId');
 $fbPixelId = $this->params->get('fbPixelId');
+// Handshake antecipado com os dominios de terceiros (reduz latencia do tracking).
+if ($gtmId || $fbPixelId) {
+    $preload = $this->getPreloadManager();
+    if ($gtmId) {
+        $preload->dnsPrefetch('https://www.googletagmanager.com');
+        $preload->preconnect('https://www.googletagmanager.com');
+    }
+    if ($fbPixelId) {
+        $preload->dnsPrefetch('https://connect.facebook.net');
+        $preload->preconnect('https://connect.facebook.net');
+    }
+}
 if ($gtmId) {
     $this->addScriptDeclaration("(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','" . htmlspecialchars($gtmId) . "');");
 }
 if ($fbPixelId) {
     $this->addScriptDeclaration("!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', '" . htmlspecialchars($fbPixelId) . "');fbq('track', 'PageView');");
 }
+
+// Codigo livre do administrador (snippets completos: GTM, Pixel, verificacao
+// de dominio, widgets de chat, etc.). Sao injetados crus — os campos usam
+// filter="raw" no XML e so o gerenciador de templates (super admin) os edita.
+$customHeadCode       = (string) $this->params->get('customHeadCode', '');
+$customBodyTopCode    = (string) $this->params->get('customBodyTopCode', '');
+$customBodyBottomCode = (string) $this->params->get('customBodyBottomCode', '');
+if ($customHeadCode !== '') {
+    // addCustomTag insere markup cru dentro do <head> (via jdoc:include head).
+    $this->addCustomTag($customHeadCode);
+}
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>">
+<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>">
 <head>
     <jdoc:include type="head" />
 </head>
 <body class="site <?php echo $option . ' view-' . $view . ($layout ? ' layout-' . $layout : '') . ($pageclass ? ' ' . $pageclass : ''); ?>">
     <?php if ($gtmId) : ?><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo htmlspecialchars($gtmId); ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><?php endif; ?>
     <?php if ($fbPixelId) : ?><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?php echo htmlspecialchars($fbPixelId); ?>&ev=PageView&noscript=1" /></noscript><?php endif; ?>
+    <?php // Codigo livre logo apos a abertura do <body> (ex.: <noscript> do GTM).
+    echo $customBodyTopCode; ?>
 
     <header id="header" class="header <?php echo $stickyHeader . ' ' . $headerShadow . ' ' . $headerSeparator . ' ' . $headerHeightClass; ?>" role="banner">
         <?php if ($this->countModules('topbar', true)) : ?>
@@ -90,28 +148,54 @@ if ($fbPixelId) {
         <?php endif; ?>
         <nav class="navbar navbar-expand-lg" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_LABEL'); ?>">
             <div class="<?php echo $containerClass; ?>">
-                <?php if ($sidebarLeft) : ?>
-                <button class="navbar-toggler sidebar-toggler d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar-left" aria-controls="sidebar-left" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_LEFT_TOGGLE'); ?>"><i class="fas fa-bars" aria-hidden="true"></i></button>
-                <?php endif; ?>
                 <a class="navbar-brand" href="<?php echo $this->baseurl; ?>/"><?php echo $logo; ?></a>
-                <?php if ($sidebarRight) : ?>
-                <button class="navbar-toggler sidebar-toggler d-lg-none ms-auto me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar-right" aria-controls="sidebar-right" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_RIGHT_TOGGLE'); ?>"><i class="fas fa-ellipsis-v" aria-hidden="true"></i></button>
-                <?php endif; ?>
-                <?php if ($this->countModules('menu', true)) :
-                    $mobileMenuBehavior = $this->params->get('mobileMenuBehavior', 'offcanvas');
-                ?><button class="navbar-toggler<?php echo $sidebarRight ? '' : ' ms-auto'; ?>" type="button" data-bs-toggle="<?php echo $mobileMenuBehavior; ?>" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-expanded="false" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_TOGGLE'); ?>"><span class="navbar-toggler-icon"></span></button>
+
+                <div class="d-flex align-items-center ms-auto">
+                    <?php if ($this->countModules('mobile-menu', true)) : ?>
+                        <button class="navbar-toggler d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenuArea" aria-controls="mobileMenuArea" aria-label="<?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TOGGLE'); ?>">
+                            <i class="fas fa-bars" aria-hidden="true"></i>
+                        </button>
+                    <?php endif; ?>
+
+                    <?php if ($this->countModules('menu', true)) :
+                        $mobileMenuBehavior = $this->params->get('mobileMenuBehavior', 'offcanvas');
+                        // Id unico por comportamento: evita "duplicate id" (o collapse e o
+                        // offcanvas usam a mesma posicao 'menu', mas so um renderiza por vez).
+                        $menuTargetId       = $mobileMenuBehavior === 'collapse' ? 'mobileMenuCollapse' : 'mobileMenuOffcanvas';
+                    ?>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="<?php echo $mobileMenuBehavior; ?>" data-bs-target="#<?php echo $menuTargetId; ?>" aria-controls="<?php echo $menuTargetId; ?>" aria-expanded="false" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_TOGGLE'); ?>">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($this->countModules('menu', true)) : ?>
                     <?php if ($mobileMenuBehavior === 'collapse') : ?>
-                        <div class="collapse navbar-collapse" id="mobileMenu"><jdoc:include type="modules" name="menu" style="none" /></div>
+                        <div class="collapse navbar-collapse" id="<?php echo $menuTargetId; ?>"><jdoc:include type="modules" name="menu" style="none" /></div>
                     <?php else : ?>
-                        <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+                        <div class="offcanvas offcanvas-end" tabindex="-1" id="<?php echo $menuTargetId; ?>" aria-labelledby="mobileMenuLabel">
                             <div class="offcanvas-header"><h5 class="offcanvas-title" id="mobileMenuLabel"><?php echo Text::_('TPL_GENERICO_MENU_TITLE'); ?></h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button></div>
                             <div class="offcanvas-body"><jdoc:include type="modules" name="menu" style="none" /></div>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
-                <?php if ($this->countModules('search', true)) : ?><div id="search-header"><jdoc:include type="modules" name="search" style="none" /></div><?php endif; ?>
+                <?php if ($hasSearch && $searchPosition === 'inline') : ?><div id="search-header"><jdoc:include type="modules" name="search" style="none" /></div><?php endif; ?>
             </div>
         </nav>
+        <?php if ($this->countModules('mobile-menu', true)) : ?>
+            <div class="offcanvas offcanvas-start w-100 h-100 border-0 d-lg-none" tabindex="-1" id="mobileMenuArea" aria-labelledby="mobileMenuAreaLabel">
+                <div class="offcanvas-header border-bottom">
+                    <h5 class="offcanvas-title" id="mobileMenuAreaLabel"><?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TITLE'); ?></h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
+                </div>
+                <div class="offcanvas-body overflow-auto">
+                    <jdoc:include type="modules" name="mobile-menu" style="none" />
+                </div>
+            </div>
+        <?php endif; ?>
+        <?php if ($hasSearch && $searchPosition === 'below') : ?>
+        <div id="search-below" class="border-top"><div class="<?php echo $containerClass; ?> py-2"><jdoc:include type="modules" name="search" style="none" /></div></div>
+        <?php endif; ?>
     </header>
 
     <?php if ($this->countModules('banner', true)) : ?><section id="banner" role="banner"><jdoc:include type="modules" name="banner" style="none" /></section><?php endif; ?>
@@ -131,12 +215,8 @@ if ($fbPixelId) {
             <?php endif; ?>
             <div class="row">
                 <?php if ($sidebarLeft) : ?>
-                <aside id="sidebar-left" class="col-lg-3 offcanvas-lg offcanvas-start" tabindex="-1" role="complementary" aria-labelledby="sidebar-left-label">
-                    <div class="offcanvas-header d-lg-none">
-                        <h5 class="offcanvas-title" id="sidebar-left-label"><?php echo Text::_('TPL_GENERICO_SIDEBAR_LEFT_TITLE'); ?></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar-left" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
-                    </div>
-                    <div class="offcanvas-body"><jdoc:include type="modules" name="sidebar-left" style="card" /></div>
+                <aside id="sidebar-left" class="col-lg-3 d-none d-lg-block" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_LEFT_TITLE'); ?>">
+                    <div class="sidebar-content"><jdoc:include type="modules" name="sidebar-left" style="card" /></div>
                 </aside>
                 <?php endif; ?>
                 <div id="component-area" class="<?php echo $mainClass; ?>">
@@ -146,12 +226,8 @@ if ($fbPixelId) {
                     <?php if ($this->countModules('main-bottom', true)) : ?><jdoc:include type="modules" name="main-bottom" style="card" /><?php endif; ?>
                 </div>
                 <?php if ($sidebarRight) : ?>
-                <aside id="sidebar-right" class="col-lg-3 offcanvas-lg offcanvas-end" tabindex="-1" role="complementary" aria-labelledby="sidebar-right-label">
-                    <div class="offcanvas-header d-lg-none">
-                        <h5 class="offcanvas-title" id="sidebar-right-label"><?php echo Text::_('TPL_GENERICO_SIDEBAR_RIGHT_TITLE'); ?></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar-right" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
-                    </div>
-                    <div class="offcanvas-body"><jdoc:include type="modules" name="sidebar-right" style="card" /></div>
+                <aside id="sidebar-right" class="col-lg-3 d-none d-lg-block" aria-label="<?php echo Text::_('TPL_GENERICO_SIDEBAR_RIGHT_TITLE'); ?>">
+                    <div class="sidebar-content"><jdoc:include type="modules" name="sidebar-right" style="card" /></div>
                 </aside>
                 <?php endif; ?>
             </div>
@@ -188,5 +264,7 @@ if ($fbPixelId) {
     </footer>
     <?php endif; ?>
     <jdoc:include type="modules" name="debug" style="none" />
+    <?php // Codigo livre antes do fechamento do </body> (ex.: scripts de rodape, chat).
+    echo $customBodyBottomCode; ?>
 </body>
 </html>

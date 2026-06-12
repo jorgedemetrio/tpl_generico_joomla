@@ -17,13 +17,25 @@ if (!function_exists('renderMenuItems')) {
      */
     function renderMenuItems($items, $isSubmenu = false)
     {
-        foreach ($items as $i => $item) {
-            $menuItemClass = 'nav-item';
-            $hasChildren   = !empty($item->children);
-            $isDropdown    = $hasChildren && !$isSubmenu;
+        if (empty($items)) {
+            return;
+        }
+        foreach ($items as $item) {
+            if (!is_object($item)) {
+                continue;
+            }
+            $title      = isset($item->title) ? (string) $item->title : '';
+            $flink      = isset($item->flink) ? (string) $item->flink : '#';
+            $active     = !empty($item->active);
+            $children   = $item->children ?? [];
+            $browserNav = (int) ($item->browserNav ?? 0);
+
+            $hasChildren    = !empty($children);
+            $isDropdown     = $hasChildren && !$isSubmenu;
             $isDropdownItem = $isSubmenu;
 
-            if ($item->active) {
+            $menuItemClass = 'nav-item';
+            if ($active) {
                 $menuItemClass .= ' active';
             }
             if ($isDropdown) {
@@ -36,7 +48,7 @@ if (!function_exists('renderMenuItems')) {
             $linkClass = $isDropdownItem ? 'dropdown-item' : 'nav-link';
             $linkAttrs = [
                 'class="' . $linkClass . ($isDropdown ? ' dropdown-toggle' : '') . '"',
-                'title="' . htmlspecialchars($item->title, ENT_QUOTES, 'UTF-8') . '"'
+                'title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"',
             ];
             if ($isDropdown) {
                 $linkAttrs[] = 'href="#"';
@@ -44,17 +56,17 @@ if (!function_exists('renderMenuItems')) {
                 $linkAttrs[] = 'data-bs-toggle="dropdown"';
                 $linkAttrs[] = 'aria-expanded="false"';
             } else {
-                $linkAttrs[] = 'href="' . htmlspecialchars($item->flink, ENT_QUOTES, 'UTF-8') . '"';
+                $linkAttrs[] = 'href="' . htmlspecialchars($flink, ENT_QUOTES, 'UTF-8') . '"';
             }
-            if ($item->browserNav == 1) {
-                $linkAttrs[] = 'target="_blank"';
+            if ($browserNav === 1) {
+                $linkAttrs[] = 'target="_blank" rel="noopener"';
             }
 
-            echo '<a ' . implode(' ', $linkAttrs) . '>' . $item->title . '</a>';
+            echo '<a ' . implode(' ', $linkAttrs) . '>' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</a>';
 
             if ($hasChildren) {
                 echo '<ul class="dropdown-menu">';
-                renderMenuItems($item->children, true);
+                renderMenuItems($children, true);
                 echo '</ul>';
             }
 

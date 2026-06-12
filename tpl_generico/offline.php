@@ -23,23 +23,26 @@ $params = $app->getTemplate(true)->params;
 $cssVars = TplGenericoHelper::buildCssVars($params);
 
 // Enable assets
-$wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
+$wa->usePreset('tpl_generico.preset');
 $wa->useStyle('tpl_generico.offline');
+// Inline depois dos <link>s garante que as cores do admin sobrescrevam o CSS base.
+$this->addStyleDeclaration(":root { $cssVars }");
 
 
 // Logo file or site title param
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
-$logoWidth = $this->params->get('logoWidth', 150);
+// Tamanho fixo do logo na pagina offline (independe do parametro do template).
+const TPL_GENERICO_OFFLINE_LOGO_WIDTH = 240;
 $logo = '';
 try {
-	$params = Factory::getApplication()->getTemplate(true)->params;
-	if ($params->get('logoFile')) {
-        $logo = '<img src="' . Uri::root(false) . htmlspecialchars($params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: 500px; margin 0px auto;" loading="lazy" />';
-	} else {
-		$logo = '<span title="' . $sitename . '">' . htmlspecialchars($params->get('siteTitle', $sitename), ENT_COMPAT, 'UTF-8') . '</span>';
-	}
-} catch (\Exception $e) {
-	$logo = '<span title="' . $sitename . '">' . $sitename . '</span>';
+    if ($params && $params->get('logoFile')) {
+        $logo = '<img src="' . Uri::root(false) . htmlspecialchars($params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: ' . TPL_GENERICO_OFFLINE_LOGO_WIDTH . 'px; height: auto; display: block; margin: 0 auto;" loading="lazy" />';
+    } else {
+        $title = $params ? $params->get('siteTitle', $sitename) : $sitename;
+        $logo = '<span title="' . $sitename . '">' . htmlspecialchars($title, ENT_COMPAT, 'UTF-8') . '</span>';
+    }
+} catch (\Throwable $e) {
+    $logo = '<span title="' . $sitename . '">' . $sitename . '</span>';
 }
 ?>
 <!DOCTYPE html>
@@ -50,7 +53,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body class="site offline">
-    <div class="offline-card" style=" width: 500px; margin: 0 auto;">
+    <div class="offline-card">
         <div class="header">
             <h1><?php echo $logo; ?></h1>
         </div>
