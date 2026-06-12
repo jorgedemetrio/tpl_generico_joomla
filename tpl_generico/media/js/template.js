@@ -1,16 +1,20 @@
 /**
- * tpl_generico — comportamento do header.
+ * tpl_generico — comportamentos de frontend.
  *
  * Vanilla JS, sem dependencia de jQuery. O Joomla 5 nao embarca jQuery por
  * padrao e o template nao precisa dele.
  *
- * - Mantem a variavel CSS --generico-header-height sincronizada com a altura
- *   real do header, usada por scroll-padding-top (offset de ancoras #id).
- * - Adiciona a classe .is-scrolled ao header quando a pagina rola, permitindo
- *   o efeito "encolher ao rolar" (estilizado no CSS).
+ * Funcionalidades:
+ *  - Header: mantem --generico-header-height sincronizada com a altura real do
+ *    header (usada por scroll-padding-top) e aplica .is-scrolled ao rolar.
+ *  - Tema: botao de alternancia claro/escuro, persistido em localStorage.
+ *  - Sidebars: desativa o "sticky" quando a coluna e mais alta que a tela, para
+ *    nao deixar o ultimo item do menu lateral inalcancavel.
+ *  - Voltar ao topo: botao que aparece em paginas longas no desktop.
+ *  - Imagens lazy: remove o efeito shimmer (skeleton) quando a imagem carrega.
  *
- * O header usa position: sticky (classe .sticky-top do Bootstrap), que ocupa
- * espaco no fluxo normal — por isso NAO ajustamos padding-top do conteudo.
+ * Cada inicializador e independente: se um elemento nao existir, apenas aquele
+ * recurso e ignorado, sem afetar os demais.
  */
 (function () {
   'use strict';
@@ -23,7 +27,15 @@
     }
   }
 
-  onReady(function () {
+  var prefersReducedMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------------------------------------------------------------------------
+  // Header: altura sincronizada + efeito "encolher ao rolar".
+  // O header usa position: sticky (classe .sticky-top do Bootstrap), que ocupa
+  // espaco no fluxo normal — por isso NAO ajustamos padding-top do conteudo.
+  // ---------------------------------------------------------------------------
+  function initHeader() {
     var header = document.getElementById('header');
     if (!header) {
       return;
@@ -59,5 +71,136 @@
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tema claro/escuro: botao no header, escolha persistida em localStorage.
+  // O tema inicial ja e aplicado por um script inline no <head> (index.php),
+  // evitando flash; aqui so tratamos o clique e o estado do botao.
+  // ---------------------------------------------------------------------------
+  function initThemeToggle() {
+    var btn = document.getElementById('themeToggle');
+    if (!btn) {
+      return;
+    }
+
+    var KEY = 'generico-theme';
+    var root = document.documentElement;
+
+    function reflect() {
+      var theme = root.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
+      var icon = btn.querySelector('i');
+      if (icon) {
+        icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+      }
+      btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    }
+
+    reflect();
+
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-bs-theme', next);
+      try {
+        localStorage.setItem(KEY, next);
+      } catch (e) {}
+      reflect();
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sidebars: o sticky so faz sentido se a coluna couber na area visivel. Se for
+  // mais alta, marcamos .is-tall e o CSS devolve a coluna ao fluxo normal (rola
+  // junto com a pagina), evitando o item final inalcancavel.
+  // ---------------------------------------------------------------------------
+  function initStickySidebars() {
+    var sidebars = document.querySelectorAll('.sidebar-content');
+    if (!sidebars.length) {
+      return;
+    }
+
+    function evaluate() {
+      var headerEl = document.getElementById('header');
+      var headerH = headerEl ? headerEl.offsetHeight : 0;
+      var available = window.innerHeight - headerH - 24; // ~1.5rem de folga
+      Array.prototype.forEach.call(sidebars, function (el) {
+        el.classList.toggle('is-tall', el.scrollHeight > available);
+      });
+    }
+
+    evaluate();
+    window.addEventListener('resize', evaluate, { passive: true });
+    window.addEventListener('orientationchange', evaluate, { passive: true });
+    // Recalcula apos imagens/fontes carregarem (a altura pode mudar).
+    window.addEventListener('load', evaluate);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Voltar ao topo: so em paginas longas e fora do mobile (largura >= 768px).
+  // ---------------------------------------------------------------------------
+  function initBackToTop() {
+    var btn = document.getElementById('backToTop');
+    if (!btn) {
+      return;
+    }
+
+    var MOBILE_MAX = 768; // abaixo disso e considerado celular
+    var ticking = false;
+
+    function isEligible() {
+      return window.innerWidth >= MOBILE_MAX &&
+        document.documentElement.scrollHeight > window.innerHeight * 2;
+    }
+
+    function update() {
+      var show = isEligible() && window.scrollY > window.innerHeight * 0.6;
+      btn.classList.toggle('is-visible', show);
+    }
+
+    function onScroll() {
+      if (ticking) {
+        return;
+      }
+      ticking = true;
+      window.requestAnimationFrame(function () {
+        update();
+        ticking = false;
+      });
+    }
+
+    btn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Imagens lazy: remove o shimmer (skeleton) quando a imagem termina de carregar.
+  // ---------------------------------------------------------------------------
+  function initLazyImages() {
+    var imgs = document.querySelectorAll('img[loading="lazy"]');
+    if (!imgs.length) {
+      return;
+    }
+
+    Array.prototype.forEach.call(imgs, function (img) {
+      if (img.complete && img.naturalWidth > 0) {
+        img.classList.add('is-loaded');
+        return;
+      }
+      var done = function () { img.classList.add('is-loaded'); };
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+    });
+  }
+
+  onReady(function () {
+    initHeader();
+    initThemeToggle();
+    initStickySidebars();
+    initBackToTop();
+    initLazyImages();
   });
 })();

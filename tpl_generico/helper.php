@@ -56,7 +56,8 @@ if (!class_exists('TplGenericoHelper', false)) {
             $cssVars .= "--espaco-interno-titulo-card: {$get('espacoInternoTituloCard', '1.5rem')};";
             $cssVars .= "--margin-topo-titulo-card: {$get('margemTopoTituloCard', '10px')};";
             $cssVars .= "--cor-footer: {$get('footerColor', '#0F172A')};";
-            $cssVars .= "--familia-fonte-primaria: {$get('fontFamilyPrimary', 'system-ui, sans-serif')};";
+            $defaultFontStack = "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            $cssVars .= "--familia-fonte-primaria: {$get('fontFamilyPrimary', $defaultFontStack)};";
             $cssVars .= "--tamanho-base-fonte: {$get('fontSizeBase', '1rem')};";
             $cssVars .= "--peso-fonte-normal: {$get('fontWeightNormal', '400')};";
             $cssVars .= "--peso-fonte-titulos: {$get('fontWeightHeadings', '700')};";
