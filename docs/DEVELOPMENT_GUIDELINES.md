@@ -95,6 +95,7 @@ O template oferece uma ampla gama de posições de módulo para flexibilizar a o
 - bottom-a
 - bottom-b
 - bottom
+- bottom-nav
 - footer
 - debug
 - message
@@ -114,6 +115,17 @@ Em telas pequenas (abaixo do breakpoint `lg`, 992px) o template adota um menu **
 -   **Posição `mobile-menu`**: coloque aqui **apenas o(s) módulo(s)** que devem aparecer no botão de menu móvel (ex.: o módulo de Menu principal). O conteúdo é renderizado dentro de `#mobileMenuArea`, um *offcanvas* que ocupa **toda a largura e altura** da tela, com **botão de fechar** no topo e **rolagem interna** quando o conteúdo passa da altura visível.
 -   **Sidebars desktop-only**: `sidebar-left` e `sidebar-right` usam `d-none d-lg-block` — **somem abaixo de `lg`**. Em mobile elas seriam empilhadas e ocupariam a tela inteira; por isso a navegação móvel vai para a posição `mobile-menu`. No desktop voltam como colunas fixas (e *sticky*).
 -   O botão `mobile-menu` (ícone `fa-bars`) só aparece abaixo de `lg`. A posição `menu` continua existindo para o menu principal, com comportamento mobile próprio configurável (`offcanvas`/`collapse`) — use uma ou outra conforme o layout para não duplicar botões.
+
+### 4.3. Recursos de UI/acessibilidade (header, rodapé e navegação)
+
+-   **Rodapé responsivo**: as colunas usam `col-12 col-sm-6 col-lg-N` — empilham (1/linha) no celular, 2/linha em tablet pequeno e abrem nas N colunas configuradas (`footerColumns`) só a partir de `lg`.
+-   **Skip link** (`Pular para o conteúdo`): primeiro elemento focável do `<body>`, aponta para `#main-content` (que recebe `tabindex="-1"`). Fica invisível até receber foco (`.visually-hidden-focusable`).
+-   **Toggle de tema claro/escuro**: parâmetro `themeToggle` (Funcional, padrão ligado) exibe um botão no header. A escolha é persistida em `localStorage` (`generico-theme`) e aplicada antes da pintura por um script inline no `<head>` (sem flash). Integra-se ao `colorScheme` (inclusive `auto`).
+-   **Sidebars `sticky` seguras**: o `template.js` mede a coluna `.sidebar-content`; se for mais alta que a área visível, marca `.is-tall` e o CSS devolve a coluna ao fluxo normal (rola junto com a página), evitando o último item inalcançável.
+-   **`bottom-nav`**: posição de módulo renderizada como barra **fixa inferior** apenas em telas `< md` (`d-md-none`). Coloque ali, por exemplo, um módulo de menu de ações. O `<body>` ganha `padding-bottom` quando há módulo nessa posição (classe `has-bottom-nav`).
+-   **Voltar ao topo**: botão `#backToTop` que o `template.js` só exibe fora do mobile (largura ≥ 768px) e em páginas longas (altura do documento > 2× a viewport).
+-   **Skeleton shimmer**: imagens com `loading="lazy"` recebem um brilho animado (CSS) até carregarem; o `template.js` adiciona `.is-loaded` no `load`. Respeita `prefers-reduced-motion`.
+-   **Fonte de marca**: o padrão de `fontFamilyPrimary` inicia com `'Inter'` e o `googleFontUrl` já vem com a URL do Inter (`display=swap`). Tipografia fluida (`clamp()`) cobre `h1`–`h6`.
 
 ## 5. Testes e Boas Práticas
 

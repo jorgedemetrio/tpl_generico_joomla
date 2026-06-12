@@ -87,12 +87,33 @@ $headerHeightClass = 'header-' . $this->params->get('headerHeight', 'compact');
 $searchPosition = $this->params->get('searchPosition', 'below');
 $hasSearch      = $this->countModules('search', true);
 
+// Botao de alternancia de tema (claro/escuro) no header — escolha persistida
+// em localStorage pelo template.js.
+$themeToggle = $this->params->get('themeToggle', '1') === '1';
+
+// Barra de navegacao inferior (mobile): so renderiza com modulo na posicao.
+$hasBottomNav = $this->countModules('bottom-nav', true);
+
 // Esquema de cores: light | dark | auto (auto segue o sistema do visitante).
 $colorScheme = $this->params->get('colorScheme', 'light');
 $htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 'light';
-if ($colorScheme === 'auto') {
-    // Aplica o tema do sistema antes da pintura, evitando flash de cor errada.
-    $this->addScriptDeclaration("(function(){try{var m=window.matchMedia('(prefers-color-scheme: dark)');var a=function(){document.documentElement.setAttribute('data-bs-theme',m.matches?'dark':'light');};a();m.addEventListener('change',a);}catch(e){}})();");
+// Define o tema antes da pintura (evita flash). Respeita uma escolha manual
+// salva em localStorage quando o botao de tema esta ativo e segue o sistema no
+// modo automatico. Roda no <head>, sincrono, antes do <body>.
+if ($themeToggle || $colorScheme === 'auto') {
+    $allowStored = $themeToggle ? 'true' : 'false';
+    $this->addScriptDeclaration(
+        "(function(){try{var K='generico-theme',r=document.documentElement,"
+        . "allow=" . $allowStored . ",scheme='" . $colorScheme . "',"
+        . "mql=window.matchMedia('(prefers-color-scheme: dark)'),s=null;"
+        . "try{s=localStorage.getItem(K);}catch(e){}"
+        . "function t(){if(allow&&(s==='light'||s==='dark'))return s;"
+        . "if(scheme==='auto')return mql.matches?'dark':'light';return scheme;}"
+        . "r.setAttribute('data-bs-theme',t());"
+        . "if(scheme==='auto'){mql.addEventListener('change',function(){"
+        . "if(!(allow&&(s==='light'||s==='dark')))r.setAttribute('data-bs-theme',mql.matches?'dark':'light');});}"
+        . "}catch(e){}})();"
+    );
 }
 
 // Integrations
@@ -133,7 +154,8 @@ if ($customHeadCode !== '') {
 <head>
     <jdoc:include type="head" />
 </head>
-<body class="site <?php echo $option . ' view-' . $view . ($layout ? ' layout-' . $layout : '') . ($pageclass ? ' ' . $pageclass : ''); ?>">
+<body class="site <?php echo $option . ' view-' . $view . ($layout ? ' layout-' . $layout : '') . ($pageclass ? ' ' . $pageclass : '') . ($hasBottomNav ? ' has-bottom-nav' : ''); ?>">
+    <a class="visually-hidden-focusable skip-link" href="#main-content"><?php echo Text::_('TPL_GENERICO_SKIP_TO_CONTENT'); ?></a>
     <?php if ($gtmId) : ?><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?php echo htmlspecialchars($gtmId); ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><?php endif; ?>
     <?php if ($fbPixelId) : ?><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?php echo htmlspecialchars($fbPixelId); ?>&ev=PageView&noscript=1" /></noscript><?php endif; ?>
     <?php // Codigo livre logo apos a abertura do <body> (ex.: <noscript> do GTM).
@@ -151,6 +173,11 @@ if ($customHeadCode !== '') {
                 <a class="navbar-brand" href="<?php echo $this->baseurl; ?>/"><?php echo $logo; ?></a>
 
                 <div class="d-flex align-items-center ms-auto">
+                    <?php if ($themeToggle) : ?>
+                        <button type="button" id="themeToggle" class="theme-toggle me-2" aria-pressed="false" aria-label="<?php echo Text::_('TPL_GENERICO_THEME_TOGGLE_ARIA'); ?>" title="<?php echo Text::_('TPL_GENERICO_THEME_TOGGLE_ARIA'); ?>">
+                            <i class="fas fa-moon" aria-hidden="true"></i>
+                        </button>
+                    <?php endif; ?>
                     <?php if ($this->countModules('mobile-menu', true)) : ?>
                         <button class="navbar-toggler d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenuArea" aria-controls="mobileMenuArea" aria-label="<?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TOGGLE'); ?>">
                             <i class="fas fa-bars" aria-hidden="true"></i>
@@ -202,7 +229,7 @@ if ($customHeadCode !== '') {
 
 
 
-    <main id="main-content" role="main">
+    <main id="main-content" role="main" tabindex="-1">
         <div class="<?php echo $containerClass; ?>">
             <?php if ($this->countModules('breadcrumbs', true)) : ?>
             <div class="row"><div class="col-12"><nav aria-label="breadcrumb"><jdoc:include type="modules" name="breadcrumbs" style="none" /></nav></div></div>
@@ -250,9 +277,11 @@ if ($customHeadCode !== '') {
             <?php
                 $footerModules = ModuleHelper::getModules('footer');
                 $footerColumns = (int) $this->params->get('footerColumns', 4);
-                $colClass = 'col-md-3';
-                if ($footerColumns === 3) $colClass = 'col-md-4';
-                elseif ($footerColumns === 2) $colClass = 'col-md-6';
+                // Empilha no celular (1/linha), 2/linha em tablet pequeno e abre nas
+                // N colunas so a partir do desktop (lg) — evita colunas espremidas.
+                $colClass = 'col-12 col-sm-6 col-lg-3';
+                if ($footerColumns === 3) $colClass = 'col-12 col-sm-6 col-lg-4';
+                elseif ($footerColumns === 2) $colClass = 'col-12 col-sm-6';
                 foreach ($footerModules as $module) {
                     echo '<div class="' . $colClass . '">';
                     echo ModuleHelper::renderModule($module);
@@ -263,6 +292,16 @@ if ($customHeadCode !== '') {
         </div>
     </footer>
     <?php endif; ?>
+    <?php if ($hasBottomNav) : ?>
+    <nav id="bottom-nav" class="bottom-nav d-md-none" aria-label="<?php echo Text::_('TPL_GENERICO_BOTTOM_NAV_LABEL'); ?>">
+        <jdoc:include type="modules" name="bottom-nav" style="none" />
+    </nav>
+    <?php endif; ?>
+
+    <button id="backToTop" class="back-to-top" type="button" aria-label="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>" title="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>">
+        <i class="fas fa-chevron-up" aria-hidden="true"></i>
+    </button>
+
     <jdoc:include type="modules" name="debug" style="none" />
     <?php // Codigo livre antes do fechamento do </body> (ex.: scripts de rodape, chat).
     echo $customBodyBottomCode; ?>

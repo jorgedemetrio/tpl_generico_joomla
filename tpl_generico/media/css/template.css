@@ -51,6 +51,9 @@ a:focus {
 h1, .h1 { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.5rem); }
 h2, .h2 { font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2rem); }
 h3, .h3 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.6rem); }
+h4, .h4 { font-size: clamp(1.1rem, 0.95rem + 0.7vw, 1.35rem); }
+h5, .h5 { font-size: clamp(1rem, 0.94rem + 0.35vw, 1.15rem); }
+h6, .h6 { font-size: clamp(0.9rem, 0.86rem + 0.25vw, 1.05rem); }
 
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-weight: var(--peso-fonte-titulos, 700);
@@ -303,6 +306,13 @@ div.card .card-header {
         position: sticky;
         top: calc(var(--generico-header-height, 80px) + 1.5rem);
     }
+    /* Quando o conteudo da sidebar e mais alto que a area visivel, o sticky faz
+       o ultimo item ficar inalcancavel. O template.js detecta esse caso e marca
+       .is-tall, devolvendo a coluna ao fluxo normal (rola junto com a pagina). */
+    .sidebar-content.is-tall {
+        position: static;
+        top: auto;
+    }
 }
 
 /* ========================================================================
@@ -323,4 +333,207 @@ div.card .card-header {
 
 [data-bs-theme="dark"] .footer {
     border-top: 1px solid var(--cor-borda, #334155);
+}
+
+/* ========================================================================
+   Responsividade — conforto de leitura no celular
+   Em telas pequenas aumenta levemente o corpo de texto e a entrelinha, e
+   ajusta o respiro lateral do container.
+ ========================================================================== */
+@media (max-width: 575.98px) {
+    body.site {
+        font-size: calc(var(--tamanho-base-fonte, 1rem) * 1.0625);
+        line-height: 1.7;
+    }
+
+    .container,
+    .container-fluid {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+}
+
+/* ========================================================================
+   Acessibilidade — Skip link ("Pular para o conteudo")
+   Invisivel ate receber foco (Bootstrap .visually-hidden-focusable);
+   ao focar, aparece flutuando no canto superior esquerdo.
+ ========================================================================== */
+.skip-link:focus {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 2000;
+    padding: 0.5rem 1rem;
+    background-color: var(--cor-cta, #2F80ED);
+    color: #fff;
+    border-radius: var(--raio-borda-global, 4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+}
+
+/* ========================================================================
+   Component: Theme toggle (claro/escuro)
+ ========================================================================== */
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--cor-borda, #E5E7EB);
+    border-radius: var(--raio-borda-global, 4px);
+    background-color: transparent;
+    color: var(--cor-primaria, #1F4E79);
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    color: var(--cor-cta, #2F80ED);
+}
+
+[data-bs-theme="dark"] .theme-toggle {
+    color: var(--cor-texto, #E5E7EB);
+}
+
+/* ========================================================================
+   Component: Bottom Nav (barra fixa inferior — somente mobile)
+   Renderizada com a classe .d-md-none: aparece apenas abaixo de 768px.
+ ========================================================================== */
+.bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1040;
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
+    border-top: 1px solid var(--cor-borda, #E5E7EB);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+    padding: 0.25rem 0.5rem;
+    /* Respeita a area segura (notch) de aparelhos iOS. */
+    padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+.bottom-nav ul,
+.bottom-nav .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bottom-nav li {
+    flex: 1 1 0;
+    text-align: center;
+}
+
+.bottom-nav a,
+.bottom-nav .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0.35rem 0.25rem;
+    font-size: 0.7rem;
+    line-height: 1.1;
+    color: var(--cor-texto, #222222);
+}
+
+.bottom-nav a:hover,
+.bottom-nav a:focus,
+.bottom-nav .active > a {
+    color: var(--cor-cta, #2F80ED);
+    text-decoration: none;
+}
+
+.bottom-nav i,
+.bottom-nav .fa,
+.bottom-nav .fas {
+    font-size: 1.15rem;
+}
+
+/* Evita que o conteudo final fique escondido atras da barra fixa no mobile. */
+@media (max-width: 767.98px) {
+    body.has-bottom-nav {
+        padding-bottom: 4rem;
+    }
+}
+
+/* ========================================================================
+   Component: Back to top (paginas longas, fora do mobile)
+   Visibilidade controlada pelo template.js (classe .is-visible).
+ ========================================================================== */
+.back-to-top {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 1035;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--cor-cta, #2F80ED);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease, background-color 0.2s ease;
+}
+
+.back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+.back-to-top:hover,
+.back-to-top:focus {
+    background-color: var(--cor-primaria, #1F4E79);
+    color: #fff;
+}
+
+/* ========================================================================
+   Skeleton shimmer — placeholder animado em imagens lazy
+   Mostra um brilho ate a imagem carregar; o template.js adiciona .is-loaded.
+   (A animacao e desligada por prefers-reduced-motion mais acima.)
+ ========================================================================== */
+@keyframes generico-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+img[loading="lazy"]:not(.is-loaded) {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    background-image: linear-gradient(90deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.06) 50%,
+        rgba(0, 0, 0, 0) 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: generico-shimmer 1.4s ease-in-out infinite;
+}
+
+img.is-loaded {
+    animation: none;
+    background-image: none;
+}
+
+[data-bs-theme="dark"] img[loading="lazy"]:not(.is-loaded) {
+    background-image: linear-gradient(90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(255, 255, 255, 0) 100%);
 }
