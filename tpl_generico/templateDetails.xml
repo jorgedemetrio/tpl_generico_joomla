@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension type="template" client="site">
 	<name>generico</name>
-	<version>1.0.0</version>
+	<version>1.0.2</version>
 	<creationDate>2017-02</creationDate>
 	<author>Jorge Demetrio</author>
 	<authorEmail>jorgedemetrio@gmail.com</authorEmail>
@@ -10,6 +10,7 @@
 	<files>
 		<filename>component.php</filename>
 		<filename>error.php</filename>
+		<filename>helper.php</filename>
 		<filename>index.php</filename>
 		<filename>joomla.asset.json</filename>
 		<filename>offline.php</filename>
@@ -26,6 +27,7 @@
 		<position>topbar</position>
 		<position>below-top</position>
 		<position>menu</position>
+		<position>mobile-menu</position>
 		<position>search</position>
 		<position>banner</position>
 		<position>top-a</position>
@@ -38,6 +40,7 @@
 		<position>bottom-a</position>
 		<position>bottom-b</position>
 		<position>bottom</position>
+		<position>bottom-nav</position>
 		<position>footer</position>
 		<position>debug</position>
 		<position>message</position>
@@ -79,14 +82,22 @@
 				<field name="espacoInternoTituloCard" type="text" label="TPL_GENERICO_ESPACO_INTERNO_TITULO_CARD_LABEL" default="1.5rem" />
 				<field name="margemTopoTituloCard" type="text" label="TPL_GENERICO_MARGEM_TOPO_TITULO_CARD_LABEL" default="10px" />
 				<field name="footerColor" type="color" label="TPL_GENERICO_COLOR_FOOTER_LABEL" default="#0F172A" />
-				<field name="fontFamilyPrimary" type="text" label="TPL_GENERICO_FONT_FAMILY_LABEL" default="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" description="TPL_GENERICO_FONT_FAMILY_DESC" />
+				<field name="googleFontUrl" type="url" label="TPL_GENERICO_GOOGLE_FONT_URL_LABEL" description="TPL_GENERICO_GOOGLE_FONT_URL_DESC" filter="url" default="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" />
+				<field name="fontFamilyPrimary" type="text" label="TPL_GENERICO_FONT_FAMILY_LABEL" default="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" description="TPL_GENERICO_FONT_FAMILY_DESC" />
 				<field name="fontSizeBase" type="text" label="TPL_GENERICO_FONT_SIZE_BASE_LABEL" default="1rem" description="TPL_GENERICO_FONT_SIZE_BASE_DESC" />
 				<field name="fontWeightNormal" type="number" label="TPL_GENERICO_FONT_WEIGHT_NORMAL_LABEL" default="400" step="100" min="100" max="900" />
 				<field name="fontWeightHeadings" type="number" label="TPL_GENERICO_FONT_WEIGHT_HEADINGS_LABEL" default="700" step="100" min="100" max="900" />
+				<field name="colorScheme" type="list" label="TPL_GENERICO_COLOR_SCHEME_LABEL" description="TPL_GENERICO_COLOR_SCHEME_DESC" default="light">
+					<option value="light">TPL_GENERICO_COLOR_SCHEME_LIGHT</option>
+					<option value="dark">TPL_GENERICO_COLOR_SCHEME_DARK</option>
+					<option value="auto">TPL_GENERICO_COLOR_SCHEME_AUTO</option>
+				</field>
 				<field name="layoutWidth" type="radio" label="TPL_GENERICO_LAYOUT_WIDTH_LABEL" default="boxed" layout="joomla.form.field.radio.switcher">
 					<option value="boxed">TPL_GENERICO_LAYOUT_WIDTH_BOXED</option>
 					<option value="full-width">TPL_GENERICO_LAYOUT_WIDTH_FULL</option>
 				</field>
+				<field name="containerMaxWidth" type="text" label="TPL_GENERICO_CONTAINER_MAX_WIDTH_LABEL" description="TPL_GENERICO_CONTAINER_MAX_WIDTH_DESC" filter="string" />
+				<field name="siteTitle" type="text" label="TPL_GENERICO_SITE_TITLE_LABEL" description="TPL_GENERICO_SITE_TITLE_DESC" filter="string" />
 				<field name="logoFile" type="media" label="TPL_GENERICO_LOGO_LABEL" />
 				<field name="faviconIco" type="text" label="TPL_GENERICO_FAVICON_ICO_LABEL" description="TPL_GENERICO_FAVICON_ICO_DESC" filter="string" />
 				<field name="faviconPng32" type="text" label="TPL_GENERICO_FAVICON_PNG32_LABEL" description="TPL_GENERICO_FAVICON_PNG32_DESC" filter="string" />
@@ -129,10 +140,30 @@
 					<option value="3">3</option>
 					<option value="4">4</option>
 				</field>
+					<field name="themeToggle" type="radio" label="TPL_GENERICO_THEME_TOGGLE_LABEL" description="TPL_GENERICO_THEME_TOGGLE_DESC" default="1" layout="joomla.form.field.radio.switcher">
+						<option value="1">JYES</option>
+						<option value="0">JNO</option>
+					</field>
+					<field name="cookieNotice" type="radio" label="TPL_GENERICO_COOKIE_NOTICE_ENABLE_LABEL" description="TPL_GENERICO_COOKIE_NOTICE_ENABLE_DESC" default="1" layout="joomla.form.field.radio.switcher">
+						<option value="1">JYES</option>
+						<option value="0">JNO</option>
+					</field>
+					<field name="cookieNoticeTimeout" type="number" label="TPL_GENERICO_COOKIE_NOTICE_TIMEOUT_LABEL" description="TPL_GENERICO_COOKIE_NOTICE_TIMEOUT_DESC" default="20" min="0" step="1" showon="cookieNotice:1" />
+					<field name="cookieNoticeText" type="textarea" rows="4" label="TPL_GENERICO_COOKIE_NOTICE_TEXT_LABEL" description="TPL_GENERICO_COOKIE_NOTICE_TEXT_DESC" filter="raw" showon="cookieNotice:1" />
+					<field name="pageLoader" type="radio" label="TPL_GENERICO_PAGE_LOADER_LABEL" description="TPL_GENERICO_PAGE_LOADER_DESC" default="1" layout="joomla.form.field.radio.switcher">
+						<option value="1">JYES</option>
+						<option value="0">JNO</option>
+					</field>
+					<field name="pageLoaderColor" type="color" label="TPL_GENERICO_PAGE_LOADER_COLOR_LABEL" description="TPL_GENERICO_PAGE_LOADER_COLOR_DESC" showon="pageLoader:1" />
+					<field name="pageLoaderImage" type="media" label="TPL_GENERICO_PAGE_LOADER_IMAGE_LABEL" description="TPL_GENERICO_PAGE_LOADER_IMAGE_DESC" showon="pageLoader:1" />
 			</fieldset>
 			<fieldset name="integrations" label="TPL_GENERICO_INTEGRATIONS_LABEL">
 				<field name="gtmId" type="text" label="TPL_GENERICO_GTM_ID_LABEL" description="TPL_GENERICO_GTM_ID_DESC" filter="string" />
 				<field name="fbPixelId" type="text" label="TPL_GENERICO_FB_PIXEL_ID_LABEL" description="TPL_GENERICO_FB_PIXEL_ID_DESC" filter="string" />
+				<field name="customcode_note" type="note" label="TPL_GENERICO_CUSTOM_CODE_NOTE_LABEL" description="TPL_GENERICO_CUSTOM_CODE_NOTE_DESC" />
+				<field name="customHeadCode" type="textarea" rows="6" label="TPL_GENERICO_CUSTOM_HEAD_CODE_LABEL" description="TPL_GENERICO_CUSTOM_HEAD_CODE_DESC" filter="raw" />
+				<field name="customBodyTopCode" type="textarea" rows="6" label="TPL_GENERICO_CUSTOM_BODY_TOP_CODE_LABEL" description="TPL_GENERICO_CUSTOM_BODY_TOP_CODE_DESC" filter="raw" />
+				<field name="customBodyBottomCode" type="textarea" rows="6" label="TPL_GENERICO_CUSTOM_BODY_BOTTOM_CODE_LABEL" description="TPL_GENERICO_CUSTOM_BODY_BOTTOM_CODE_DESC" filter="raw" />
 			</fieldset>
 		</fields>
 	</config>

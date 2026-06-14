@@ -1,0 +1,28 @@
+name: Validação pré-master
+# Gate de pré-publicação do template tpl_generico (Joomla 5). Roda o validador
+# (validar.sh) ANTES de entregar na master (PR direcionado à master) e no push
+# à master. Qualquer FAIL bloqueia: php -l, paridade i18n dos 8 idiomas,
+# <files> do manifesto completo, joomla.asset.json válido.
+permissions:
+  contents: read
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - master
+jobs:
+  validar:
+    name: validar.sh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: phpmd
+      - name: Validação pré-publicação (sai != 0 em FAIL)
+        run: bash .claude/skills/validacao-pre-producao/validar.sh

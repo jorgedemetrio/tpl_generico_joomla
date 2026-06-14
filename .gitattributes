@@ -1,0 +1,4 @@
+# Garante LF em scripts de shell. CRLF quebra a execução no runner Linux do
+# deploy: o kernel lê o shebang como "/bin/bash\r" e o script falha antes de
+# rodar (cannot execute: required file not found).
+*.sh text eol=lf
