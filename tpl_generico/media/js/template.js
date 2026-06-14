@@ -196,11 +196,89 @@
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Aviso de cookies: banner discreto no rodape. So aparece se ainda nao houver
+  // o cookie de consentimento; aceita no clique ou automaticamente apos o tempo
+  // configurado, gravando um cookie de longa duracao para nao repetir. Nao ha
+  // opcao de recusar — o site depende de cookies essenciais.
+  // ---------------------------------------------------------------------------
+  function initCookieNotice() {
+    var el = document.getElementById('cookieNotice');
+    if (!el) {
+      return;
+    }
+    var KEY = 'generico_cookie_consent';
+    var already = document.cookie.split('; ').some(function (c) {
+      return c.indexOf(KEY + '=') === 0;
+    });
+    if (already) {
+      return;
+    }
+
+    var btn = document.getElementById('cookieAccept');
+    var countEl = el.querySelector('.cookie-notice-countdown');
+    var timeout = parseInt(el.getAttribute('data-timeout'), 10);
+    if (isNaN(timeout) || timeout < 0) {
+      timeout = 20;
+    }
+    var remaining = timeout;
+    var timerId = null;
+
+    function persist() {
+      var d = new Date();
+      d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+      var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = KEY + '=1; expires=' + d.toUTCString() + '; path=/; SameSite=Lax' + secure;
+    }
+
+    function dismiss() {
+      if (timerId) {
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+      el.classList.remove('is-visible');
+      window.setTimeout(function () {
+        el.setAttribute('hidden', '');
+      }, 300);
+    }
+
+    function accept() {
+      persist();
+      dismiss();
+    }
+
+    function tick() {
+      remaining -= 1;
+      if (countEl && remaining > 0) {
+        countEl.textContent = ' (' + remaining + ')';
+      }
+      if (remaining <= 0) {
+        accept();
+      }
+    }
+
+    el.removeAttribute('hidden');
+    if (countEl && timeout > 0) {
+      countEl.textContent = ' (' + remaining + ')';
+    }
+    window.requestAnimationFrame(function () {
+      el.classList.add('is-visible');
+    });
+
+    if (btn) {
+      btn.addEventListener('click', accept);
+    }
+    if (timeout > 0) {
+      timerId = window.setInterval(tick, 1000);
+    }
+  }
+
   onReady(function () {
     initHeader();
     initThemeToggle();
     initStickySidebars();
     initBackToTop();
     initLazyImages();
+    initCookieNotice();
   });
 })();

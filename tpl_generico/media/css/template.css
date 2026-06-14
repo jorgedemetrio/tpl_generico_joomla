@@ -537,3 +537,72 @@ img.is-loaded {
         rgba(255, 255, 255, 0.08) 50%,
         rgba(255, 255, 255, 0) 100%);
 }
+
+/* ========================================================================
+   Component: Cookie notice (aviso discreto no rodape — nao bloqueia)
+   Visibilidade controlada pelo template.js ([hidden] + .is-visible).
+ ========================================================================== */
+.cookie-notice {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1050;
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
+    color: var(--cor-texto, #222222);
+    border-top: 1px solid var(--cor-borda, #E5E7EB);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.cookie-notice[hidden] {
+    display: none;
+}
+
+.cookie-notice.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+.cookie-notice-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+    max-width: 1140px;
+    margin: 0 auto;
+}
+
+.cookie-notice-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.cookie-notice-text a {
+    text-decoration: underline;
+}
+
+.cookie-notice-accept {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.cookie-notice-countdown {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+/* Sobe acima da barra inferior fixa quando ambas aparecem no mobile. */
+@media (max-width: 767.98px) {
+    body.has-bottom-nav .cookie-notice {
+        bottom: 3.5rem;
+    }
+}

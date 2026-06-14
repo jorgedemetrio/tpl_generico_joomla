@@ -94,6 +94,14 @@ $themeToggle = $this->params->get('themeToggle', '1') === '1';
 // Barra de navegacao inferior (mobile): so renderiza com modulo na posicao.
 $hasBottomNav = $this->countModules('bottom-nav', true);
 
+// Aviso de cookies: banner discreto no rodape que NAO bloqueia a navegacao.
+// O visitante aceita (ou e aceito automaticamente apos N segundos) e a escolha
+// fica num cookie para nao repetir. Nao ha opcao de recusar — o site depende de
+// cookies essenciais; a mensagem apenas informa isso de forma amigavel.
+$cookieNotice  = $this->params->get('cookieNotice', '1') === '1';
+$cookieTimeout = (int) $this->params->get('cookieNoticeTimeout', 20);
+$cookieText    = trim((string) $this->params->get('cookieNoticeText', ''));
+
 // Esquema de cores: light | dark | auto (auto segue o sistema do visitante).
 $colorScheme = $this->params->get('colorScheme', 'light');
 $htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 'light';
@@ -296,6 +304,15 @@ if ($customHeadCode !== '') {
     <nav id="bottom-nav" class="bottom-nav d-md-none" aria-label="<?php echo Text::_('TPL_GENERICO_BOTTOM_NAV_LABEL'); ?>">
         <jdoc:include type="modules" name="bottom-nav" style="none" />
     </nav>
+    <?php endif; ?>
+
+    <?php if ($cookieNotice) : ?>
+    <div id="cookieNotice" class="cookie-notice" role="region" aria-label="<?php echo Text::_('TPL_GENERICO_COOKIE_NOTICE_REGION'); ?>" data-timeout="<?php echo $cookieTimeout; ?>" hidden>
+        <div class="cookie-notice-inner">
+            <p class="cookie-notice-text"><?php echo $cookieText !== '' ? $cookieText : Text::_('TPL_GENERICO_COOKIE_NOTICE_TEXT'); ?></p>
+            <button type="button" id="cookieAccept" class="btn btn-primary btn-sm cookie-notice-accept"><?php echo Text::_('TPL_GENERICO_COOKIE_ACCEPT'); ?><span class="cookie-notice-countdown" aria-hidden="true"></span></button>
+        </div>
+    </div>
     <?php endif; ?>
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>" title="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>">
