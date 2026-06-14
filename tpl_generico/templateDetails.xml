@@ -150,6 +150,12 @@
 					</field>
 					<field name="cookieNoticeTimeout" type="number" label="TPL_GENERICO_COOKIE_NOTICE_TIMEOUT_LABEL" description="TPL_GENERICO_COOKIE_NOTICE_TIMEOUT_DESC" default="20" min="0" step="1" showon="cookieNotice:1" />
 					<field name="cookieNoticeText" type="textarea" rows="4" label="TPL_GENERICO_COOKIE_NOTICE_TEXT_LABEL" description="TPL_GENERICO_COOKIE_NOTICE_TEXT_DESC" filter="raw" showon="cookieNotice:1" />
+					<field name="pageLoader" type="radio" label="TPL_GENERICO_PAGE_LOADER_LABEL" description="TPL_GENERICO_PAGE_LOADER_DESC" default="1" layout="joomla.form.field.radio.switcher">
+						<option value="1">JYES</option>
+						<option value="0">JNO</option>
+					</field>
+					<field name="pageLoaderColor" type="color" label="TPL_GENERICO_PAGE_LOADER_COLOR_LABEL" description="TPL_GENERICO_PAGE_LOADER_COLOR_DESC" showon="pageLoader:1" />
+					<field name="pageLoaderImage" type="media" label="TPL_GENERICO_PAGE_LOADER_IMAGE_LABEL" description="TPL_GENERICO_PAGE_LOADER_IMAGE_DESC" showon="pageLoader:1" />
 			</fieldset>
 			<fieldset name="integrations" label="TPL_GENERICO_INTEGRATIONS_LABEL">
 				<field name="gtmId" type="text" label="TPL_GENERICO_GTM_ID_LABEL" description="TPL_GENERICO_GTM_ID_DESC" filter="string" />

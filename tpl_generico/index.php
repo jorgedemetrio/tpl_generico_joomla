@@ -102,6 +102,17 @@ $cookieNotice  = $this->params->get('cookieNotice', '1') === '1';
 $cookieTimeout = (int) $this->params->get('cookieNoticeTimeout', 20);
 $cookieText    = trim((string) $this->params->get('cookieNoticeText', ''));
 
+// Loader de navegacao: overlay central com spinner quando o usuario sai da
+// pagina (clique em link interno, envio de formulario ou unload).
+$pageLoader = $this->params->get('pageLoader', '1') === '1';
+// Personalizacao do loader: cor do spinner e/ou imagem (GIF) que o substitui.
+$pageLoaderColor = trim((string) $this->params->get('pageLoaderColor', ''));
+$pageLoaderImage = trim((string) $this->params->get('pageLoaderImage', ''));
+if ($pageLoaderImage !== '') {
+    // O campo media pode retornar "images/x.gif#joomlaImage://..."; usa so o caminho.
+    $pageLoaderImage = explode('#', $pageLoaderImage)[0];
+}
+
 // Esquema de cores: light | dark | auto (auto segue o sistema do visitante).
 $colorScheme = $this->params->get('colorScheme', 'light');
 $htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 'light';
@@ -318,6 +329,19 @@ if ($customHeadCode !== '') {
     <button id="backToTop" class="back-to-top" type="button" aria-label="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>" title="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>">
         <i class="fas fa-chevron-up" aria-hidden="true"></i>
     </button>
+
+    <?php if ($pageLoader) : ?>
+    <div id="pageLoader" class="page-loader" role="status" aria-live="polite" hidden>
+        <div class="page-loader-box">
+            <?php if ($pageLoaderImage !== '') : ?>
+            <img class="page-loader-img" src="<?php echo Uri::root(false) . htmlspecialchars($pageLoaderImage, ENT_QUOTES); ?>" alt="" aria-hidden="true" />
+            <?php else : ?>
+            <div class="spinner-border"<?php echo $pageLoaderColor !== '' ? ' style="color: ' . htmlspecialchars($pageLoaderColor, ENT_QUOTES) . '"' : ''; ?> aria-hidden="true"></div>
+            <?php endif; ?>
+            <span class="visually-hidden"><?php echo Text::_('TPL_GENERICO_LOADING'); ?></span>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <jdoc:include type="modules" name="debug" style="none" />
     <?php // Codigo livre antes do fechamento do </body> (ex.: scripts de rodape, chat).

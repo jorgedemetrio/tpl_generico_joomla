@@ -606,3 +606,62 @@ img.is-loaded {
         bottom: 3.5rem;
     }
 }
+
+/* ========================================================================
+   Component: Page loader (overlay central ao sair da pagina)
+   Mostrado pelo template.js em navegacoes (clique em link, submit, unload).
+ ========================================================================== */
+.page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.page-loader[hidden] {
+    display: none;
+}
+
+.page-loader.is-active {
+    opacity: 1;
+}
+
+.page-loader-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5rem;
+    min-height: 5rem;
+    padding: 1rem;
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
+    border-radius: var(--raio-borda-global, 4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.page-loader-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 120px;
+    max-height: 120px;
+}
+
+.page-loader .spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--cor-cta, #2F80ED);
+}
+
+/* O spinner e feedback essencial: mantem a animacao mesmo com movimento
+   reduzido (a regra global zera animacoes; aqui reabilitamos so o spinner). */
+@media (prefers-reduced-motion: reduce) {
+    .page-loader .spinner-border {
+        animation-duration: 1s !important;
+        animation-iteration-count: infinite !important;
+    }
+}
