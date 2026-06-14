@@ -196,11 +196,171 @@
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Aviso de cookies: banner discreto no rodape. So aparece se ainda nao houver
+  // o cookie de consentimento; aceita no clique ou automaticamente apos o tempo
+  // configurado, gravando um cookie de longa duracao para nao repetir. Nao ha
+  // opcao de recusar — o site depende de cookies essenciais.
+  // ---------------------------------------------------------------------------
+  function initCookieNotice() {
+    var el = document.getElementById('cookieNotice');
+    if (!el) {
+      return;
+    }
+    var KEY = 'generico_cookie_consent';
+    var already = document.cookie.split('; ').some(function (c) {
+      return c.indexOf(KEY + '=') === 0;
+    });
+    if (already) {
+      return;
+    }
+
+    var btn = document.getElementById('cookieAccept');
+    var countEl = el.querySelector('.cookie-notice-countdown');
+    var timeout = parseInt(el.getAttribute('data-timeout'), 10);
+    if (isNaN(timeout) || timeout < 0) {
+      timeout = 20;
+    }
+    var remaining = timeout;
+    var timerId = null;
+
+    function persist() {
+      var d = new Date();
+      d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+      var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = KEY + '=1; expires=' + d.toUTCString() + '; path=/; SameSite=Lax' + secure;
+    }
+
+    function dismiss() {
+      if (timerId) {
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+      el.classList.remove('is-visible');
+      window.setTimeout(function () {
+        el.setAttribute('hidden', '');
+      }, 300);
+    }
+
+    function accept() {
+      persist();
+      dismiss();
+    }
+
+    function tick() {
+      remaining -= 1;
+      if (countEl && remaining > 0) {
+        countEl.textContent = ' (' + remaining + ')';
+      }
+      if (remaining <= 0) {
+        accept();
+      }
+    }
+
+    el.removeAttribute('hidden');
+    if (countEl && timeout > 0) {
+      countEl.textContent = ' (' + remaining + ')';
+    }
+    window.requestAnimationFrame(function () {
+      el.classList.add('is-visible');
+    });
+
+    if (btn) {
+      btn.addEventListener('click', accept);
+    }
+    if (timeout > 0) {
+      timerId = window.setInterval(tick, 1000);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Loader de navegacao: overlay central com spinner quando a pagina vai sair
+  // (clique em link interno, envio de formulario ou unload). Some sozinho na
+  // pagina seguinte (markup nasce oculto) e ao voltar pelo bfcache (pageshow).
+  // ---------------------------------------------------------------------------
+  function initPageLoader() {
+    var el = document.getElementById('pageLoader');
+    if (!el) {
+      return;
+    }
+    var safetyTimer = null;
+
+    function hide() {
+      if (safetyTimer) {
+        window.clearTimeout(safetyTimer);
+        safetyTimer = null;
+      }
+      el.classList.remove('is-active');
+      el.setAttribute('hidden', '');
+    }
+
+    function show() {
+      if (!el.hasAttribute('hidden') && el.classList.contains('is-active')) {
+        return;
+      }
+      el.removeAttribute('hidden');
+      void el.offsetWidth; // forca reflow para a transicao de opacidade valer
+      el.classList.add('is-active');
+      if (safetyTimer) {
+        window.clearTimeout(safetyTimer);
+      }
+      // Rede de seguranca: se a navegacao nao acontecer (ex.: download), esconde.
+      safetyTimer = window.setTimeout(hide, 12000);
+    }
+
+    function isInternalNav(a) {
+      if (!a || a.hasAttribute('download')) {
+        return false;
+      }
+      var target = a.getAttribute('target');
+      if (target && target !== '_self') {
+        return false;
+      }
+      var href = a.getAttribute('href');
+      if (!href || href.charAt(0) === '#') {
+        return false;
+      }
+      var proto = (a.protocol || '').toLowerCase();
+      if (proto === 'mailto:' || proto === 'tel:' || proto === 'javascript:') {
+        return false;
+      }
+      // Mudanca apenas de hash na mesma URL nao recarrega a pagina.
+      return a.href.split('#')[0] !== window.location.href.split('#')[0];
+    }
+
+    document.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        return;
+      }
+      var a = e.target.closest ? e.target.closest('a[href]') : null;
+      if (isInternalNav(a)) {
+        show();
+      }
+    });
+
+    document.addEventListener('submit', function (e) {
+      if (e.defaultPrevented) {
+        return;
+      }
+      var target = e.target && e.target.getAttribute ? e.target.getAttribute('target') : null;
+      if (target && target !== '_self') {
+        return;
+      }
+      show();
+    });
+
+    window.addEventListener('beforeunload', show);
+    // Ao voltar pelo bfcache a pagina pode ser restaurada com o loader ativo.
+    window.addEventListener('pageshow', hide);
+  }
+
   onReady(function () {
     initHeader();
     initThemeToggle();
     initStickySidebars();
     initBackToTop();
     initLazyImages();
+    initCookieNotice();
+    initPageLoader();
   });
 })();
