@@ -21,6 +21,9 @@ body.site {
     color: var(--cor-texto, #222222);
     background-color: var(--cor-superficie-clara, #FFFFFF);
     line-height: 1.6;
+    /* Quebra URLs/strings longas para nao estourar o layout no mobile
+       (o Reboot do Bootstrap nao define isto no body). */
+    overflow-wrap: break-word;
 }
 
 #main-content {
