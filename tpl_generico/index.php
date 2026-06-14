@@ -307,12 +307,12 @@ if ($customHeadCode !== '') {
     <?php endif; ?>
 
     <?php if ($cookieNotice) : ?>
-    <div id="cookieNotice" class="cookie-notice" role="region" aria-label="<?php echo Text::_('TPL_GENERICO_COOKIE_NOTICE_REGION'); ?>" data-timeout="<?php echo $cookieTimeout; ?>" hidden>
+    <section id="cookieNotice" class="cookie-notice" aria-label="<?php echo Text::_('TPL_GENERICO_COOKIE_NOTICE_REGION'); ?>" data-timeout="<?php echo $cookieTimeout; ?>" hidden>
         <div class="cookie-notice-inner">
             <p class="cookie-notice-text"><?php echo $cookieText !== '' ? $cookieText : Text::_('TPL_GENERICO_COOKIE_NOTICE_TEXT'); ?></p>
             <button type="button" id="cookieAccept" class="btn btn-primary btn-sm cookie-notice-accept"><?php echo Text::_('TPL_GENERICO_COOKIE_ACCEPT'); ?><span class="cookie-notice-countdown" aria-hidden="true"></span></button>
         </div>
-    </div>
+    </section>
     <?php endif; ?>
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>" title="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>">
