@@ -1,0 +1,670 @@
+/* ========================================================================
+   Component: Base
+ ========================================================================== */
+html {
+    height: 100%;
+    /* Compensa o header fixo ao navegar para ancoras (#id) — substitui o
+       antigo ajuste via JavaScript. O valor e atualizado pelo template.js
+       conforme a altura real do header. */
+    scroll-padding-top: var(--generico-header-height, 80px);
+    /* Scroll suave respeitando quem prefere movimento reduzido (ver media query). */
+    scroll-behavior: smooth;
+}
+
+body.site {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    font-family: var(--familia-fonte-primaria, system-ui, sans-serif);
+    font-size: var(--tamanho-base-fonte, 1rem);
+    font-weight: var(--peso-fonte-normal, 400);
+    color: var(--cor-texto, #222222);
+    background-color: var(--cor-superficie-clara, #FFFFFF);
+    line-height: 1.6;
+    /* Quebra URLs/strings longas para nao estourar o layout no mobile
+       (o Reboot do Bootstrap nao define isto no body). */
+    overflow-wrap: break-word;
+}
+
+#main-content {
+    flex-grow: 1;
+}
+
+/* Container "boxed" com largura maxima configuravel no admin. */
+@media (min-width: 1200px) {
+    .container {
+        max-width: var(--generico-container-max-width, 1140px);
+    }
+}
+
+a {
+    color: var(--cor-cta, #2F80ED);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover,
+a:focus {
+    color: var(--cor-primaria, #1F4E79);
+    text-decoration: underline;
+    outline: none;
+}
+
+/* Tipografia fluida: escala suavemente entre mobile e desktop sem media queries. */
+h1, .h1 { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.5rem); }
+h2, .h2 { font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2rem); }
+h3, .h3 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.6rem); }
+h4, .h4 { font-size: clamp(1.1rem, 0.95rem + 0.7vw, 1.35rem); }
+h5, .h5 { font-size: clamp(1rem, 0.94rem + 0.35vw, 1.15rem); }
+h6, .h6 { font-size: clamp(0.9rem, 0.86rem + 0.25vw, 1.05rem); }
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: var(--peso-fonte-titulos, 700);
+    color: var(--cor-primaria, #1F4E79);
+    margin-top: var(--espacamento-vertical-global, 2rem);
+    margin-bottom: 1rem;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+/* Midia nunca estoura o container — base de responsividade. */
+img,
+video,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+hr {
+    border-color: var(--cor-borda, #E5E7EB);
+    margin: var(--espacamento-vertical-global, 2rem) 0;
+}
+
+#Passkey {
+    display: none;
+}
+
+
+/* ========================================================================
+   Component: Header
+ ========================================================================== */
+.header {
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
+    transition: padding 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* z-index acima do conteudo quando fixo (sticky-top do Bootstrap ja cuida do flow). */
+.header.sticky-top {
+    z-index: 1030;
+}
+
+.header .navbar {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Header Height Variants */
+.header.header-compact .navbar {
+    min-height: 50px;
+}
+
+.header.header-normal .navbar {
+    min-height: 80px;
+}
+
+/* Encolhe levemente o header ao rolar (classe adicionada via template.js). */
+.header.is-scrolled .navbar {
+    min-height: 50px;
+}
+
+.header .navbar-brand .site-title {
+    color: var(--cor-primaria, #1F4E79);
+    font-weight: var(--peso-fonte-titulos, 700);
+    font-size: clamp(1.1rem, 0.9rem + 1vw, 1.5rem);
+}
+
+.header .navbar-brand img {
+    height: auto;
+    transition: max-height 0.3s ease-in-out;
+}
+
+/* ========================================================================
+   Component: Forms & Buttons
+ ========================================================================== */
+.btn-primary {
+    background-color: var(--cor-cta, #2F80ED);
+    border-color: var(--cor-cta, #2F80ED);
+    border-radius: var(--raio-borda-global, 4px);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--cor-primaria, #1F4E79);
+    border-color: var(--cor-primaria, #1F4E79);
+}
+
+.btn-secondary {
+    background-color: var(--cor-secundaria, #2E7D32);
+    border-color: var(--cor-secundaria, #2E7D32);
+    color: #fff;
+    border-radius: var(--raio-borda-global, 4px);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    opacity: 0.9;
+}
+
+.form-control,
+.form-select {
+    border-radius: var(--raio-borda-global, 4px);
+    border-color: var(--cor-borda, #E5E7EB);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--cor-cta, #2F80ED);
+    /* Usa a tripla RGB gerada no helper.php — rgba() nao aceita hex em var(). */
+    box-shadow: 0 0 0 0.25rem rgba(var(--cor-cta-rgb, 47, 128, 237), 0.25);
+}
+
+
+/* ========================================================================
+   Component: Joomla Specific
+ ========================================================================== */
+/* Cards explicitos e modulos no conteudo principal/sidebars recebem o estilo
+   de cartao. Evita "encartonar" menu, busca e footer (que tem layout proprio). */
+.card,
+#component-area div.moduletable,
+#component-area div.module,
+#sidebar-left div.moduletable,
+#sidebar-left div.module,
+#sidebar-right div.moduletable,
+#sidebar-right div.module {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    border: 1px solid var(--cor-borda, #E5E7EB);
+    border-radius: var(--raio-borda-global, 4px);
+    padding: var(--espaco-interno-card, 1.5rem);
+    margin-top: var(--margin-topo-card, 10px);
+    margin-bottom: var(--espacamento-vertical-global, 2rem);
+}
+
+div.card .card-header {
+    margin-top: var(--margin-topo-titulo-card, 10px);
+    margin-bottom: var(--espacamento-vertical-global, 2rem);
+}
+
+.alert {
+    border-radius: var(--raio-borda-global, 4px);
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    padding: 0.75rem 1rem;
+    border-radius: var(--raio-borda-global, 4px);
+}
+
+/* ========================================================================
+   Component: Footer
+ ========================================================================== */
+.footer {
+    background-color: var(--cor-footer, #0F172A);
+    color: var(--cor-texto-secundario, #6B7280);
+    padding-top: var(--espacamento-vertical-global, 2rem);
+    padding-bottom: var(--espacamento-vertical-global, 2rem);
+    min-height: var(--footer-min-height, 300px);
+}
+
+.footer a {
+    color: var(--cor-superficie-clara, #FFFFFF);
+}
+
+.footer a:hover,
+.footer a:focus {
+    color: var(--cor-cta, #2F80ED);
+}
+
+.footer .module-title,
+.footer h1, .footer h2, .footer h3, .footer h4, .footer h5 {
+    color: var(--cor-superficie-clara, #FFFFFF);
+    font-weight: var(--peso-fonte-titulos, 700);
+    margin-bottom: 1rem;
+}
+
+.footer ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.footer ul li {
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================================================
+   Accessibility
+ ========================================================================== */
+:focus-visible {
+  outline: 3px solid var(--cor-cta, #2F80ED);
+  outline-offset: 2px;
+  border-radius: var(--raio-borda-global, 4px);
+}
+
+/* Respeita usuarios que pedem menos movimento (sistema operacional). */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+
+@media (width >= 992px) {
+    .col-lg-3 {
+        flex: none;
+        width: var(--col-lg-fixed-width, 280px);
+    }
+}
+
+/* ========================================================================
+   Component: Mobile Menu (Offcanvas Full Width)
+ ========================================================================== */
+#mobileMenuArea.offcanvas {
+    background-color: var(--cor-superficie-clara, #FFFFFF);
+}
+
+#mobileMenuArea .offcanvas-header {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+}
+
+#mobileMenuArea .offcanvas-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+#mobileMenuArea .moduletable,
+#mobileMenuArea .module {
+    margin-bottom: 2rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+/* ========================================================================
+   Component: Sidebars (Desktop Only)
+ ========================================================================== */
+@media (min-width: 992px) {
+    .sidebar-content {
+        position: sticky;
+        top: calc(var(--generico-header-height, 80px) + 1.5rem);
+    }
+    /* Quando o conteudo da sidebar e mais alto que a area visivel, o sticky faz
+       o ultimo item ficar inalcancavel. O template.js detecta esse caso e marca
+       .is-tall, devolvendo a coluna ao fluxo normal (rola junto com a pagina). */
+    .sidebar-content.is-tall {
+        position: static;
+        top: auto;
+    }
+}
+
+/* ========================================================================
+   Color scheme: Dark mode (data-bs-theme="dark" no <html>)
+   Preserva as cores de marca (primaria/secundaria/cta) definidas no admin e
+   apenas inverte superficies e texto, aproveitando o suporte nativo do
+   Bootstrap 5.3 a data-bs-theme.
+ ========================================================================== */
+[data-bs-theme="dark"] {
+    --cor-texto: #E5E7EB;
+    --cor-texto-secundario: #9CA3AF;
+    --cor-superficie-clara: #0F172A;
+    --cor-superficie-clara-topo: #111827;
+    --cor-superficie-alt: #1E293B;
+    --cor-borda: #334155;
+    color-scheme: dark;
+}
+
+[data-bs-theme="dark"] .footer {
+    border-top: 1px solid var(--cor-borda, #334155);
+}
+
+/* ========================================================================
+   Responsividade — conforto de leitura no celular
+   Em telas pequenas aumenta levemente o corpo de texto e a entrelinha, e
+   ajusta o respiro lateral do container.
+ ========================================================================== */
+@media (max-width: 575.98px) {
+    body.site {
+        font-size: calc(var(--tamanho-base-fonte, 1rem) * 1.0625);
+        line-height: 1.7;
+    }
+
+    .container,
+    .container-fluid {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+}
+
+/* ========================================================================
+   Acessibilidade — Skip link ("Pular para o conteudo")
+   Invisivel ate receber foco (Bootstrap .visually-hidden-focusable);
+   ao focar, aparece flutuando no canto superior esquerdo.
+ ========================================================================== */
+.skip-link:focus {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 2000;
+    padding: 0.5rem 1rem;
+    background-color: var(--cor-cta, #2F80ED);
+    color: #fff;
+    border-radius: var(--raio-borda-global, 4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+}
+
+/* ========================================================================
+   Component: Theme toggle (claro/escuro)
+ ========================================================================== */
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--cor-borda, #E5E7EB);
+    border-radius: var(--raio-borda-global, 4px);
+    background-color: transparent;
+    color: var(--cor-primaria, #1F4E79);
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    color: var(--cor-cta, #2F80ED);
+}
+
+[data-bs-theme="dark"] .theme-toggle {
+    color: var(--cor-texto, #E5E7EB);
+}
+
+/* ========================================================================
+   Component: Bottom Nav (barra fixa inferior — somente mobile)
+   Renderizada com a classe .d-md-none: aparece apenas abaixo de 768px.
+ ========================================================================== */
+.bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1040;
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
+    border-top: 1px solid var(--cor-borda, #E5E7EB);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+    padding: 0.25rem 0.5rem;
+    /* Respeita a area segura (notch) de aparelhos iOS. */
+    padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+.bottom-nav ul,
+.bottom-nav .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bottom-nav li {
+    flex: 1 1 0;
+    text-align: center;
+}
+
+.bottom-nav a,
+.bottom-nav .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0.35rem 0.25rem;
+    font-size: 0.7rem;
+    line-height: 1.1;
+    color: var(--cor-texto, #222222);
+}
+
+.bottom-nav a:hover,
+.bottom-nav a:focus,
+.bottom-nav .active > a {
+    color: var(--cor-cta, #2F80ED);
+    text-decoration: none;
+}
+
+.bottom-nav i,
+.bottom-nav .fa,
+.bottom-nav .fas {
+    font-size: 1.15rem;
+}
+
+/* Evita que o conteudo final fique escondido atras da barra fixa no mobile. */
+@media (max-width: 767.98px) {
+    body.has-bottom-nav {
+        padding-bottom: 4rem;
+    }
+}
+
+/* ========================================================================
+   Component: Back to top (paginas longas, fora do mobile)
+   Visibilidade controlada pelo template.js (classe .is-visible).
+ ========================================================================== */
+.back-to-top {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 1035;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--cor-cta, #2F80ED);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease, background-color 0.2s ease;
+}
+
+.back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+.back-to-top:hover,
+.back-to-top:focus {
+    background-color: var(--cor-primaria, #1F4E79);
+    color: #fff;
+}
+
+/* ========================================================================
+   Skeleton shimmer — placeholder animado em imagens lazy
+   Mostra um brilho ate a imagem carregar; o template.js adiciona .is-loaded.
+   (A animacao e desligada por prefers-reduced-motion mais acima.)
+ ========================================================================== */
+@keyframes generico-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+img[loading="lazy"]:not(.is-loaded) {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    background-image: linear-gradient(90deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.06) 50%,
+        rgba(0, 0, 0, 0) 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: generico-shimmer 1.4s ease-in-out infinite;
+}
+
+img.is-loaded {
+    animation: none;
+    background-image: none;
+}
+
+[data-bs-theme="dark"] img[loading="lazy"]:not(.is-loaded) {
+    background-image: linear-gradient(90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(255, 255, 255, 0) 100%);
+}
+
+/* ========================================================================
+   Component: Cookie notice (aviso discreto no rodape — nao bloqueia)
+   Visibilidade controlada pelo template.js ([hidden] + .is-visible).
+ ========================================================================== */
+.cookie-notice {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1050;
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
+    color: var(--cor-texto, #222222);
+    border-top: 1px solid var(--cor-borda, #E5E7EB);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.cookie-notice[hidden] {
+    display: none;
+}
+
+.cookie-notice.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+.cookie-notice-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+    max-width: 1140px;
+    margin: 0 auto;
+}
+
+.cookie-notice-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.cookie-notice-text a {
+    text-decoration: underline;
+}
+
+.cookie-notice-accept {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.cookie-notice-countdown {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+/* Sobe acima da barra inferior fixa quando ambas aparecem no mobile. */
+@media (max-width: 767.98px) {
+    body.has-bottom-nav .cookie-notice {
+        bottom: 3.5rem;
+    }
+}
+
+/* ========================================================================
+   Component: Page loader (overlay central ao sair da pagina)
+   Mostrado pelo template.js em navegacoes (clique em link, submit, unload).
+ ========================================================================== */
+.page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.page-loader[hidden] {
+    display: none;
+}
+
+.page-loader.is-active {
+    opacity: 1;
+}
+
+.page-loader-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5rem;
+    min-height: 5rem;
+    padding: 1rem;
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
+    border-radius: var(--raio-borda-global, 4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.page-loader-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 120px;
+    max-height: 120px;
+}
+
+.page-loader .spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--cor-cta, #2F80ED);
+}
+
+/* O spinner e feedback essencial: mantem a animacao mesmo com movimento
+   reduzido (a regra global zera animacoes; aqui reabilitamos so o spinner). */
+@media (prefers-reduced-motion: reduce) {
+    .page-loader .spinner-border {
+        animation-duration: 1s !important;
+        animation-iteration-count: infinite !important;
+    }
+}

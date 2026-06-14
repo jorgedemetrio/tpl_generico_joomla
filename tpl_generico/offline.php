@@ -7,6 +7,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Helper\ModuleHelper;
+require_once __DIR__ . '/helper.php';
 
 /** @var Joomla\CMS\Document\HtmlDocument $this */
 
@@ -19,50 +20,29 @@ HTMLHelper::_('bootstrap.framework');
 $params = $app->getTemplate(true)->params;
 
 // CSS Variable Generation
-$cssVars = '';
-$cssVars .= "--cor-primaria: {$params->get('primaryColor', '#1F4E79')};";
-$cssVars .= "--cor-secundaria: {$params->get('secondaryColor', '#2E7D32')};";
-$cssVars .= "--cor-cta: {$params->get('ctaColor', '#2F80ED')};";
-$cssVars .= "--cor-texto: {$params->get('textColor', '#222222')};";
-$cssVars .= "--cor-texto-secundario: {$params->get('textSecondaryColor', '#6B7280')};";
-$cssVars .= "--cor-superficie-clara: {$params->get('surfaceLightColor', '#FFFFFF')};";
-$cssVars .= "--cor-superficie-clara-topo: {$params->get('surfaceLightColorTopo', '#FFFFFF')};";
-$cssVars .= "--cor-superficie-alt: {$params->get('surfaceAltColor', '#F5F7FA')};";
-$cssVars .= "--cor-borda: {$params->get('borderColor', '#E5E7EB')};";
-$cssVars .= "--espaco-interno-card: {$params->get('espacoInternoCard', '1.5rem')};";
-$cssVars .= "--margin-topo-card: {$params->get('margemTopoCard', '10px')};";
-$cssVars .= "--espaco-interno-titulo-card: {$params->get('espacoInternoTituloCard', '1.5rem')};";
-$cssVars .= "--margin-topo-titulo-card: {$params->get('margemTopoTituloCard', '10px')};";
-$cssVars .= "--cor-footer: {$params->get('footerColor', '#0F172A')};";
-$cssVars .= "--familia-fonte-primaria: {$params->get('fontFamilyPrimary', 'system-ui, sans-serif')};";
-$cssVars .= "--tamanho-base-fonte: {$params->get('fontSizeBase', '1rem')};";
-$cssVars .= "--peso-fonte-normal: {$params->get('fontWeightNormal', '400')};";
-$cssVars .= "--peso-fonte-titulos: {$params->get('fontWeightHeadings', '700')};";
-$cssVars .= "--raio-borda-global: {$params->get('borderRadius', '4')}px;";
-$spacing = $params->get('verticalSpacing', 'M');
-$spacingValue = '2rem';
-if ($spacing === 'S') $spacingValue = '1rem';
-if ($spacing === 'L') $spacingValue = '3rem';
-$cssVars .= "--espacamento-vertical-global: {$spacingValue};";
+$cssVars = TplGenericoHelper::buildCssVars($params);
 
 // Enable assets
-$wa->usePreset('tpl_generico.preset')->addInlineStyle(":root { $cssVars }");
+$wa->usePreset('tpl_generico.preset');
 $wa->useStyle('tpl_generico.offline');
+// Inline depois dos <link>s garante que as cores do admin sobrescrevam o CSS base.
+$this->addStyleDeclaration(":root { $cssVars }");
 
 
 // Logo file or site title param
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
-$logoWidth = $this->params->get('logoWidth', 150);
+// Tamanho fixo do logo na pagina offline (independe do parametro do template).
+const TPL_GENERICO_OFFLINE_LOGO_WIDTH = 240;
 $logo = '';
 try {
-	$params = Factory::getApplication()->getTemplate(true)->params;
-	if ($params->get('logoFile')) {
-        $logo = '<img src="' . Uri::root(false) . htmlspecialchars($params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: 500px; margin 0px auto;" loading="lazy" />';
-	} else {
-		$logo = '<span title="' . $sitename . '">' . htmlspecialchars($params->get('siteTitle', $sitename), ENT_COMPAT, 'UTF-8') . '</span>';
-	}
-} catch (\Exception $e) {
-	$logo = '<span title="' . $sitename . '">' . $sitename . '</span>';
+    if ($params && $params->get('logoFile')) {
+        $logo = '<img src="' . Uri::root(false) . htmlspecialchars($params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" style="width: ' . TPL_GENERICO_OFFLINE_LOGO_WIDTH . 'px; height: auto; display: block; margin: 0 auto;" loading="lazy" />';
+    } else {
+        $title = $params ? $params->get('siteTitle', $sitename) : $sitename;
+        $logo = '<span title="' . $sitename . '">' . htmlspecialchars($title, ENT_COMPAT, 'UTF-8') . '</span>';
+    }
+} catch (\Throwable $e) {
+    $logo = '<span title="' . $sitename . '">' . $sitename . '</span>';
 }
 ?>
 <!DOCTYPE html>
@@ -73,7 +53,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body class="site offline">
-    <div class="offline-card" style=" width: 500px; margin: 0 auto;">
+    <div class="offline-card">
         <div class="header">
             <h1><?php echo $logo; ?></h1>
         </div>

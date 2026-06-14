@@ -13,6 +13,14 @@ SOURCE_DIR="tpl_generico"
 # Diretório de build temporário.
 BUILD_DIR="build_temp"
 
+# Verificação do certificado TLS no upload FTPS. A hospedagem é compartilhada e
+# apresenta o certificado do provedor (CN = ftp.alldreams.com.br), que não bate
+# com o FTP_URL — com a verificação ligada o lftp aborta ("certificate common
+# name doesn't match"). Por isso o padrão é "no" (era o comportamento que
+# funcionava). É configurável: defina o secret/variável FTP_SSL_VERIFY=yes
+# quando/se o certificado for emitido para o próprio FTP_URL.
+FTP_SSL_VERIFY="${FTP_SSL_VERIFY:-no}"
+
 # --- Validação ---
 # Verifica se a versão foi passada como argumento.
 if [ -z "$1" ]; then
@@ -44,9 +52,10 @@ echo "Atualizando a versão no templateDetails.xml para ${PLAIN_VERSION}..."
 sed -i "s|<version>.*</version>|<version>${PLAIN_VERSION}</version>|g" "${BUILD_DIR}/templateDetails.xml"
 echo "Versão atualizada com sucesso."
 echo "Atualizando a versão no joomla.asset.json para ${PLAIN_VERSION}..."
-sed -i "s|\"version\":*,|\"version\": \"${PLAIN_VERSION}\",|g" "${BUILD_DIR}/joomla.asset.json"
+# Substitui o valor entre aspas do campo "version" (ex.: "version": "1.0.2"),
+# independentemente do espaçamento. Importante para o cache busting dos assets.
+sed -i -E "s|(\"version\"[[:space:]]*:[[:space:]]*\")[^\"]*\"|\1${PLAIN_VERSION}\"|" "${BUILD_DIR}/joomla.asset.json"
 echo "Versão atualizada com sucesso."
-  
 
 
 # --- Geração do Pacote ZIP ---
@@ -74,7 +83,7 @@ cat > nova_entrada.xml << EOL
         </tags>
         <maintainer>Jorge Demetrio</maintainer>
         <maintainerurl>https://www.sobieskiproducoes.com.br</maintainerurl>
-        <targetplatform name="joomla" version="5.*"/>
+        <targetplatform name="joomla" version="(5|6)\.*"/>
         <php_minimum>8.1</php_minimum>
     </update>
 EOL
@@ -101,15 +110,15 @@ else
 fi
 echo "Arquivo atualizacao.xml final gerado com sucesso."
 
-# --- Deploy via SFTP ---
-echo "Iniciando o deploy para o servidor SFTP..."
+# --- Deploy via FTPS ---
+echo "Iniciando o deploy para o servidor FTPS..."
 
 # Verifica se as variáveis de ambiente de FTP estão configuradas.
 if [ -z "$FTP_URL" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ]; then
     echo "Erro: As variáveis de ambiente FTP_URL, FTP_USER e FTP_PASSWORD devem ser configuradas."
     exit 1
 fi
-lftp -c "set sftp:auto-confirm yes; set ftp:ssl-allow yes; set ssl:verify-certificate no;
+lftp -c "set sftp:auto-confirm yes; set ftp:ssl-allow yes; set ssl:verify-certificate ${FTP_SSL_VERIFY};
 open -u ${FTP_USER},${FTP_PASSWORD} ${FTP_URL};
 mkdir -p /${APP_NAME};
 cd /${APP_NAME};
