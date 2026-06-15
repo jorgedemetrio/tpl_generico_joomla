@@ -30,7 +30,16 @@ body.site {
     flex-grow: 1;
 }
 
-/* Container "boxed" com largura maxima configuravel no admin. */
+/* No mobile/tablet o .container ocupa 100% da largura da tela. Neutraliza os
+   passos intermediarios do Bootstrap (.container vira 540/720/960px a partir de
+   576/768/992px), que deixavam margens laterais grandes em celulares maiores. */
+@media (max-width: 1199.98px) {
+    .container {
+        max-width: 100%;
+    }
+}
+
+/* Container "boxed" com largura maxima configuravel no admin — so no desktop. */
 @media (min-width: 1200px) {
     .container {
         max-width: var(--generico-container-max-width, 1140px);
