@@ -14,6 +14,12 @@ $app   = Factory::getApplication();
 $input = $app->getInput();
 $wa    = $this->getWebAssetManager();
 
+// Viewport responsivo: sem isto o celular renderiza a pagina como desktop (~980px),
+// o Bootstrap aplica .container { max-width: 720px } e o navegador "da zoom out" na
+// pagina inteira — o container fica muito mais estreito que a tela do celular.
+// (error.php/offline.php/component.php ja definem; o index.php estava sem.)
+$this->setMetaData('viewport', 'width=device-width, initial-scale=1');
+
 // Favicon
 if ($faviconIco = $this->params->get('faviconIco')) {
     $this->addHeadLink(Uri::root(true) . '/' . htmlspecialchars($faviconIco), 'icon', 'rel', ['type' => 'image/vnd.microsoft.icon']);
