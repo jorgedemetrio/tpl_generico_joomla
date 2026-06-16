@@ -142,6 +142,66 @@ hr {
 }
 
 /* ========================================================================
+   Component: Menu ativo (destaque do item da pagina atual)
+   O override html/mod_menu/default.php marca o item atual com .active +
+   aria-current="page"; o layout metismenu (offcanvas/sidebar) marca o <li>
+   com .active/.current. O destaque usa a cor configuravel --cor-menu-ativo
+   (parametro menuActiveColor; padrao = azul do CTA) e fica sempre em negrito,
+   para o usuario saber em que pagina/secao do menu esta.
+ ========================================================================== */
+.header .navbar .nav-item.active > .nav-link,
+.header .navbar .nav-link.active {
+    color: var(--cor-menu-ativo, #2F80ED);
+    font-weight: 700;
+}
+
+/* Indicador (sublinhado) sob o item ativo — apenas no menu horizontal (desktop). */
+@media (min-width: 992px) {
+    .header .navbar .nav-item.active > .nav-link {
+        position: relative;
+    }
+
+    .header .navbar .nav-item.active > .nav-link::after {
+        content: "";
+        position: absolute;
+        left: 0.5rem;
+        right: 0.5rem;
+        bottom: 0;
+        height: 3px;
+        border-radius: 3px 3px 0 0;
+        background-color: var(--cor-menu-ativo, #2F80ED);
+    }
+}
+
+/* No menu empilhado (offcanvas/collapse no mobile) o sublinhado nao se aplica:
+   usa uma barra a esquerda + leve fundo para o mesmo efeito de "voce esta aqui". */
+@media (max-width: 991.98px) {
+    .header .navbar .nav-item.active > .nav-link {
+        border-left: 3px solid var(--cor-menu-ativo, #2F80ED);
+        padding-left: 0.75rem;
+        background-color: rgba(var(--cor-menu-ativo-rgb, 47, 128, 237), 0.08);
+    }
+}
+
+/* Item ativo dentro de um dropdown aberto. */
+.header .navbar .dropdown-menu .dropdown-item.active,
+.header .navbar .dropdown-menu .dropdown-item:active {
+    color: #fff;
+    font-weight: 700;
+    background-color: var(--cor-menu-ativo, #2F80ED);
+}
+
+/* Menu metismenu (posicoes offcanvas/sidebar): o core marca o <li> ativo/atual
+   e os ancestrais do caminho — destacamos o link correspondente. */
+.metismenu .active > a,
+.metismenu .current > a {
+    color: var(--cor-menu-ativo, #2F80ED);
+    font-weight: 700;
+    border-left: 3px solid var(--cor-menu-ativo, #2F80ED);
+    background-color: rgba(var(--cor-menu-ativo-rgb, 47, 128, 237), 0.08);
+}
+
+/* ========================================================================
    Component: Forms & Buttons
  ========================================================================== */
 .btn-primary {
@@ -676,4 +736,103 @@ img.is-loaded {
         animation-duration: 1s !important;
         animation-iteration-count: infinite !important;
     }
+}
+
+/* ========================================================================
+   Component: Newsletter modal (convite de cadastro)
+   So renderiza para visitantes deslogados; o template.js o exibe uma vez, no
+   primeiro acesso, apos o tempo configurado. Visibilidade: [hidden] + .is-visible.
+ ========================================================================== */
+.newsletter-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.newsletter-modal[hidden] {
+    display: none;
+}
+
+.newsletter-modal.is-visible {
+    opacity: 1;
+}
+
+.newsletter-modal-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    padding: 1.5rem;
+    background-color: var(--cor-superficie-clara-topo, #FFFFFF);
+    color: var(--cor-texto, #222222);
+    border-radius: var(--raio-borda-global, 4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    transform: translateY(12px);
+    transition: transform 0.3s ease;
+}
+
+.newsletter-modal.is-visible .newsletter-modal-dialog {
+    transform: none;
+}
+
+.newsletter-modal-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--cor-texto-secundario, #6B7280);
+    cursor: pointer;
+}
+
+.newsletter-modal-close:hover,
+.newsletter-modal-close:focus {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    color: var(--cor-texto, #222222);
+}
+
+.newsletter-modal-title {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    color: var(--cor-primaria, #1F4E79);
+}
+
+.newsletter-modal-text {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.newsletter-modal-form .form-control {
+    margin-bottom: 0.75rem;
+}
+
+.newsletter-modal-error {
+    margin: -0.25rem 0 0.75rem;
+    font-size: 0.85rem;
+    color: #b00020;
+}
+
+.newsletter-modal-error[hidden] {
+    display: none;
+}
+
+.newsletter-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
 }

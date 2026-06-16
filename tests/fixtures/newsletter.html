@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+  Fixture do modal de newsletter. A marcação abaixo espelha a saída de
+  index.php (bloco renderizado só para visitantes deslogados quando o recurso
+  está ligado) e carrega o CSS e o JS REAIS do template. O data-delay é alto
+  de propósito: os testes controlam o tempo "acumulado" semeando o localStorage
+  (generico_newsletter_first), validando a lógica de "primeiro acesso + tempo
+  mínimo" de forma determinística. A action aponta para um stub servido, para
+  validar o redirect com o e-mail na URL.
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — newsletter</title>
+  <style>
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-cta-rgb: 47, 128, 237;
+      --cor-primaria: #1F4E79;
+      --cor-texto: #222222;
+      --cor-texto-secundario: #6B7280;
+      --cor-superficie-clara-topo: #FFFFFF;
+      --cor-superficie-alt: #F5F7FA;
+      --raio-borda-global: 4px;
+    }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <div id="newsletterModal" class="newsletter-modal" role="dialog" aria-modal="true" aria-labelledby="newsletterModalTitle" aria-describedby="newsletterModalText" data-delay="120" hidden>
+    <div class="newsletter-modal-dialog">
+      <button type="button" class="newsletter-modal-close" data-newsletter-dismiss aria-label="Close">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+      <h2 id="newsletterModalTitle" class="newsletter-modal-title">Cadastre-se em nossa newsletter</h2>
+      <div id="newsletterModalText" class="newsletter-modal-text">Quer receber nossas novidades? Deixe seu e-mail.</div>
+      <form class="newsletter-modal-form" action="/tests/fixtures/registration-stub.html" method="get" data-email-param="email" novalidate>
+        <label class="visually-hidden" for="newsletterModalEmail">Seu e-mail</label>
+        <input type="email" id="newsletterModalEmail" name="email" class="form-control" required autocomplete="email" placeholder="voce@exemplo.com" />
+        <p class="newsletter-modal-error" id="newsletterModalError" role="alert" hidden>Informe um e-mail válido.</p>
+        <div class="newsletter-modal-actions">
+          <button type="submit" class="btn btn-primary newsletter-modal-submit">Quero me cadastrar</button>
+          <button type="button" class="btn btn-link newsletter-modal-decline" data-newsletter-dismiss>Agora não</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="../../tpl_generico/media/js/template.js"></script>
+</body>
+</html>

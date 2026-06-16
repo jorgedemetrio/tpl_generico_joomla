@@ -126,6 +126,15 @@ Em telas pequenas (abaixo do breakpoint `lg`, 992px) o template adota um menu **
 -   **Voltar ao topo**: botão `#backToTop` que o `template.js` só exibe fora do mobile (largura ≥ 768px) e em páginas longas (altura do documento > 2× a viewport).
 -   **Skeleton shimmer**: imagens com `loading="lazy"` recebem um brilho animado (CSS) até carregarem; o `template.js` adiciona `.is-loaded` no `load`. Respeita `prefers-reduced-motion`.
 -   **Fonte de marca**: o padrão de `fontFamilyPrimary` inicia com `'Inter'` e o `googleFontUrl` já vem com a URL do Inter (`display=swap`). Tipografia fluida (`clamp()`) cobre `h1`–`h6`.
+-   **Destaque do menu ativo (“você está aqui”)**: o item de menu da página atual recebe destaque visual para o usuário se localizar.
+    -   **Marcação** — o override `html/mod_menu/default.php` (navbar principal) detecta o item atual pelo sinal canônico do `mod_menu` (`$active_id` e `$path`, os mesmos que o layout `dropdown-metismenu` usa), aplica a classe `active` ao `<li>` **e** ao `<a class="nav-link active">`, e adiciona `aria-current="page"` ao link da página atual (para leitores de tela). Quando o item atual é filho de um **dropdown**, o item-pai também é destacado (`.active`), mas **sem** `aria-current` — só o filho é, de fato, a página. O layout `dropdown-metismenu` (posições offcanvas/sidebar) já marca o `<li>` com `active`/`current` pelo core.
+    -   **Estilo** — em `css/template.css` (seção *Menu ativo*), o item ativo fica sempre em **negrito** (`font-weight: 700`) e usa a cor **configurável** `--cor-menu-ativo` (parâmetro `menuActiveColor` no admin → fieldset *Aparência*; se vazio, assume o padrão `#2F80ED`, o azul do CTA). O `helper.php` gera `--cor-menu-ativo` e `--cor-menu-ativo-rgb` (tripla para o leve fundo `rgba`). O destaque aparece como **sublinhado** (`::after`) no menu horizontal do desktop (`≥ 992px`) e como **barra à esquerda + leve fundo** no menu empilhado do mobile (`< 992px`) e no metismenu. Funciona nos temas claro e escuro.
+    -   Há testes Playwright cobrindo esse comportamento, inclusive a cor configurável (ver 5.4).
+-   **Convite de newsletter (modal)**: convida o visitante a se cadastrar para receber novidades. **Desligado por padrão** (`newsletterModal`, fieldset *Funcional*).
+    -   **Quando aparece** — só para visitantes **deslogados** (o `index.php` só renderiza o markup quando `newsletterModal=1` **e** `$app->getIdentity()->guest`), no **primeiro acesso** e após um **tempo mínimo** no site. O `template.js` (`initNewsletterModal`) mede o tempo a partir do **primeiro acesso** (timestamp em `localStorage`, chave `generico_newsletter_first`), acumulado entre páginas; ao atingir o `data-delay` (parâmetro `newsletterModalDelay`, padrão **60s = 1 min**), abre o modal **uma única vez** (marca `generico_newsletter` = `done`, não reabre).
+    -   **Configurável no admin** — além de ligar/desligar: `newsletterModalTitle` e `newsletterModalText` (texto do convite; aceita HTML), `newsletterModalDelay` (segundos), `newsletterModalUrl` (destino — rota do Joomla, padrão `index.php?option=com_users&view=registration`, ou URL externa) e `newsletterModalEmailParam` (nome do parâmetro do e-mail na URL, padrão `email`).
+    -   **Envio** — ao enviar, o `template.js` **valida o e-mail em JS** (regex + `checkValidity()`); se inválido, mostra o erro e **não** redireciona. Se válido, redireciona para a página de cadastro acrescentando `?<emailParam>=<e-mail>` (preservando query strings existentes), de forma que a tela de destino possa pré-preencher o e-mail.
+    -   **Acessibilidade** — `role="dialog"`, `aria-modal`, foco no campo ao abrir, fecha com ESC, clique no fundo ou “Agora não”, e devolve o foco. Estilo em `css/template.css` (seção *Newsletter modal*), no padrão dos demais overlays. Coberto por testes Playwright (ver 5.4).
 
 ## 5. Testes e Boas Práticas
 
@@ -161,6 +170,25 @@ Na CI:
 -   **`validacao-pre-master.yml`** (PR/push para `master`): roda o `validar.sh` e **bloqueia o merge** em qualquer FAIL.
 
 Foco da validação: **performance**, **segurança**, **configurável/flexível** e, sobretudo, **responsividade**. A versão atual em produção é o maior `<version>` em `https://apps.sobieskiproducoes.com.br/tpl_generico/atualizacao.xml`.
+
+### 5.4. Testes de UI automatizados (Playwright)
+
+Comportamentos de interface que o `php -l`/SonarQube não pegam são cobertos por testes [Playwright](https://playwright.dev/) na pasta **`tests/`** (na raiz do repositório, **fora** de `tpl_generico/` — não vão para o ZIP de produção). Veja [`tests/README.md`](../tests/README.md).
+
+**Como rodam (sem precisar de Joomla):** as *fixtures* HTML em `tests/fixtures/` **espelham a marcação** gerada pelo template e referenciam o **CSS e o JS reais** (`media/css/template.css`, `media/js/template.js`). Um servidor estático (`tests/server.js`, iniciado pelo `webServer` do Playwright) serve a **raiz do repositório** via HTTP — assim os caminhos relativos das fixtures resolvem para os assets reais e o `localStorage` funciona (necessário ao modal de newsletter). As specs em `tests/specs/` abrem a fixture e validam o **contrato de marcação** (ex.: `.active`, `aria-current`) e o **comportamento real** (estilo computado, visibilidade, validação, redirect). Um teste vermelho aponta regressão no markup **ou** no CSS/JS.
+
+```bash
+cd tests
+npm install
+npx playwright install chromium   # primeira vez
+npm test
+```
+
+**Ao alterar UI:** se mudar a saída de um override/markup, **atualize a fixture correspondente** (ela é o contrato) e ajuste os asserts na spec. O workflow `.github/workflows/playwright.yml` roda essas specs em pushes/PRs que tocam `index.php`, `media/`, `html/` ou a pasta `tests/`.
+
+Cobertura atual:
+-   **Destaque do item de menu ativo** (navbar desktop/mobile, dropdown e metismenu; cor configurável) — ver 4.3.
+-   **Convite de newsletter (modal)**: aparece só após o tempo configurado, **uma vez** (primeiro acesso, persistido em `localStorage`), valida o e-mail em JS e redireciona com o e-mail na URL — ver 4.3. O tempo acumulado é semeado no `localStorage` para deixar os testes determinísticos (sem esperar 1 minuto real).
 
 ## 6. Deploy e Atualizações
 

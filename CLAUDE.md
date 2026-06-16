@@ -36,4 +36,5 @@ Orientações para o Claude Code trabalhar neste repositório.
 - Sem ambiente de homologação formal: testar localmente (responsividade desktop/tablet/mobile + regressão) antes de versionar.
 - Qualidade de código monitorada por SonarQube, PHP Syntax Check (`php -l`) e PHPMD (PHP Mess Detector). 
 - O fluxo de CI (`build.yml`) valida todos os arquivos PHP do repositório.
+- **Testes de UI (Playwright)** ficam em `tests/` na **raiz do repositório** (fora de `tpl_generico/`, então não entram no ZIP). Rodam com fixtures estáticas que espelham a saída dos overrides + o CSS real, sem precisar de Joomla. Ao mexer em CSS/overrides, atualize a fixture/spec correspondente. Detalhes em `tests/README.md` e em `docs/DEVELOPMENT_GUIDELINES.md` (5.4).
 - A versão final em produção pode ser consultada em: `https://apps.sobieskiproducoes.com.br/tpl_generico/atualizacao.xml` (buscando o maior valor da tag `<version>`).

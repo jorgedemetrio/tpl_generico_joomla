@@ -41,6 +41,10 @@ if (!class_exists('TplGenericoHelper', false)) {
             $cssVars  = "--cor-primaria: {$get('primaryColor', '#1F4E79')};";
             $cssVars .= "--cor-secundaria: {$get('secondaryColor', '#2E7D32')};";
             $cssVars .= "--cor-cta: {$get('ctaColor', '#2F80ED')};";
+            // Cor do destaque do item de menu ativo. Configuravel no admin; se vazio,
+            // usa o padrao (mesmo azul do CTA). Tripla RGB para o leve fundo em rgba().
+            $cssVars .= "--cor-menu-ativo: {$get('menuActiveColor', '#2F80ED')};";
+            $cssVars .= '--cor-menu-ativo-rgb: ' . self::hexToRgb($get('menuActiveColor', '#2F80ED')) . ';';
             // Triplas RGB das cores de marca, usadas em rgba() (focus rings, overlays).
             $cssVars .= '--cor-primaria-rgb: ' . self::hexToRgb($get('primaryColor', '#1F4E79')) . ';';
             $cssVars .= '--cor-secundaria-rgb: ' . self::hexToRgb($get('secondaryColor', '#2E7D32')) . ';';
