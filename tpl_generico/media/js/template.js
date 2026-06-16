@@ -354,6 +354,138 @@
     window.addEventListener('pageshow', hide);
   }
 
+  // ---------------------------------------------------------------------------
+  // Newsletter: convite (modal) para o visitante se cadastrar. So aparece para
+  // quem NAO esta logado (o index.php so renderiza o markup nesse caso), no
+  // PRIMEIRO acesso e depois de um tempo minimo no site (data-delay, em segundos,
+  // medido a partir do primeiro acesso e acumulado entre paginas). Mostra no
+  // maximo UMA vez por navegador. Ao enviar, valida o e-mail em JS e so entao
+  // redireciona para a tela de cadastro (o e-mail vai como parametro na URL).
+  // ---------------------------------------------------------------------------
+  function initNewsletterModal() {
+    var el = document.getElementById('newsletterModal');
+    if (!el) {
+      return;
+    }
+
+    var DONE_KEY = 'generico_newsletter';        // 'done' => ja mostrado/decidido
+    var FIRST_KEY = 'generico_newsletter_first'; // timestamp do primeiro acesso
+
+    var store = {
+      get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+      set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    };
+
+    // Mostra apenas no primeiro acesso: se ja foi exibido/decidido, nao repete.
+    if (store.get(DONE_KEY) === 'done') {
+      return;
+    }
+
+    var delay = parseInt(el.getAttribute('data-delay'), 10);
+    if (isNaN(delay) || delay < 0) {
+      delay = 60;
+    }
+
+    // Tempo acumulado desde o primeiro acesso (sobrevive a navegacao entre paginas).
+    var now = Date.now();
+    var first = parseInt(store.get(FIRST_KEY), 10);
+    if (isNaN(first)) {
+      first = now;
+      store.set(FIRST_KEY, String(first));
+    }
+    var elapsed = Math.floor((now - first) / 1000);
+    var remaining = Math.max(0, delay - elapsed);
+
+    var form = el.querySelector('.newsletter-modal-form');
+    var emailInput = el.querySelector('input[type="email"]');
+    var errorEl = el.querySelector('.newsletter-modal-error');
+    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    var lastFocused = null;
+
+    function onKeydown(e) {
+      if (e.key === 'Escape' || e.keyCode === 27) {
+        close();
+      }
+    }
+
+    function open() {
+      if (!el.hasAttribute('hidden')) {
+        return;
+      }
+      lastFocused = document.activeElement;
+      el.removeAttribute('hidden');
+      void el.offsetWidth; // forca reflow para a transicao valer
+      el.classList.add('is-visible');
+      document.addEventListener('keydown', onKeydown);
+      // So mostra uma vez: marca como concluido assim que abre.
+      store.set(DONE_KEY, 'done');
+      if (emailInput) {
+        emailInput.focus();
+      }
+    }
+
+    function close() {
+      el.classList.remove('is-visible');
+      document.removeEventListener('keydown', onKeydown);
+      window.setTimeout(function () { el.setAttribute('hidden', ''); }, 300);
+      if (lastFocused && typeof lastFocused.focus === 'function') {
+        lastFocused.focus();
+      }
+    }
+
+    function showError(show) {
+      if (emailInput) {
+        emailInput.classList.toggle('is-invalid', show);
+        emailInput.setAttribute('aria-invalid', show ? 'true' : 'false');
+      }
+      if (errorEl) {
+        if (show) {
+          errorEl.removeAttribute('hidden');
+        } else {
+          errorEl.setAttribute('hidden', '');
+        }
+      }
+    }
+
+    // Fecha ao clicar no fundo (fora do dialogo) ou nos botoes de dispensar.
+    el.addEventListener('click', function (e) {
+      if (e.target === el || (e.target.closest && e.target.closest('[data-newsletter-dismiss]'))) {
+        close();
+      }
+    });
+
+    if (emailInput) {
+      emailInput.addEventListener('input', function () { showError(false); });
+    }
+
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = emailInput ? emailInput.value.trim() : '';
+        // Valida o e-mail em JS antes de enviar para o Joomla.
+        var valid = email !== '' && emailRe.test(email) &&
+          (!emailInput || typeof emailInput.checkValidity !== 'function' || emailInput.checkValidity());
+        if (!valid) {
+          showError(true);
+          if (emailInput) { emailInput.focus(); }
+          return;
+        }
+        var url = form.getAttribute('action') || '';
+        var param = form.getAttribute('data-email-param') || 'email';
+        store.set(DONE_KEY, 'done');
+        if (!url) {
+          close();
+          return;
+        }
+        url += (url.indexOf('?') === -1 ? '?' : '&') +
+          encodeURIComponent(param) + '=' + encodeURIComponent(email);
+        window.location.assign(url);
+      });
+    }
+
+    window.setTimeout(open, remaining * 1000);
+  }
+
   onReady(function () {
     initHeader();
     initThemeToggle();
@@ -362,5 +494,6 @@
     initLazyImages();
     initCookieNotice();
     initPageLoader();
+    initNewsletterModal();
   });
 })();

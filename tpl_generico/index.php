@@ -119,6 +119,33 @@ if ($pageLoaderImage !== '') {
     $pageLoaderImage = explode('#', $pageLoaderImage)[0];
 }
 
+// Newsletter: convite (modal) para o visitante se cadastrar. Vem DESLIGADO por
+// padrao (ativavel no admin). So renderiza para quem NAO esta logado; o
+// template.js cuida do "primeiro acesso" + tempo minimo no site (data-delay).
+$user            = $app->getIdentity();
+$isGuest         = $user ? ((int) $user->guest === 1) : true;
+$newsletterModal = $isGuest && $this->params->get('newsletterModal', '0') === '1';
+$newsletterDelay = (int) $this->params->get('newsletterModalDelay', 60);
+if ($newsletterDelay < 0) {
+    $newsletterDelay = 60;
+}
+$newsletterTitle = trim((string) $this->params->get('newsletterModalTitle', ''));
+$newsletterText  = trim((string) $this->params->get('newsletterModalText', ''));
+// Destino do cadastro: rota do Joomla (padrao = registo de utilizadores) ou
+// URL completa para a pagina de newsletter do site. O e-mail vai como query.
+$newsletterUrl   = trim((string) $this->params->get('newsletterModalUrl', 'index.php?option=com_users&view=registration'));
+if ($newsletterUrl === '') {
+    $newsletterUrl = 'index.php?option=com_users&view=registration';
+}
+if (!preg_match('#^https?://#i', $newsletterUrl)) {
+    // Rota interna: deixa o Joomla gerar a URL (SEF). URL absoluta fica como esta.
+    $newsletterUrl = Route::_($newsletterUrl);
+}
+$newsletterEmailParam = trim((string) $this->params->get('newsletterModalEmailParam', 'email'));
+if ($newsletterEmailParam === '') {
+    $newsletterEmailParam = 'email';
+}
+
 // Esquema de cores: light | dark | auto (auto segue o sistema do visitante).
 $colorScheme = $this->params->get('colorScheme', 'light');
 $htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 'light';
@@ -330,6 +357,27 @@ if ($customHeadCode !== '') {
             <button type="button" id="cookieAccept" class="btn btn-primary btn-sm cookie-notice-accept"><?php echo Text::_('TPL_GENERICO_COOKIE_ACCEPT'); ?><span class="cookie-notice-countdown" aria-hidden="true"></span></button>
         </div>
     </section>
+    <?php endif; ?>
+
+    <?php if ($newsletterModal) : ?>
+    <div id="newsletterModal" class="newsletter-modal" role="dialog" aria-modal="true" aria-labelledby="newsletterModalTitle" aria-describedby="newsletterModalText" data-delay="<?php echo $newsletterDelay; ?>" hidden>
+        <div class="newsletter-modal-dialog">
+            <button type="button" class="newsletter-modal-close" data-newsletter-dismiss aria-label="<?php echo Text::_('JCLOSE'); ?>">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <h2 id="newsletterModalTitle" class="newsletter-modal-title"><?php echo $newsletterTitle !== '' ? htmlspecialchars($newsletterTitle, ENT_QUOTES, 'UTF-8') : Text::_('TPL_GENERICO_NEWSLETTER_TITLE'); ?></h2>
+            <div id="newsletterModalText" class="newsletter-modal-text"><?php echo $newsletterText !== '' ? $newsletterText : Text::_('TPL_GENERICO_NEWSLETTER_TEXT'); ?></div>
+            <form class="newsletter-modal-form" action="<?php echo htmlspecialchars($newsletterUrl, ENT_QUOTES); ?>" method="get" data-email-param="<?php echo htmlspecialchars($newsletterEmailParam, ENT_QUOTES); ?>" novalidate>
+                <label class="visually-hidden" for="newsletterModalEmail"><?php echo Text::_('TPL_GENERICO_NEWSLETTER_EMAIL_LABEL'); ?></label>
+                <input type="email" id="newsletterModalEmail" name="<?php echo htmlspecialchars($newsletterEmailParam, ENT_QUOTES); ?>" class="form-control" required autocomplete="email" placeholder="<?php echo Text::_('TPL_GENERICO_NEWSLETTER_EMAIL_PLACEHOLDER'); ?>" />
+                <p class="newsletter-modal-error" id="newsletterModalError" role="alert" hidden><?php echo Text::_('TPL_GENERICO_NEWSLETTER_INVALID_EMAIL'); ?></p>
+                <div class="newsletter-modal-actions">
+                    <button type="submit" class="btn btn-primary newsletter-modal-submit"><?php echo Text::_('TPL_GENERICO_NEWSLETTER_SUBMIT'); ?></button>
+                    <button type="button" class="btn btn-link newsletter-modal-decline" data-newsletter-dismiss><?php echo Text::_('TPL_GENERICO_NEWSLETTER_DECLINE'); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
     <?php endif; ?>
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>" title="<?php echo Text::_('TPL_GENERICO_BACK_TO_TOP'); ?>">

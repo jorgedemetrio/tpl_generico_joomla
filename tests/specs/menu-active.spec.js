@@ -1,7 +1,5 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const path = require('path');
-const { pathToFileURL } = require('url');
 
 /**
  * Melhoria "Menu": o item de menu da pagina atual deve receber um destaque
@@ -13,9 +11,9 @@ const { pathToFileURL } = require('url');
  * entao um teste vermelho aponta uma regressao no override OU no template.css.
  */
 
-/** URL file:// de uma fixture em tests/fixtures. */
+/** Caminho (relativo ao baseURL) de uma fixture em tests/fixtures. */
 function fixture(name) {
-  return pathToFileURL(path.join(__dirname, '..', 'fixtures', name)).href;
+  return '/tests/fixtures/' + name;
 }
 
 const CTA_RGB = 'rgb(47, 128, 237)'; // padrao do destaque (--cor-menu-ativo = #2F80ED)

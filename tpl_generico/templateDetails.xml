@@ -157,6 +157,15 @@
 					</field>
 					<field name="pageLoaderColor" type="color" label="TPL_GENERICO_PAGE_LOADER_COLOR_LABEL" description="TPL_GENERICO_PAGE_LOADER_COLOR_DESC" showon="pageLoader:1" />
 					<field name="pageLoaderImage" type="media" label="TPL_GENERICO_PAGE_LOADER_IMAGE_LABEL" description="TPL_GENERICO_PAGE_LOADER_IMAGE_DESC" showon="pageLoader:1" />
+						<field name="newsletterModal" type="radio" label="TPL_GENERICO_NEWSLETTER_ENABLE_LABEL" description="TPL_GENERICO_NEWSLETTER_ENABLE_DESC" default="0" layout="joomla.form.field.radio.switcher">
+							<option value="1">JYES</option>
+							<option value="0">JNO</option>
+						</field>
+						<field name="newsletterModalDelay" type="number" label="TPL_GENERICO_NEWSLETTER_DELAY_LABEL" description="TPL_GENERICO_NEWSLETTER_DELAY_DESC" default="60" min="0" step="5" showon="newsletterModal:1" />
+						<field name="newsletterModalTitle" type="text" label="TPL_GENERICO_NEWSLETTER_TITLE_LABEL" description="TPL_GENERICO_NEWSLETTER_TITLE_DESC" filter="string" showon="newsletterModal:1" />
+						<field name="newsletterModalText" type="textarea" rows="4" label="TPL_GENERICO_NEWSLETTER_TEXT_LABEL" description="TPL_GENERICO_NEWSLETTER_TEXT_DESC" filter="raw" showon="newsletterModal:1" />
+						<field name="newsletterModalUrl" type="text" label="TPL_GENERICO_NEWSLETTER_URL_LABEL" description="TPL_GENERICO_NEWSLETTER_URL_DESC" filter="string" default="index.php?option=com_users&amp;view=registration" showon="newsletterModal:1" />
+						<field name="newsletterModalEmailParam" type="text" label="TPL_GENERICO_NEWSLETTER_EMAIL_PARAM_LABEL" description="TPL_GENERICO_NEWSLETTER_EMAIL_PARAM_DESC" filter="string" default="email" showon="newsletterModal:1" />
 			</fieldset>
 			<fieldset name="integrations" label="TPL_GENERICO_INTEGRATIONS_LABEL">
 				<field name="gtmId" type="text" label="TPL_GENERICO_GTM_ID_LABEL" description="TPL_GENERICO_GTM_ID_DESC" filter="string" />
