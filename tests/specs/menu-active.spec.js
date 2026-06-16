@@ -34,11 +34,12 @@ test.describe('Menu — destaque do item ativo (navbar)', () => {
     await expect(active).toHaveCSS('color', CTA_RGB);
     await expect(active).toHaveCSS('font-weight', BOLD);
 
-    // Indicador (sublinhado ::after) presente no menu horizontal (desktop).
-    const afterHeight = await active.evaluate(
-      (el) => getComputedStyle(el, '::after').height
+    // Indicador (sublinhado em ::before) presente no menu horizontal (desktop).
+    // Usa ::before para nao colidir com o caret do Bootstrap (.dropdown-toggle::after).
+    const underline = await active.evaluate(
+      (el) => getComputedStyle(el, '::before').height
     );
-    expect(afterHeight).toBe('3px');
+    expect(underline).toBe('3px');
   });
 
   test('a cor do destaque e configuravel (--cor-menu-ativo) e o texto fica em negrito', async ({ page }) => {
@@ -59,11 +60,11 @@ test.describe('Menu — destaque do item ativo (navbar)', () => {
 
     const CUSTOM_RGB = 'rgb(192, 57, 43)';
     await expect(active).toHaveCSS('color', CUSTOM_RGB);
-    // O indicador (sublinhado) tambem acompanha a cor configurada.
-    const afterBg = await active.evaluate(
-      (el) => getComputedStyle(el, '::after').backgroundColor
+    // O indicador (sublinhado em ::before) tambem acompanha a cor configurada.
+    const beforeBg = await active.evaluate(
+      (el) => getComputedStyle(el, '::before').backgroundColor
     );
-    expect(afterBg).toBe(CUSTOM_RGB);
+    expect(beforeBg).toBe(CUSTOM_RGB);
   });
 
   test('um item inativo NAO recebe destaque', async ({ page }) => {
@@ -78,11 +79,11 @@ test.describe('Menu — destaque do item ativo (navbar)', () => {
     const weight = await inactive.evaluate((el) => getComputedStyle(el).fontWeight);
     expect(weight).not.toBe(BOLD);
 
-    // Sem indicador ::after no item inativo.
-    const afterHeight = await inactive.evaluate(
-      (el) => getComputedStyle(el, '::after').height
+    // Sem indicador (::before) no item inativo.
+    const underline = await inactive.evaluate(
+      (el) => getComputedStyle(el, '::before').height
     );
-    expect(afterHeight).not.toBe('3px');
+    expect(underline).not.toBe('3px');
   });
 
   test('dropdown: o pai e destacado e o filho ativo carrega aria-current', async ({ page }) => {
@@ -94,6 +95,17 @@ test.describe('Menu — destaque do item ativo (navbar)', () => {
     await expect(parent).toHaveClass(/\bactive\b/);
     await expect(parent).not.toHaveAttribute('aria-current', 'page');
     await expect(parent).toHaveCSS('font-weight', BOLD);
+
+    // O sublinhado fica no ::before; o ::after permanece livre para o caret do
+    // Bootstrap (.dropdown-toggle::after) — preservando o indicador de "abre menu".
+    const parentUnderline = await parent.evaluate(
+      (el) => getComputedStyle(el, '::before').height
+    );
+    expect(parentUnderline).toBe('3px');
+    const parentAfter = await parent.evaluate(
+      (el) => getComputedStyle(el, '::after').height
+    );
+    expect(parentAfter).not.toBe('3px');
 
     // Filho ativo: aria-current + destaque proprio de item de dropdown.
     const child = page.locator('.dropdown-menu .dropdown-item.active');

@@ -68,15 +68,19 @@ if (!function_exists('renderMenuItems')) {
             $isDropdown     = $hasChildren && !$isSubmenu;
             $isDropdownItem = $isSubmenu;
 
-            // "E a pagina atual": recebe aria-current="page". Deriva do $active_id
-            // e do $path do mod_menu (sinal canonico do Joomla), com $item->active
-            // como reforco para listas que ja tragam a propriedade preenchida.
-            $isCurrent = !empty($item->active)
-                || ($activeId && $id === $activeId)
+            // "E a pagina atual" (exata): apenas o item cujo id corresponde ao
+            // item de menu ativo do mod_menu. SO este recebe aria-current="page"
+            // — o $path inclui os ancestrais, entao nao serve para isto.
+            $isCurrent = $activeId && $id === $activeId;
+            // "Esta no ramo ativo": o item atual, um ancestral (pai de dropdown,
+            // presente em $path) ou um item ja marcado pela lista. Usado SO para
+            // o destaque visual, nunca para aria-current.
+            $inActivePath = $isCurrent
+                || !empty($item->active)
                 || ($id && in_array($id, $path));
-            // "Deve destacar": o item atual OU um pai de dropdown cujo filho esta
+            // "Deve destacar": o ramo ativo OU um pai de dropdown cujo filho esta
             // ativo — assim a secao inteira fica evidente na navegacao.
-            $highlight = $isCurrent
+            $highlight = $inActivePath
                 || ($hasChildren && genericoMenuBranchHasActive($children, $activeId, $path));
 
             $menuItemClass = 'nav-item';

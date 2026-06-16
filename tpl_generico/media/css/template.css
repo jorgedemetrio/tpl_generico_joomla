@@ -155,13 +155,16 @@ hr {
     font-weight: 700;
 }
 
-/* Indicador (sublinhado) sob o item ativo — apenas no menu horizontal (desktop). */
+/* Indicador (sublinhado) sob o item ativo — apenas no menu horizontal (desktop).
+   Usa ::before de proposito: o ::after e reservado ao caret do Bootstrap
+   (.dropdown-toggle::after); se o sublinhado usasse ::after, ele venceria por
+   especificidade e distorceria/sumiria com a setinha nos pais de dropdown. */
 @media (min-width: 992px) {
     .header .navbar .nav-item.active > .nav-link {
         position: relative;
     }
 
-    .header .navbar .nav-item.active > .nav-link::after {
+    .header .navbar .nav-item.active > .nav-link::before {
         content: "";
         position: absolute;
         left: 0.5rem;
