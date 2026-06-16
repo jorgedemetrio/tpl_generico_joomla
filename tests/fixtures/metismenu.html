@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+  Fixture do menu metismenu (layout dropdown-metismenu, usado nas posicoes
+  offcanvas/sidebar). Espelha a marcacao do core do Joomla: o <li> do item
+  atual recebe "current active" e os ancestrais do caminho recebem "active".
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — metismenu</title>
+  <style>
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-cta-rgb: 47, 128, 237;
+      --cor-primaria: #1F4E79;
+      --cor-texto: #222222;
+      --peso-fonte-normal: 400;
+      --peso-fonte-titulos: 700;
+    }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <ul class="mod-menu mod-menu_dropdown-metismenu metismenu mod-list">
+    <li class="metismenu-item item-101 level-1 current active"><a href="/">Inicio</a></li>
+    <li class="metismenu-item item-102 level-1"><a href="/sobre">Sobre</a></li>
+    <li class="metismenu-item item-103 level-1 active deeper parent">
+      <a href="/servicos">Servicos</a>
+      <ul class="mm-collapse">
+        <li class="metismenu-item item-104 level-2 current active"><a href="/servicos/web">Web</a></li>
+        <li class="metismenu-item item-105 level-2"><a href="/servicos/mobile">Mobile</a></li>
+      </ul>
+    </li>
+  </ul>
+</body>
+</html>

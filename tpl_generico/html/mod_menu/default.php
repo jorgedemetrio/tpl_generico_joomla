@@ -8,25 +8,59 @@ use Joomla\CMS\Language\Text;
 // This is a custom layout override for mod_menu to render a Bootstrap 5 compatible navbar.
 // It supports multilevel dropdowns and accessibility attributes.
 
+if (!function_exists('genericoMenuBranchHasActive')) {
+    /**
+     * Indica se algum item do ramo (ou um descendente) e a pagina atual. Usado
+     * para destacar o item-pai de um dropdown quando um dos filhos esta ativo,
+     * para o usuario saber em que secao do menu se encontra.
+     *
+     * @param array $items     Itens do ramo.
+     * @param int   $activeId  Id do item de menu da pagina atual.
+     * @param array $path      Ids do caminho ativo (item atual + ancestrais).
+     *
+     * @return bool
+     */
+    function genericoMenuBranchHasActive($items, $activeId, $path)
+    {
+        foreach ($items as $item) {
+            if (!is_object($item)) {
+                continue;
+            }
+            $id = (int) ($item->id ?? 0);
+            if (!empty($item->active) || ($activeId && $id === $activeId) || ($id && in_array($id, $path))) {
+                return true;
+            }
+            if (!empty($item->children) && genericoMenuBranchHasActive($item->children, $activeId, $path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('renderMenuItems')) {
     /**
      * Recursive function to render menu items.
      *
      * @param array $items     The menu items to render.
      * @param bool  $isSubmenu Whether the items are in a submenu.
+     * @param int   $activeId  Id do item de menu correspondente a pagina atual.
+     * @param array $path      Ids do caminho ativo (item atual + ancestrais).
      */
-    function renderMenuItems($items, $isSubmenu = false)
+    function renderMenuItems($items, $isSubmenu = false, $activeId = 0, $path = [])
     {
         if (empty($items)) {
             return;
         }
+        $activeId = (int) $activeId;
         foreach ($items as $item) {
             if (!is_object($item)) {
                 continue;
             }
             $title      = isset($item->title) ? (string) $item->title : '';
             $flink      = isset($item->flink) ? (string) $item->flink : '#';
-            $active     = !empty($item->active);
+            $id         = (int) ($item->id ?? 0);
             $children   = $item->children ?? [];
             $browserNav = (int) ($item->browserNav ?? 0);
 
@@ -34,8 +68,19 @@ if (!function_exists('renderMenuItems')) {
             $isDropdown     = $hasChildren && !$isSubmenu;
             $isDropdownItem = $isSubmenu;
 
+            // "E a pagina atual": recebe aria-current="page". Deriva do $active_id
+            // e do $path do mod_menu (sinal canonico do Joomla), com $item->active
+            // como reforco para listas que ja tragam a propriedade preenchida.
+            $isCurrent = !empty($item->active)
+                || ($activeId && $id === $activeId)
+                || ($id && in_array($id, $path));
+            // "Deve destacar": o item atual OU um pai de dropdown cujo filho esta
+            // ativo — assim a secao inteira fica evidente na navegacao.
+            $highlight = $isCurrent
+                || ($hasChildren && genericoMenuBranchHasActive($children, $activeId, $path));
+
             $menuItemClass = 'nav-item';
-            if ($active) {
+            if ($highlight) {
                 $menuItemClass .= ' active';
             }
             if ($isDropdown) {
@@ -46,10 +91,21 @@ if (!function_exists('renderMenuItems')) {
 
             // Link attributes
             $linkClass = $isDropdownItem ? 'dropdown-item' : 'nav-link';
+            if ($isDropdown) {
+                $linkClass .= ' dropdown-toggle';
+            }
+            if ($highlight) {
+                $linkClass .= ' active';
+            }
             $linkAttrs = [
-                'class="' . $linkClass . ($isDropdown ? ' dropdown-toggle' : '') . '"',
+                'class="' . $linkClass . '"',
                 'title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"',
             ];
+            // aria-current marca a pagina atual para tecnologias assistivas. O
+            // pai de um dropdown e apenas destacado (nao e, ele mesmo, a pagina).
+            if ($isCurrent) {
+                $linkAttrs[] = 'aria-current="page"';
+            }
             if ($isDropdown) {
                 $linkAttrs[] = 'href="#"';
                 $linkAttrs[] = 'role="button"';
@@ -66,7 +122,7 @@ if (!function_exists('renderMenuItems')) {
 
             if ($hasChildren) {
                 echo '<ul class="dropdown-menu">';
-                renderMenuItems($children, true);
+                renderMenuItems($children, true, $activeId, $path);
                 echo '</ul>';
             }
 
@@ -75,8 +131,12 @@ if (!function_exists('renderMenuItems')) {
     }
 }
 
-$id = $params->get('tag_id', 'main-menu-' . $module->id);
+$id           = $params->get('tag_id', 'main-menu-' . $module->id);
+// $active_id e $path sao fornecidos pelo dispatcher do mod_menu (mesmo sinal
+// usado pelo layout metismenu). Guardas evitam aviso se o contexto nao os trouxer.
+$activeMenuId = isset($active_id) ? (int) $active_id : 0;
+$activePath   = (isset($path) && is_array($path)) ? $path : [];
 ?>
 <ul class="navbar-nav me-auto" id="<?php echo $id; ?>">
-    <?php renderMenuItems($list); ?>
+    <?php renderMenuItems($list, false, $activeMenuId, $activePath); ?>
 </ul>

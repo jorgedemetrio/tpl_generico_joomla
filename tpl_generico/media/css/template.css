@@ -142,6 +142,64 @@ hr {
 }
 
 /* ========================================================================
+   Component: Menu ativo (destaque do item da pagina atual)
+   O override html/mod_menu/default.php marca o item atual com .active +
+   aria-current="page"; o layout metismenu (offcanvas/sidebar) marca o <li>
+   com .active/.current. Aqui aplicamos o destaque visual usando as cores do
+   tema, para o usuario saber em que pagina/secao do menu esta.
+ ========================================================================== */
+.header .navbar .nav-item.active > .nav-link,
+.header .navbar .nav-link.active {
+    color: var(--cor-cta, #2F80ED);
+    font-weight: var(--peso-fonte-titulos, 700);
+}
+
+/* Indicador (sublinhado) sob o item ativo — apenas no menu horizontal (desktop). */
+@media (min-width: 992px) {
+    .header .navbar .nav-item.active > .nav-link {
+        position: relative;
+    }
+
+    .header .navbar .nav-item.active > .nav-link::after {
+        content: "";
+        position: absolute;
+        left: 0.5rem;
+        right: 0.5rem;
+        bottom: 0;
+        height: 3px;
+        border-radius: 3px 3px 0 0;
+        background-color: var(--cor-cta, #2F80ED);
+    }
+}
+
+/* No menu empilhado (offcanvas/collapse no mobile) o sublinhado nao se aplica:
+   usa uma barra a esquerda + leve fundo para o mesmo efeito de "voce esta aqui". */
+@media (max-width: 991.98px) {
+    .header .navbar .nav-item.active > .nav-link {
+        border-left: 3px solid var(--cor-cta, #2F80ED);
+        padding-left: 0.75rem;
+        background-color: rgba(var(--cor-cta-rgb, 47, 128, 237), 0.08);
+    }
+}
+
+/* Item ativo dentro de um dropdown aberto. */
+.header .navbar .dropdown-menu .dropdown-item.active,
+.header .navbar .dropdown-menu .dropdown-item:active {
+    color: #fff;
+    background-color: var(--cor-cta, #2F80ED);
+}
+
+/* Menu metismenu (posicoes offcanvas/sidebar): o core marca o <li> ativo/atual
+   e os ancestrais do caminho — destacamos o link correspondente. */
+.metismenu .active > a,
+.metismenu .current > a {
+    color: var(--cor-cta, #2F80ED);
+    font-weight: var(--peso-fonte-titulos, 700);
+    border-left: 3px solid var(--cor-cta, #2F80ED);
+    background-color: rgba(var(--cor-cta-rgb, 47, 128, 237), 0.08);
+}
+
+/* ========================================================================
    Component: Forms & Buttons
  ========================================================================== */
 .btn-primary {

@@ -126,6 +126,10 @@ Em telas pequenas (abaixo do breakpoint `lg`, 992px) o template adota um menu **
 -   **Voltar ao topo**: botão `#backToTop` que o `template.js` só exibe fora do mobile (largura ≥ 768px) e em páginas longas (altura do documento > 2× a viewport).
 -   **Skeleton shimmer**: imagens com `loading="lazy"` recebem um brilho animado (CSS) até carregarem; o `template.js` adiciona `.is-loaded` no `load`. Respeita `prefers-reduced-motion`.
 -   **Fonte de marca**: o padrão de `fontFamilyPrimary` inicia com `'Inter'` e o `googleFontUrl` já vem com a URL do Inter (`display=swap`). Tipografia fluida (`clamp()`) cobre `h1`–`h6`.
+-   **Destaque do menu ativo (“você está aqui”)**: o item de menu da página atual recebe destaque visual para o usuário se localizar.
+    -   **Marcação** — o override `html/mod_menu/default.php` (navbar principal) detecta o item atual pelo sinal canônico do `mod_menu` (`$active_id` e `$path`, os mesmos que o layout `dropdown-metismenu` usa), aplica a classe `active` ao `<li>` **e** ao `<a class="nav-link active">`, e adiciona `aria-current="page"` ao link da página atual (para leitores de tela). Quando o item atual é filho de um **dropdown**, o item-pai também é destacado (`.active`), mas **sem** `aria-current` — só o filho é, de fato, a página. O layout `dropdown-metismenu` (posições offcanvas/sidebar) já marca o `<li>` com `active`/`current` pelo core.
+    -   **Estilo** — em `css/template.css` (seção *Menu ativo*), o destaque usa as variáveis de tema (`--cor-cta`, `--cor-cta-rgb`, `--peso-fonte-titulos`): cor + negrito, com **sublinhado** (`::after`) no menu horizontal do desktop (`≥ 992px`) e **barra à esquerda + leve fundo** no menu empilhado do mobile (`< 992px`) e no metismenu. Funciona nos temas claro e escuro.
+    -   Há testes Playwright cobrindo esse comportamento (ver 5.4).
 
 ## 5. Testes e Boas Práticas
 
@@ -161,6 +165,23 @@ Na CI:
 -   **`validacao-pre-master.yml`** (PR/push para `master`): roda o `validar.sh` e **bloqueia o merge** em qualquer FAIL.
 
 Foco da validação: **performance**, **segurança**, **configurável/flexível** e, sobretudo, **responsividade**. A versão atual em produção é o maior `<version>` em `https://apps.sobieskiproducoes.com.br/tpl_generico/atualizacao.xml`.
+
+### 5.4. Testes de UI automatizados (Playwright)
+
+Comportamentos de interface que o `php -l`/SonarQube não pegam são cobertos por testes [Playwright](https://playwright.dev/) na pasta **`tests/`** (na raiz do repositório, **fora** de `tpl_generico/` — não vão para o ZIP de produção). Veja [`tests/README.md`](../tests/README.md).
+
+**Como rodam (sem precisar de Joomla):** as *fixtures* HTML em `tests/fixtures/` **espelham a marcação** gerada pelos overrides (ex.: `html/mod_menu/default.php`) e referenciam o **CSS real** (`media/css/template.css`); as specs em `tests/specs/` abrem a fixture via `file://` e validam o **contrato de marcação** (`.active`, `aria-current="page"`) e o **estilo computado** (cor, peso, indicadores). Um teste vermelho aponta regressão no override **ou** no CSS.
+
+```bash
+cd tests
+npm install
+npx playwright install chromium   # primeira vez
+npm test
+```
+
+**Ao alterar UI:** se mudar a saída de um override, **atualize a fixture correspondente** (ela é o contrato) e adicione/ajuste asserts na spec. O workflow `.github/workflows/playwright.yml` roda essas specs em pushes/PRs que tocam o CSS, os overrides de menu ou a pasta `tests/`.
+
+Cobertura atual: **destaque do item de menu ativo** (navbar desktop/mobile, dropdown e metismenu) — ver 4.3.
 
 ## 6. Deploy e Atualizações
 

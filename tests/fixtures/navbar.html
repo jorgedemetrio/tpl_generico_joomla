@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+  Fixture do menu principal (posicao "menu") renderizado pelo override
+  html/mod_menu/default.php. A marcacao abaixo espelha EXATAMENTE a saida do
+  override para um menu com:
+    - "Inicio"   -> pagina atual (item ativo simples)
+    - "Sobre"    -> inativo
+    - "Servicos" -> dropdown cujo filho "Web" e a pagina atual
+    - "Contato"  -> inativo
+  Se a marcacao do override mudar, atualize este arquivo: ele e o contrato que
+  os testes Playwright validam contra o CSS real do template.
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — navbar</title>
+  <style>
+    /* Variaveis normalmente injetadas pelo index.php a partir dos parametros. */
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-cta-rgb: 47, 128, 237;
+      --cor-primaria: #1F4E79;
+      --cor-texto: #222222;
+      --peso-fonte-normal: 400;
+      --peso-fonte-titulos: 700;
+    }
+    /* Sem Bootstrap no fixture: deixa o dropdown visivel para inspecionar o
+       estilo do item ativo (em producao o Bootstrap controla a visibilidade). */
+    .dropdown-menu { display: block; }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <header id="header" class="header">
+    <nav class="navbar navbar-expand-lg" aria-label="Navegacao principal">
+      <div class="container">
+        <ul class="navbar-nav me-auto" id="main-menu-1">
+          <li class="nav-item active"><a class="nav-link active" title="Inicio" aria-current="page" href="/">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" title="Sobre" href="/sobre">Sobre</a></li>
+          <li class="nav-item active dropdown">
+            <a class="nav-link dropdown-toggle active" title="Servicos" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Servicos</a>
+            <ul class="dropdown-menu">
+              <li class="nav-item active"><a class="dropdown-item active" title="Web" aria-current="page" href="/servicos/web">Web</a></li>
+              <li class="nav-item"><a class="dropdown-item" title="Mobile" href="/servicos/mobile">Mobile</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" title="Contato" href="/contato">Contato</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+</body>
+</html>
