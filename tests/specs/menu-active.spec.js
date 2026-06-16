@@ -18,8 +18,8 @@ function fixture(name) {
   return pathToFileURL(path.join(__dirname, '..', 'fixtures', name)).href;
 }
 
-const CTA_RGB = 'rgb(47, 128, 237)'; // --cor-cta (#2F80ED)
-const BOLD = '700'; // --peso-fonte-titulos
+const CTA_RGB = 'rgb(47, 128, 237)'; // padrao do destaque (--cor-menu-ativo = #2F80ED)
+const BOLD = '700'; // item ativo fica sempre em negrito
 
 test.describe('Menu — destaque do item ativo (navbar)', () => {
   test('o item da pagina atual fica destacado e com aria-current', async ({ page }) => {
@@ -41,6 +41,31 @@ test.describe('Menu — destaque do item ativo (navbar)', () => {
       (el) => getComputedStyle(el, '::after').height
     );
     expect(afterHeight).toBe('3px');
+  });
+
+  test('a cor do destaque e configuravel (--cor-menu-ativo) e o texto fica em negrito', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(fixture('navbar.html'));
+
+    const active = page.locator('.navbar-nav > li.nav-item.active > a.nav-link').first();
+
+    // Padrao (parametro nao definido): usa a cor padrao.
+    await expect(active).toHaveCSS('color', CTA_RGB);
+    // E sempre negrito, independente do peso configurado para titulos.
+    await expect(active).toHaveCSS('font-weight', BOLD);
+
+    // Admin define uma cor propria (index.php injeta --cor-menu-ativo no :root).
+    await page.evaluate(() =>
+      document.documentElement.style.setProperty('--cor-menu-ativo', '#C0392B')
+    );
+
+    const CUSTOM_RGB = 'rgb(192, 57, 43)';
+    await expect(active).toHaveCSS('color', CUSTOM_RGB);
+    // O indicador (sublinhado) tambem acompanha a cor configurada.
+    const afterBg = await active.evaluate(
+      (el) => getComputedStyle(el, '::after').backgroundColor
+    );
+    expect(afterBg).toBe(CUSTOM_RGB);
   });
 
   test('um item inativo NAO recebe destaque', async ({ page }) => {

@@ -71,6 +71,7 @@
 				<field name="primaryColor" type="color" label="TPL_GENERICO_COLOR_PRIMARY_LABEL" default="#1F4E79" />
 				<field name="secondaryColor" type="color" label="TPL_GENERICO_COLOR_SECONDARY_LABEL" default="#2E7D32" />
 				<field name="ctaColor" type="color" label="TPL_GENERICO_COLOR_CTA_LABEL" default="#2F80ED" />
+				<field name="menuActiveColor" type="color" label="TPL_GENERICO_COLOR_MENU_ACTIVE_LABEL" description="TPL_GENERICO_COLOR_MENU_ACTIVE_DESC" default="#2F80ED" />
 				<field name="textColor" type="color" label="TPL_GENERICO_COLOR_TEXT_LABEL" default="#222222" />
 				<field name="textSecondaryColor" type="color" label="TPL_GENERICO_COLOR_TEXT_SECONDARY_LABEL" default="#6B7280" />
 				<field name="surfaceLightColorTopo" type="color" label="TPL_GENERICO_COLOR_SURFACE_LIGHT_TOPO_LABEL" default="#FFFFFF" />
