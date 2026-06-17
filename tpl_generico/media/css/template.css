@@ -114,6 +114,11 @@ hr {
 .header .navbar {
     padding-top: 0;
     padding-bottom: 0;
+    /* O Bootstrap usa --bs-navbar-active-color para a cor do .nav-link.active e
+       a redefine no escopo .navbar (definir no :root nao adianta). Aqui a
+       apontamos para a cor de destaque configuravel: a variavel deixa de ficar
+       "nao definida" e a navbar do Bootstrap passa a seguir o tema. */
+    --bs-navbar-active-color: var(--cor-menu-ativo, #2F80ED);
 }
 
 /* Header Height Variants */
