@@ -121,6 +121,16 @@ hr {
     --bs-navbar-active-color: var(--cor-menu-ativo, #2F80ED);
 }
 
+.navbar-nav .nav-link.active {
+    font-weight: bold;
+}
+
+.navbar-nav .nav-item.active{
+    border-radius: 15px;
+    background-color: rgb(0 0 0 / 10%);
+    padding-left: 5px;
+}
+
 /* Header Height Variants */
 .header.header-compact .navbar {
     min-height: 50px;
@@ -154,13 +164,13 @@ hr {
    (parametro menuActiveColor; padrao = azul do CTA) e fica sempre em negrito,
    para o usuario saber em que pagina/secao do menu esta.
  ========================================================================== */
-/* Item de menu ativo (<li class="nav-item active">): cor de destaque. */
-.header .navbar .nav-item.active > .nav-link {
-    color: var(--cor-menu-ativo, #2F80ED);
-}
-
-/* Link de menu ativo (<a class="nav-link active">): negrito. */
+/* Item/link de menu ativo: cor de destaque + negrito. Cobre as DUAS marcacoes
+   possiveis — .active no <li> (.nav-item.active, override do template) E .active
+   no <a> (.nav-link.active, convencao do Bootstrap) — para o realce valer mesmo
+   quando a classe .active fica so no link. */
+.header .navbar .nav-item.active > .nav-link,
 .header .navbar .nav-link.active {
+    color: var(--cor-menu-ativo, #2F80ED);
     font-weight: 700;
 }
 
