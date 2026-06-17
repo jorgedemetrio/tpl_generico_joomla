@@ -114,6 +114,21 @@ hr {
 .header .navbar {
     padding-top: 0;
     padding-bottom: 0;
+    /* O Bootstrap usa --bs-navbar-active-color para a cor do .nav-link.active e
+       a redefine no escopo .navbar (definir no :root nao adianta). Aqui a
+       apontamos para a cor de destaque configuravel: a variavel deixa de ficar
+       "nao definida" e a navbar do Bootstrap passa a seguir o tema. */
+    --bs-navbar-active-color: var(--cor-menu-ativo, #2F80ED);
+}
+
+.navbar-nav .nav-link.active {
+    font-weight: bold;
+}
+
+.navbar-nav .nav-item.active{
+    border-radius: 15px;
+    background-color: rgb(0 0 0 / 10%);
+    padding-left: 5px;
 }
 
 /* Header Height Variants */
@@ -149,19 +164,26 @@ hr {
    (parametro menuActiveColor; padrao = azul do CTA) e fica sempre em negrito,
    para o usuario saber em que pagina/secao do menu esta.
  ========================================================================== */
+/* Item/link de menu ativo: cor de destaque + negrito. Cobre as DUAS marcacoes
+   possiveis — .active no <li> (.nav-item.active, override do template) E .active
+   no <a> (.nav-link.active, convencao do Bootstrap) — para o realce valer mesmo
+   quando a classe .active fica so no link. */
 .header .navbar .nav-item.active > .nav-link,
 .header .navbar .nav-link.active {
     color: var(--cor-menu-ativo, #2F80ED);
     font-weight: 700;
 }
 
-/* Indicador (sublinhado) sob o item ativo — apenas no menu horizontal (desktop). */
+/* Indicador (sublinhado) sob o item ativo — apenas no menu horizontal (desktop).
+   Usa ::before de proposito: o ::after e reservado ao caret do Bootstrap
+   (.dropdown-toggle::after); se o sublinhado usasse ::after, ele venceria por
+   especificidade e distorceria/sumiria com a setinha nos pais de dropdown. */
 @media (min-width: 992px) {
     .header .navbar .nav-item.active > .nav-link {
         position: relative;
     }
 
-    .header .navbar .nav-item.active > .nav-link::after {
+    .header .navbar .nav-item.active > .nav-link::before {
         content: "";
         position: absolute;
         left: 0.5rem;
