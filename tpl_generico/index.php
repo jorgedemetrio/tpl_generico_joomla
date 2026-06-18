@@ -329,11 +329,13 @@ if ($customHeadCode !== '') {
             <?php
                 $footerModules = ModuleHelper::getModules('footer');
                 $footerColumns = (int) $this->params->get('footerColumns', 4);
-                // Empilha no celular (1/linha), 2/linha em tablet pequeno e abre nas
-                // N colunas so a partir do desktop (lg) — evita colunas espremidas.
-                $colClass = 'col-12 col-sm-6 col-lg-3';
-                if ($footerColumns === 3) $colClass = 'col-12 col-sm-6 col-lg-4';
-                elseif ($footerColumns === 2) $colClass = 'col-12 col-sm-6';
+                // No celular cada item ocupa a linha inteira (col-12); so a partir do
+                // tablet (md, >=768px) divide em 2/linha e abre nas N colunas no desktop
+                // (lg). Antes usava col-sm-6 (>=576px), que ja espremia 2 itens em
+                // celulares grandes/paisagem — deixando o rodape apertado.
+                $colClass = 'col-12 col-md-6 col-lg-3';
+                if ($footerColumns === 3) $colClass = 'col-12 col-md-6 col-lg-4';
+                elseif ($footerColumns === 2) $colClass = 'col-12 col-md-6';
                 foreach ($footerModules as $module) {
                     echo '<div class="' . $colClass . '">';
                     echo ModuleHelper::renderModule($module);
