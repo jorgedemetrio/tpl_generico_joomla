@@ -2,15 +2,11 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Language\Text;
 
 // Don't render empty breadcrumbs
 if (empty($list)) {
     return;
 }
-
-$app = Factory::getApplication();
-$siteName = $app->get('sitename');
 
 // JSON-LD Structured Data for Breadcrumbs
 $jsonLd = [
@@ -22,8 +18,12 @@ $jsonLd = [
 // Visual Breadcrumbs
 echo '<ol class="breadcrumb">';
 
+$total = count($list);
+
 foreach ($list as $i => $item) {
     $position = $i + 1;
+    // Escape unico do nome (ENT_QUOTES, padrao do template) reutilizado abaixo.
+    $nameEsc  = htmlspecialchars($item->name, ENT_QUOTES, 'UTF-8');
 
     // Add item to JSON-LD
     $jsonLd['itemListElement'][] = [
@@ -33,12 +33,12 @@ foreach ($list as $i => $item) {
         'item'     => $item->link,
     ];
 
-    if ($position < count($list)) {
-        // Not the last item
-        echo '<li class="breadcrumb-item"><a href="' . $item->link . '"><span>' . htmlspecialchars($item->name, ENT_COMPAT, 'UTF-8') . '</span></a></li>';
+    if ($position < $total) {
+        // Not the last item — o href tambem e escapado (evita HTML injection no atributo).
+        echo '<li class="breadcrumb-item"><a href="' . htmlspecialchars($item->link, ENT_QUOTES, 'UTF-8') . '"><span>' . $nameEsc . '</span></a></li>';
     } else {
         // Last item (current page)
-        echo '<li class="breadcrumb-item active" aria-current="page"><span>' . htmlspecialchars($item->name, ENT_COMPAT, 'UTF-8') . '</span></li>';
+        echo '<li class="breadcrumb-item active" aria-current="page"><span>' . $nameEsc . '</span></li>';
     }
 }
 

@@ -1,9 +1,8 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
-use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Language\Text;
+// Este override usa apenas funcoes nativas do PHP e as variaveis injetadas pelo
+// mod_menu ($list, $params, $module, $active_id, $path) — nao precisa de imports.
 
 // This is a custom layout override for mod_menu to render a Bootstrap 5 compatible navbar.
 // It supports multilevel dropdowns and accessibility attributes.
@@ -27,7 +26,7 @@ if (!function_exists('genericoMenuBranchHasActive')) {
                 continue;
             }
             $id = (int) ($item->id ?? 0);
-            if (!empty($item->active) || ($activeId && $id === $activeId) || ($id && in_array($id, $path))) {
+            if (!empty($item->active) || ($activeId && $id === $activeId) || ($id && in_array($id, $path, true))) {
                 return true;
             }
             if (!empty($item->children) && genericoMenuBranchHasActive($item->children, $activeId, $path)) {
@@ -77,7 +76,7 @@ if (!function_exists('renderMenuItems')) {
             // o destaque visual, nunca para aria-current.
             $inActivePath = $isCurrent
                 || !empty($item->active)
-                || ($id && in_array($id, $path));
+                || ($id && in_array($id, $path, true));
             // "Deve destacar": o ramo ativo OU um pai de dropdown cujo filho esta
             // ativo — assim a secao inteira fica evidente na navegacao.
             $highlight = $inActivePath
@@ -135,12 +134,13 @@ if (!function_exists('renderMenuItems')) {
     }
 }
 
-$id           = $params->get('tag_id', 'main-menu-' . $module->id);
+$ulId         = $params->get('tag_id', 'main-menu-' . $module->id);
 // $active_id e $path sao fornecidos pelo dispatcher do mod_menu (mesmo sinal
 // usado pelo layout metismenu). Guardas evitam aviso se o contexto nao os trouxer.
+// $path e normalizado para inteiros para permitir comparacao estrita (in_array ..., true).
 $activeMenuId = isset($active_id) ? (int) $active_id : 0;
-$activePath   = (isset($path) && is_array($path)) ? $path : [];
+$activePath   = (isset($path) && is_array($path)) ? array_map('intval', $path) : [];
 ?>
-<ul class="navbar-nav me-auto" id="<?php echo $id; ?>">
+<ul class="navbar-nav me-auto" id="<?php echo $ulId; ?>">
     <?php renderMenuItems($list, false, $activeMenuId, $activePath); ?>
 </ul>

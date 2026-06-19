@@ -288,8 +288,8 @@ if ($customHeadCode !== '') {
             <?php endif; ?>
             <?php if ($this->countModules('top-a', true) || $this->countModules('top-b', true)) : ?>
             <div class="row">
-                <?php if ($this->countModules('top-a', true)) : ?><div class="col-sm-6"><jdoc:include type="modules" name="top-a" style="card" /></div><?php endif; ?>
-                <?php if ($this->countModules('top-b', true)) : ?><div class="col-sm-6"><jdoc:include type="modules" name="top-b" style="card" /></div><?php endif; ?>
+                <?php if ($this->countModules('top-a', true)) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="top-a" style="card" /></div><?php endif; ?>
+                <?php if ($this->countModules('top-b', true)) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="top-b" style="card" /></div><?php endif; ?>
             </div>
             <?php endif; ?>
             <div class="row">
@@ -312,8 +312,8 @@ if ($customHeadCode !== '') {
             </div>
             <?php if ($this->countModules('bottom-a', true) || $this->countModules('bottom-b', true)) : ?>
             <div class="row">
-                <?php if ($this->countModules('bottom-a', true)) : ?><div class="col-sm-6"><jdoc:include type="modules" name="bottom-a" style="card" /></div><?php endif; ?>
-                <?php if ($this->countModules('bottom-b', true)) : ?><div class="col-sm-6"><jdoc:include type="modules" name="bottom-b" style="card" /></div><?php endif; ?>
+                <?php if ($this->countModules('bottom-a', true)) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="bottom-a" style="card" /></div><?php endif; ?>
+                <?php if ($this->countModules('bottom-b', true)) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="bottom-b" style="card" /></div><?php endif; ?>
             </div>
             <?php endif; ?>
             <?php if ($this->countModules('bottom', true)) : ?>

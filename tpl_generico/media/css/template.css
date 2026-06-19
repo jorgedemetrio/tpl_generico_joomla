@@ -16,7 +16,9 @@ body.site {
     flex-direction: column;
     min-height: 100%;
     font-family: var(--familia-fonte-primaria, system-ui, sans-serif);
-    font-size: var(--tamanho-base-fonte, 1rem);
+    /* Piso de 1rem (16px): o corpo nunca fica menor que isso mesmo se o admin
+       reduzir --tamanho-base-fonte — evita texto miudo, sobretudo no celular. */
+    font-size: max(1rem, var(--tamanho-base-fonte, 1rem));
     font-weight: var(--peso-fonte-normal, 400);
     color: var(--cor-texto, #222222);
     background-color: var(--cor-superficie-clara, #FFFFFF);
@@ -434,9 +436,11 @@ div.card .card-header {
    Em telas pequenas aumenta levemente o corpo de texto e a entrelinha, e
    ajusta o respiro lateral do container.
  ========================================================================== */
-@media (max-width: 575.98px) {
+@media (max-width: 767.98px) {
     body.site {
-        font-size: calc(var(--tamanho-base-fonte, 1rem) * 1.0625);
+        /* Conforto de leitura no celular (inclui paisagem/tablet pequeno, ate
+           767px): corpo levemente maior, mas nunca abaixo de 1rem (16px). */
+        font-size: max(1rem, calc(var(--tamanho-base-fonte, 1rem) * 1.0625));
         line-height: 1.7;
     }
 
@@ -472,8 +476,9 @@ div.card .card-header {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    /* Alvo de toque minimo 44x44px (WCAG 2.5.5). */
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 1px solid var(--cor-borda, #E5E7EB);
     border-radius: var(--raio-borda-global, 4px);
@@ -525,6 +530,7 @@ div.card .card-header {
 
 .bottom-nav li {
     flex: 1 1 0;
+    min-height: 48px;
     text-align: center;
 }
 
@@ -533,10 +539,13 @@ div.card .card-header {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 2px;
-    padding: 0.35rem 0.25rem;
-    font-size: 0.7rem;
-    line-height: 1.1;
+    /* Alvo de toque confortavel (>=48px) e label legivel (nao mais 0.7rem/11px). */
+    min-height: 48px;
+    padding: 0.4rem 0.25rem;
+    font-size: clamp(0.72rem, 0.68rem + 0.4vw, 0.8rem);
+    line-height: 1.15;
     color: var(--cor-texto, #222222);
 }
 
@@ -810,8 +819,9 @@ img.is-loaded {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    /* Alvo de toque minimo 44x44px (WCAG 2.5.5) — fechar o modal no celular. */
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: none;
     border-radius: 50%;
@@ -857,4 +867,86 @@ img.is-loaded {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* ========================================================================
+   Responsividade mobile — toque, legibilidade e overflow (Fase 1.1)
+   Aumenta areas de toque para >=44px, evita o zoom automatico do iOS em
+   campos de formulario e impede que tabelas/banner estourem a largura.
+ ========================================================================== */
+
+/* Inputs com fonte >=16px no mobile: abaixo disso o Safari iOS aplica zoom
+   automatico ao focar o campo, "quebrando" o layout/viewport. */
+@media (max-width: 767.98px) {
+    .form-control,
+    .form-select,
+    input,
+    textarea,
+    select {
+        font-size: 16px;
+    }
+}
+
+/* Botoes de alternancia da navbar (hamburguer / mobile-menu): alvo >=44x44px. */
+.navbar-toggler {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* Itens do menu empilhado (offcanvas/collapse) com altura de toque adequada —
+   so no mobile (<992px), onde o menu fica vertical e e o alvo mais usado. */
+@media (max-width: 991.98px) {
+    .offcanvas .nav-link,
+    .navbar-collapse .nav-link,
+    .offcanvas .dropdown-item,
+    .navbar-collapse .dropdown-item {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Botao "Aceitar" do aviso de cookies: alvo minimo (remove o aperto do btn-sm). */
+    .cookie-notice-accept {
+        min-height: 44px;
+    }
+
+    /* Header "normal" mais baixo no celular para nao comer o viewport. */
+    .header.header-normal .navbar {
+        min-height: 60px;
+    }
+}
+
+/* Tabelas e blocos <pre> dentro de artigos rolam na horizontal em vez de
+   estourar a largura da pagina no celular (img/video/iframe ja tem max-width). */
+.com-content-article__body table,
+.com-content-article__body pre {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Banner (override mod_custom/banner.php): cobre a area e da respiro fluido ao
+   conteudo. Sem isto as classes .banner-overlay/.overlay ficavam sem estilo. */
+.banner-overlay {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.banner-overlay .overlay {
+    padding: clamp(1.5rem, 4vw, 4rem);
+}
+
+/* Modal de newsletter: nunca ultrapassa a altura da tela (rola por dentro),
+   evitando que o botao de envio fique inacessivel em telas baixas/paisagem. */
+.newsletter-modal-dialog {
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
 }
