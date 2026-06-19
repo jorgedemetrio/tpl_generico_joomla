@@ -12,6 +12,12 @@ defined('_JEXEC') or die;
 
 use Joomla\Utilities\ArrayHelper;
 
+// Garante o helper carregado mesmo se este chrome for usado fora do fluxo do
+// index.php (todos os entrypoints do template ja o requerem; isto e seguranca).
+if (!class_exists('TplGenericoHelper', false)) {
+    require_once dirname(__DIR__, 3) . '/helper.php';
+}
+
 $module  = $displayData['module'];
 $params  = $displayData['params'];
 $attribs = $displayData['attribs'];
@@ -32,17 +38,11 @@ if ($headerClass !== '') {
     $headerAttribs['class'] = $headerClass;
 }
 
-// Only add aria if the moduleTag is not a div
-if ($moduleTag !== 'div') {
-    if ($module->showtitle) :
-        $moduleAttribs['aria-labelledby'] = 'mod-' . $module->id;
-        $headerAttribs['id']              = 'mod-' . $module->id;
-    else :
-        $moduleAttribs['aria-label'] = htmlspecialchars($module->title, ENT_QUOTES, 'UTF-8');
-    endif;
-}
+// Aria compartilhada (so quando a tag nao e div) e montagem do cabecalho:
+// blocos identicos ao chrome card, centralizados no helper (dedup E2/E3/#48).
+TplGenericoHelper::applyChromeAria($moduleAttribs, $headerAttribs, $module, $moduleTag);
 
-$header = '<' . $headerTag . ' ' . ArrayHelper::toString($headerAttribs) . '>' . $module->title . '</' . $headerTag . '>';
+$header = TplGenericoHelper::buildChromeHeader($headerTag, $headerAttribs, $module->title);
 ?>
 <<?php echo $moduleTag; ?> <?php echo ArrayHelper::toString($moduleAttribs); ?>>
     <?php if ($module->showtitle) : ?>

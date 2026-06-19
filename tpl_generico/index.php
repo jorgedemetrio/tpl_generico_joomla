@@ -84,8 +84,11 @@ if ($this->params->get('logoFile')) {
 $sidebarLeft  = $this->countModules('sidebar-left', true);
 $sidebarRight = $this->countModules('sidebar-right', true);
 $mainClass = 'col-12';
-if ($sidebarLeft && $sidebarRight) $mainClass = 'col-lg-6';
-elseif ($sidebarLeft || $sidebarRight) $mainClass = 'col-lg-9';
+if ($sidebarLeft && $sidebarRight) {
+    $mainClass = 'col-lg-6';
+} elseif ($sidebarLeft || $sidebarRight) {
+    $mainClass = 'col-lg-9';
+}
 $containerClass = ($this->params->get('layoutWidth', 'boxed') === 'full-width') ? 'container-fluid' : 'container';
 
 // Header settings
@@ -161,7 +164,7 @@ $htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 
 if ($themeToggle || $colorScheme === 'auto') {
     $allowStored = $themeToggle ? 'true' : 'false';
     $this->addScriptDeclaration(
-        "(function(){try{var K='generico-theme',r=document.documentElement,"
+        "(function(){try{var K='" . TplGenericoHelper::THEME_STORAGE_KEY . "',r=document.documentElement,"
         . "allow=" . $allowStored . ",scheme='" . $colorScheme . "',"
         . "mql=window.matchMedia('(prefers-color-scheme: dark)'),s=null;"
         . "try{s=localStorage.getItem(K);}catch(e){}"
@@ -208,7 +211,7 @@ if ($customHeadCode !== '') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>">
+<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>" data-theme-key="<?php echo TplGenericoHelper::THEME_STORAGE_KEY; ?>">
 <head>
     <jdoc:include type="head" />
 </head>

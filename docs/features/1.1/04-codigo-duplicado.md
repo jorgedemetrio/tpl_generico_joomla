@@ -219,6 +219,20 @@ flowchart LR
   auto-aceitar → gravar consentimento → não reaparecer (exercita o caminho
   refatorado: `intAttr`/`byId`). Suíte: **38/38 verdes**.
 
+### Feito (continuação)
+- **E1–E3 (chromes `card`/`noCard`):** extraídos `TplGenericoHelper::applyChromeAria()`
+  e `buildChromeHeader()` — os dois blocos eram **idênticos byte-a-byte** entre os
+  chromes, então a extração é **output-idêntico** (revisado linha a linha; ≠ do
+  `chromeSetup` mais ambicioso que reestruturaria a montagem). Guarda
+  `class_exists` + `require_once` defensivo no topo de cada chrome (todos os
+  entrypoints já carregam o `helper.php`; é seguro extra). Reavaliou-se o adiamento
+  original porque o ganho aqui não toca a montagem variável (card-title/no-card).
+- **A10 (chave `'generico-theme'`):** centralizada em
+  `TplGenericoHelper::THEME_STORAGE_KEY`; `index.php` injeta no script inline do
+  `<head>` e no atributo `data-theme-key` do `<html>`; `template.js` lê do atributo
+  (fallback defensivo). Elimina o literal duplicado PHP↔JS (ver Sonar #81). Coberto
+  por `tests/specs/theme-toggle.spec.js` (persiste sob a chave do atributo).
+
 ### Adiado (com justificativa)
 - **B2 (tabela genérica de `--var: valor`):** ganho cosmético; reestruturar as ~30
   linhas em uma tabela aumenta o risco de reordenar/perder uma var sem PHP local
@@ -227,7 +241,9 @@ flowchart LR
 - **D* (overrides de menu):** dedup via `genericoMenuLinkType()` mexe em 4 arquivos
   recém-alterados na Fase 1 e altera markup; o escape de segurança já foi aplicado
   lá (Fase 1). Fazer junto de uma validação em instalação real.
-- **E* (chromes `card`/`noCard`):** `chromeSetup`/`buildModuleHeader` alteram a
-  saída dos cards de módulo, sem teste de render. Adiar.
+- ~~**E\* (chromes `card`/`noCard`):**~~ **Feito na continuação** — ver "Feito
+  (continuação)" acima. Só os blocos **idênticos** (aria + cabeçalho) foram
+  extraídos (output-idêntico); o `chromeSetup` que reestrutura a montagem
+  variável continua adiado.
 - **F* (entre entrypoints):** secundário (o foco é intra-arquivo); `getParam` já
   cobre parte de F2/B3.

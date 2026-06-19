@@ -13,6 +13,7 @@
  */
 
 use Joomla\CMS\Registry\Registry;
+use Joomla\Utilities\ArrayHelper;
 
 defined('_JEXEC') or die;
 
@@ -28,6 +29,14 @@ if (!class_exists('TplGenericoHelper', false)) {
         private const DEFAULT_CTA       = '#2F80ED';
         /** Fallback da tripla RGB quando o hex e invalido. */
         private const RGB_FALLBACK      = '0, 0, 0';
+
+        /**
+         * Chave do localStorage que guarda o tema escolhido (claro/escuro).
+         * Fonte unica da verdade: o index.php injeta este valor no script inline
+         * do <head> e no atributo data-theme-key do <html>; o template.js le do
+         * atributo. Assim a chave nunca dessincroniza entre PHP e JS (#81/A10).
+         */
+        public const THEME_STORAGE_KEY  = 'generico-theme';
 
         /**
          * Le um parametro tratando vazio/null como "use o default".
@@ -372,6 +381,48 @@ if (!class_exists('TplGenericoHelper', false)) {
             }
 
             return hexdec(substr($hex, 0, 2)) . ', ' . hexdec(substr($hex, 2, 2)) . ', ' . hexdec(substr($hex, 4, 2));
+        }
+
+        /**
+         * Aplica os atributos ARIA compartilhados pelos chromes de modulo
+         * (card/noCard) quando a tag do modulo NAO e <div>: associa o titulo via
+         * aria-labelledby/id quando ha titulo visivel, ou aria-label quando nao
+         * ha. Bloco identico nos dois chromes (dedup E2/#48), por referencia para
+         * preencher os arrays de atributos ja montados no chrome.
+         *
+         * @param  array   $moduleAttribs  Atributos do elemento do modulo (por ref)
+         * @param  array   $headerAttribs  Atributos do cabecalho (por ref)
+         * @param  object  $module         Objeto do modulo (showtitle/id/title)
+         * @param  string  $moduleTag      Tag do modulo (div, section, aside...)
+         * @return void
+         */
+        public static function applyChromeAria(array &$moduleAttribs, array &$headerAttribs, $module, string $moduleTag): void
+        {
+            if ($moduleTag === 'div') {
+                return;
+            }
+            if ($module->showtitle) {
+                $moduleAttribs['aria-labelledby'] = 'mod-' . $module->id;
+                $headerAttribs['id']              = 'mod-' . $module->id;
+            } else {
+                $moduleAttribs['aria-label'] = htmlspecialchars((string) $module->title, ENT_QUOTES, 'UTF-8');
+            }
+        }
+
+        /**
+         * Monta o cabecalho `<headerTag ...>titulo</headerTag>` do modulo —
+         * identico nos chromes card/noCard (dedup E3/#48). O titulo NAO e escapado
+         * aqui, preservando o comportamento atual (o mod_* entrega o titulo pronto
+         * para saida, como nos chromes do core do Joomla).
+         *
+         * @param  string  $headerTag      Tag do cabecalho (h3, h2...)
+         * @param  array   $headerAttribs  Atributos do cabecalho
+         * @param  string  $title          Titulo do modulo (saida pronta)
+         * @return string                  HTML do cabecalho
+         */
+        public static function buildChromeHeader(string $headerTag, array $headerAttribs, string $title): string
+        {
+            return '<' . $headerTag . ' ' . ArrayHelper::toString($headerAttribs) . '>' . $title . '</' . $headerTag . '>';
         }
 
         /**

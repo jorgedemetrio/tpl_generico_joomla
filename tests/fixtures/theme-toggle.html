@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+  Fixture da alternância de tema (claro/escuro). Espelha a saída de index.php:
+  - <html> carrega data-bs-theme e data-theme-key (a chave do localStorage vem
+    do PHP por este atributo — contrato único PHP<->JS, achado #81);
+  - o script inline do <head> aplica o tema salvo ANTES da pintura (evita flash);
+  - o botão #themeToggle e o ícone são os mesmos do header real.
+  Carrega o template.js REAL: initThemeToggle lê a chave de data-theme-key,
+  alterna data-bs-theme, persiste no localStorage e reflete ícone/aria-pressed.
+-->
+<html lang="pt-BR" dir="ltr" data-bs-theme="light" data-theme-key="generico-theme">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — alternância de tema</title>
+  <script>
+    // Bootstrap de tema inline (idêntico ao injetado por index.php): aplica o
+    // tema salvo antes da pintura. K vem da mesma fonte que o data-theme-key.
+    (function () {
+      try {
+        var K = 'generico-theme', r = document.documentElement, allow = true,
+          scheme = 'light', mql = window.matchMedia('(prefers-color-scheme: dark)'), s = null;
+        try { s = localStorage.getItem(K); } catch (e) {}
+        function t() {
+          if (allow && (s === 'light' || s === 'dark')) return s;
+          if (scheme === 'auto') return mql.matches ? 'dark' : 'light';
+          return scheme;
+        }
+        r.setAttribute('data-bs-theme', t());
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-primaria: #1F4E79;
+      --cor-texto: #222222;
+      --cor-borda: #E5E7EB;
+      --cor-superficie-clara: #FFFFFF;
+      --raio-borda-global: 4px;
+    }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <header id="header" class="header sticky-top">
+    <nav class="navbar navbar-expand-lg" aria-label="Navegação principal">
+      <div class="container">
+        <a class="navbar-brand" href="#">Site</a>
+        <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false"
+          aria-label="Alternar tema claro/escuro" title="Alternar tema claro/escuro">
+          <i class="fas fa-moon" aria-hidden="true"></i>
+        </button>
+      </div>
+    </nav>
+  </header>
+  <main id="main-content" role="main" tabindex="-1">
+    <p>Conteúdo de exemplo para a tela de alternância de tema.</p>
+  </main>
+  <script src="../../tpl_generico/media/js/template.js"></script>
+</body>
+</html>

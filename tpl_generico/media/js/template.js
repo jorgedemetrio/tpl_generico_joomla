@@ -30,6 +30,11 @@
   var prefersReducedMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Duracao (ms) do fade-out antes de ocultar overlays (aviso de cookies e modal
+  // de newsletter). Deve casar com a `transition` definida para essas classes no
+  // template.css — por isso fica nomeada e num lugar so.
+  var HIDE_TRANSITION_MS = 300;
+
   // ---------------------------------------------------------------------------
   // Helpers compartilhados (evitam repetir os mesmos padroes em cada recurso).
   // ---------------------------------------------------------------------------
@@ -109,8 +114,9 @@
       );
     }
 
+    var SCROLLED_AFTER_PX = 10; // aplica .is-scrolled apos rolar este tanto
     var onScroll = rafThrottle(function () {
-      header.classList.toggle('is-scrolled', window.scrollY > 10);
+      header.classList.toggle('is-scrolled', window.scrollY > SCROLLED_AFTER_PX);
     });
 
     // Altura inicial e em mudancas de viewport/orientacao.
@@ -135,8 +141,10 @@
       return;
     }
 
-    var KEY = 'generico-theme';
     var root = document.documentElement;
+    // Chave do localStorage vem do PHP via data-theme-key (fonte unica da
+    // verdade, evita drift PHP<->JS). Fallback so para markup sem o atributo.
+    var KEY = root.getAttribute('data-theme-key') || 'generico-theme';
 
     function reflect() {
       var theme = root.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
@@ -171,7 +179,8 @@
     function evaluate() {
       var headerEl = byId('header');
       var headerH = headerEl ? headerEl.offsetHeight : 0;
-      var available = window.innerHeight - headerH - 24; // ~1.5rem de folga
+      var VIEWPORT_GAP_PX = 24; // ~1.5rem de folga abaixo do header
+      var available = window.innerHeight - headerH - VIEWPORT_GAP_PX;
       forEach(sidebars, function (el) {
         el.classList.toggle('is-tall', el.scrollHeight > available);
       });
@@ -192,15 +201,17 @@
       return;
     }
 
-    var MOBILE_MAX = 768; // abaixo disso e considerado celular
+    var MOBILE_MAX = 768;       // abaixo disso e considerado celular
+    var LONG_PAGE_FACTOR = 2;   // pagina "longa" = mais de 2x a altura visivel
+    var SHOW_AFTER_FACTOR = 0.6; // so aparece apos rolar 60% da altura visivel
 
     function isEligible() {
       return window.innerWidth >= MOBILE_MAX &&
-        document.documentElement.scrollHeight > window.innerHeight * 2;
+        document.documentElement.scrollHeight > window.innerHeight * LONG_PAGE_FACTOR;
     }
 
     function update() {
-      var show = isEligible() && window.scrollY > window.innerHeight * 0.6;
+      var show = isEligible() && window.scrollY > window.innerHeight * SHOW_AFTER_FACTOR;
       btn.classList.toggle('is-visible', show);
     }
 
@@ -246,6 +257,8 @@
       return;
     }
     var KEY = 'generico_cookie_consent';
+    var COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // consentimento dura ~1 ano
+    var COUNTDOWN_TICK_MS = 1000;                      // 1s entre os passos da contagem
     var already = document.cookie.split('; ').some(function (c) {
       return c.indexOf(KEY + '=') === 0;
     });
@@ -261,7 +274,7 @@
 
     function persist() {
       var d = new Date();
-      d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+      d.setTime(d.getTime() + COOKIE_MAX_AGE_MS);
       var secure = window.location.protocol === 'https:' ? '; Secure' : '';
       document.cookie = KEY + '=1; expires=' + d.toUTCString() + '; path=/; SameSite=Lax' + secure;
     }
@@ -274,7 +287,7 @@
       el.classList.remove('is-visible');
       window.setTimeout(function () {
         el.setAttribute('hidden', '');
-      }, 300);
+      }, HIDE_TRANSITION_MS);
     }
 
     function accept() {
@@ -304,7 +317,7 @@
       btn.addEventListener('click', accept);
     }
     if (timeout > 0) {
-      timerId = window.setInterval(tick, 1000);
+      timerId = window.setInterval(tick, COUNTDOWN_TICK_MS);
     }
   }
 
@@ -318,6 +331,7 @@
     if (!el) {
       return;
     }
+    var LOADER_SAFETY_MS = 12000; // se a navegacao nao acontecer, esconde sozinho
     var safetyTimer = null;
 
     function hide() {
@@ -340,7 +354,7 @@
         window.clearTimeout(safetyTimer);
       }
       // Rede de seguranca: se a navegacao nao acontecer (ex.: download), esconde.
-      safetyTimer = window.setTimeout(hide, 12000);
+      safetyTimer = window.setTimeout(hide, LOADER_SAFETY_MS);
     }
 
     function isInternalNav(a) {
@@ -449,7 +463,7 @@
     function close() {
       el.classList.remove('is-visible');
       document.removeEventListener('keydown', onKeydown);
-      window.setTimeout(function () { el.setAttribute('hidden', ''); }, 300);
+      window.setTimeout(function () { el.setAttribute('hidden', ''); }, HIDE_TRANSITION_MS);
       if (lastFocused && typeof lastFocused.focus === 'function') {
         lastFocused.focus();
       }

@@ -154,3 +154,41 @@ flowchart TD
 3. **Complexidade/dedup** (#12,#24,#48,#59,#60,#66,#68) — converge com o Eixo 4 (extração de métodos).
 4. **Estilo/strict** (#1,#2,#18,#40,#46 + `.editorconfig`) — padronização ampla; lote de baixo risco.
 5. **CSS** (#72,#74,#75,#76) — variáveis, consolidação de media queries, sintaxe de breakpoint.
+
+## Status de implementação (continuação)
+
+> Lote de qualidade adicional, complementar ao commit de dedup intra-arquivo
+> (helper.php B1/B3/B4 + template.js C1–C8). Sem PHP local: PHP validado pelo CI
+> (`build.yml`/`php -l`); CSS/JS/markup validados por Playwright (46/46 verdes).
+
+### Feito
+- **#37 (bug — asset):** `joomla.asset.json` com URIs corrigidas para
+  `css/template.css`, `css/offline.css`, `js/template.js` (antes sem o prefixo de
+  subpasta → não carregava numa instalação limpa). Novo teste
+  `tests/specs/asset-manifest.spec.js` valida que toda URI própria resolve para um
+  arquivo real e que `<media>` ↔ pacote batem.
+- **#81 (drift — chave de tema):** `'generico-theme'` centralizado em
+  `TplGenericoHelper::THEME_STORAGE_KEY`; exposto via `data-theme-key` no `<html>`
+  e lido pelo `template.js` — fim do literal duplicado PHP↔JS. Coberto por
+  `theme-toggle.spec.js`.
+- **#1/#2 (Major, S121 — `if` sem chaves):** `$mainClass` (`index.php`) agora em
+  bloco `{ }`.
+- **#21 (Minor — magic numbers JS):** `HIDE_TRANSITION_MS`, `COOKIE_MAX_AGE_MS`,
+  `COUNTDOWN_TICK_MS`, `LOADER_SAFETY_MS`, `LONG_PAGE_FACTOR`, `SHOW_AFTER_FACTOR`,
+  `SCROLLED_AFTER_PX`, `VIEWPORT_GAP_PX` nomeados no `template.js`.
+- **#48 (Major, S4144 — chromes):** blocos **idênticos** de aria + cabeçalho
+  extraídos para `TplGenericoHelper::applyChromeAria()`/`buildChromeHeader()`
+  (output-idêntico; ver Eixo 4, "Feito (continuação)").
+
+### Não tocado (decisão registrada)
+- **Asset FontAwesome / `metismenu.min.js`:** o `fontawesome` local aponta para
+  `system/joomla-fontawesome.min.css` (inexistente no pacote) e o
+  `dropdown-metismenu.php` referencia `js/mod_menu/menu-metismenu.min.js`
+  (ausente). **Não corrigidos**: remover/redirecionar o `fontawesome` depende do
+  nome exato do asset do core (risco de `UnknownAssetException` fatal) e o script
+  do metismenu pertence ao caminho de menu adiado — ambos pedem validação em
+  Joomla real.
+- **#68/#70 dedup metismenu (D*):** adiado por decisão (escape/deprecation já
+  resolvidos na Fase 1; dedup restante é cosmético e de alto risco).
+- **#12/#24/#59/#60/#66, #18 (var→const), #72–#76 (CSS):** pendentes (complexidade
+  e padronização ampla; lotes próprios).
