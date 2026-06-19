@@ -124,7 +124,9 @@ hr {
 }
 
 .navbar-nav .nav-link.active {
-    font-weight: bold;
+    /* 700 (numerico) em vez de "bold": mesma intencao, peso consistente com o
+       resto do CSS (#76) e com o que os testes verificam (computed = 700). */
+    font-weight: 700;
 }
 
 .navbar-nav .nav-item.active{
@@ -362,7 +364,9 @@ div.card .card-header {
 }
 
 
-@media (width >= 992px) {
+/* min-width (em vez de "(width >= 992px)") para padronizar a sintaxe de
+   breakpoint com as demais media queries do arquivo (#75) — equivalentes. */
+@media (min-width: 992px) {
     .col-lg-3 {
         flex: none;
         width: var(--col-lg-fixed-width, 280px);

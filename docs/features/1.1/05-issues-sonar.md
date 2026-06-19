@@ -159,7 +159,7 @@ flowchart TD
 
 > Lote de qualidade adicional, complementar ao commit de dedup intra-arquivo
 > (helper.php B1/B3/B4 + template.js C1–C8). Sem PHP local: PHP validado pelo CI
-> (`build.yml`/`php -l`); CSS/JS/markup validados por Playwright (46/46 verdes).
+> (`build.yml`/`php -l`); CSS/JS/markup validados por Playwright (50/50 verdes).
 
 ### Feito
 - **#37 (bug — asset):** `joomla.asset.json` com URIs corrigidas para
@@ -179,6 +179,16 @@ flowchart TD
 - **#48 (Major, S4144 — chromes):** blocos **idênticos** de aria + cabeçalho
   extraídos para `TplGenericoHelper::applyChromeAria()`/`buildChromeHeader()`
   (output-idêntico; ver Eixo 4, "Feito (continuação)").
+- **#18 (Minor — `var`→`const`/`let`):** `template.js` convertido por completo
+  (atribuídas 1× → `const`; reatribuídas → `let`). Sem `var` restante; `node
+  --check` OK; suíte verde (inclui os novos fluxos cookie/tema/back-to-top).
+- **#75 (Minor — sintaxe de breakpoint):** `@media (width >= 992px)` →
+  `@media (min-width: 992px)` (padroniza com as demais; equivalentes).
+- **#76 (Minor — `font-weight`):** `.nav-link.active` de `bold` → `700`
+  (consistente com o resto e com o que `menu-active.spec.js` verifica).
+- **Testes (cobertura nova):** `back-to-top.spec.js` (botão aparece ao rolar em
+  página longa no desktop, oculto no celular, volta ao topo no clique) e
+  `theme-toggle.spec.js` — cobrem dois caminhos JS antes sem teste.
 
 ### Não tocado (decisão registrada)
 - **Asset FontAwesome / `metismenu.min.js`:** o `fontawesome` local aponta para
@@ -190,5 +200,8 @@ flowchart TD
   Joomla real.
 - **#68/#70 dedup metismenu (D*):** adiado por decisão (escape/deprecation já
   resolvidos na Fase 1; dedup restante é cosmético e de alto risco).
-- **#12/#24/#59/#60/#66, #18 (var→const), #72–#76 (CSS):** pendentes (complexidade
-  e padronização ampla; lotes próprios).
+- **#12/#24/#59/#60/#66 (complexidade):** pendentes (métodos longos / funções
+  globais do menu; pedem refactor maior + Joomla real).
+- **#72 (cores hardcoded no CSS) e #74 (consolidar `@media` duplicados):**
+  pendentes — exigiriam novas variáveis (`--cor-erro`/`--cor-texto-inverso`) ou
+  reordenar regras, com risco de render sem cobertura de teste para cada uma.

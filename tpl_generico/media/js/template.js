@@ -27,13 +27,13 @@
     }
   }
 
-  var prefersReducedMotion = window.matchMedia &&
+  const prefersReducedMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Duracao (ms) do fade-out antes de ocultar overlays (aviso de cookies e modal
   // de newsletter). Deve casar com a `transition` definida para essas classes no
   // template.css — por isso fica nomeada e num lugar so.
-  var HIDE_TRANSITION_MS = 300;
+  const HIDE_TRANSITION_MS = 300;
 
   // ---------------------------------------------------------------------------
   // Helpers compartilhados (evitam repetir os mesmos padroes em cada recurso).
@@ -62,7 +62,7 @@
 
   /** Limita uma callback a no maximo uma execucao por frame (scroll/resize). */
   function rafThrottle(fn) {
-    var ticking = false;
+    let ticking = false;
     return function () {
       if (ticking) {
         return;
@@ -77,7 +77,7 @@
 
   /** Le um atributo inteiro com fallback (NaN ou negativo -> fallback). */
   function intAttr(el, name, fallback) {
-    var n = parseInt(el.getAttribute(name), 10);
+    const n = parseInt(el.getAttribute(name), 10);
     return (isNaN(n) || n < 0) ? fallback : n;
   }
 
@@ -86,12 +86,12 @@
     if (!el || typeof el.getAttribute !== 'function') {
       return false;
     }
-    var target = el.getAttribute('target');
+    const target = el.getAttribute('target');
     return !(target && target !== '_self');
   }
 
   /** Acesso ao localStorage tolerante a falhas (modo privado, cota, etc.). */
-  var safeStorage = {
+  const safeStorage = {
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
@@ -102,7 +102,7 @@
   // espaco no fluxo normal — por isso NAO ajustamos padding-top do conteudo.
   // ---------------------------------------------------------------------------
   function initHeader() {
-    var header = byId('header');
+    const header = byId('header');
     if (!header) {
       return;
     }
@@ -114,8 +114,8 @@
       );
     }
 
-    var SCROLLED_AFTER_PX = 10; // aplica .is-scrolled apos rolar este tanto
-    var onScroll = rafThrottle(function () {
+    const SCROLLED_AFTER_PX = 10; // aplica .is-scrolled apos rolar este tanto
+    const onScroll = rafThrottle(function () {
       header.classList.toggle('is-scrolled', window.scrollY > SCROLLED_AFTER_PX);
     });
 
@@ -136,19 +136,19 @@
   // evitando flash; aqui so tratamos o clique e o estado do botao.
   // ---------------------------------------------------------------------------
   function initThemeToggle() {
-    var btn = byId('themeToggle');
+    const btn = byId('themeToggle');
     if (!btn) {
       return;
     }
 
-    var root = document.documentElement;
+    const root = document.documentElement;
     // Chave do localStorage vem do PHP via data-theme-key (fonte unica da
     // verdade, evita drift PHP<->JS). Fallback so para markup sem o atributo.
-    var KEY = root.getAttribute('data-theme-key') || 'generico-theme';
+    const KEY = root.getAttribute('data-theme-key') || 'generico-theme';
 
     function reflect() {
-      var theme = root.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
-      var icon = btn.querySelector('i');
+      const theme = root.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
+      const icon = btn.querySelector('i');
       if (icon) {
         icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
       }
@@ -158,7 +158,7 @@
     reflect();
 
     btn.addEventListener('click', function () {
-      var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
       root.setAttribute('data-bs-theme', next);
       safeStorage.set(KEY, next);
       reflect();
@@ -171,16 +171,16 @@
   // junto com a pagina), evitando o item final inalcancavel.
   // ---------------------------------------------------------------------------
   function initStickySidebars() {
-    var sidebars = document.querySelectorAll('.sidebar-content');
+    const sidebars = document.querySelectorAll('.sidebar-content');
     if (!sidebars.length) {
       return;
     }
 
     function evaluate() {
-      var headerEl = byId('header');
-      var headerH = headerEl ? headerEl.offsetHeight : 0;
-      var VIEWPORT_GAP_PX = 24; // ~1.5rem de folga abaixo do header
-      var available = window.innerHeight - headerH - VIEWPORT_GAP_PX;
+      const headerEl = byId('header');
+      const headerH = headerEl ? headerEl.offsetHeight : 0;
+      const VIEWPORT_GAP_PX = 24; // ~1.5rem de folga abaixo do header
+      const available = window.innerHeight - headerH - VIEWPORT_GAP_PX;
       forEach(sidebars, function (el) {
         el.classList.toggle('is-tall', el.scrollHeight > available);
       });
@@ -196,14 +196,14 @@
   // Voltar ao topo: so em paginas longas e fora do mobile (largura >= 768px).
   // ---------------------------------------------------------------------------
   function initBackToTop() {
-    var btn = byId('backToTop');
+    const btn = byId('backToTop');
     if (!btn) {
       return;
     }
 
-    var MOBILE_MAX = 768;       // abaixo disso e considerado celular
-    var LONG_PAGE_FACTOR = 2;   // pagina "longa" = mais de 2x a altura visivel
-    var SHOW_AFTER_FACTOR = 0.6; // so aparece apos rolar 60% da altura visivel
+    const MOBILE_MAX = 768;       // abaixo disso e considerado celular
+    const LONG_PAGE_FACTOR = 2;   // pagina "longa" = mais de 2x a altura visivel
+    const SHOW_AFTER_FACTOR = 0.6; // so aparece apos rolar 60% da altura visivel
 
     function isEligible() {
       return window.innerWidth >= MOBILE_MAX &&
@@ -211,11 +211,11 @@
     }
 
     function update() {
-      var show = isEligible() && window.scrollY > window.innerHeight * SHOW_AFTER_FACTOR;
+      const show = isEligible() && window.scrollY > window.innerHeight * SHOW_AFTER_FACTOR;
       btn.classList.toggle('is-visible', show);
     }
 
-    var onScroll = rafThrottle(update);
+    const onScroll = rafThrottle(update);
 
     btn.addEventListener('click', function () {
       window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
@@ -229,7 +229,7 @@
   // Imagens lazy: remove o shimmer (skeleton) quando a imagem termina de carregar.
   // ---------------------------------------------------------------------------
   function initLazyImages() {
-    var imgs = document.querySelectorAll('img[loading="lazy"]');
+    const imgs = document.querySelectorAll('img[loading="lazy"]');
     if (!imgs.length) {
       return;
     }
@@ -239,7 +239,7 @@
         img.classList.add('is-loaded');
         return;
       }
-      var done = function () { img.classList.add('is-loaded'); };
+      const done = function () { img.classList.add('is-loaded'); };
       img.addEventListener('load', done, { once: true });
       img.addEventListener('error', done, { once: true });
     });
@@ -252,30 +252,30 @@
   // opcao de recusar — o site depende de cookies essenciais.
   // ---------------------------------------------------------------------------
   function initCookieNotice() {
-    var el = byId('cookieNotice');
+    const el = byId('cookieNotice');
     if (!el) {
       return;
     }
-    var KEY = 'generico_cookie_consent';
-    var COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // consentimento dura ~1 ano
-    var COUNTDOWN_TICK_MS = 1000;                      // 1s entre os passos da contagem
-    var already = document.cookie.split('; ').some(function (c) {
+    const KEY = 'generico_cookie_consent';
+    const COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // consentimento dura ~1 ano
+    const COUNTDOWN_TICK_MS = 1000;                      // 1s entre os passos da contagem
+    const already = document.cookie.split('; ').some(function (c) {
       return c.indexOf(KEY + '=') === 0;
     });
     if (already) {
       return;
     }
 
-    var btn = byId('cookieAccept');
-    var countEl = el.querySelector('.cookie-notice-countdown');
-    var timeout = intAttr(el, 'data-timeout', 20);
-    var remaining = timeout;
-    var timerId = null;
+    const btn = byId('cookieAccept');
+    const countEl = el.querySelector('.cookie-notice-countdown');
+    const timeout = intAttr(el, 'data-timeout', 20);
+    let remaining = timeout;
+    let timerId = null;
 
     function persist() {
-      var d = new Date();
+      const d = new Date();
       d.setTime(d.getTime() + COOKIE_MAX_AGE_MS);
-      var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+      const secure = window.location.protocol === 'https:' ? '; Secure' : '';
       document.cookie = KEY + '=1; expires=' + d.toUTCString() + '; path=/; SameSite=Lax' + secure;
     }
 
@@ -327,12 +327,12 @@
   // pagina seguinte (markup nasce oculto) e ao voltar pelo bfcache (pageshow).
   // ---------------------------------------------------------------------------
   function initPageLoader() {
-    var el = byId('pageLoader');
+    const el = byId('pageLoader');
     if (!el) {
       return;
     }
-    var LOADER_SAFETY_MS = 12000; // se a navegacao nao acontecer, esconde sozinho
-    var safetyTimer = null;
+    const LOADER_SAFETY_MS = 12000; // se a navegacao nao acontecer, esconde sozinho
+    let safetyTimer = null;
 
     function hide() {
       if (safetyTimer) {
@@ -361,11 +361,11 @@
       if (!a || a.hasAttribute('download') || !opensInSameTab(a)) {
         return false;
       }
-      var href = a.getAttribute('href');
+      const href = a.getAttribute('href');
       if (!href || href.charAt(0) === '#') {
         return false;
       }
-      var proto = (a.protocol || '').toLowerCase();
+      const proto = (a.protocol || '').toLowerCase();
       if (proto === 'mailto:' || proto === 'tel:' || proto === 'javascript:') {
         return false;
       }
@@ -377,7 +377,7 @@
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
         return;
       }
-      var a = e.target.closest ? e.target.closest('a[href]') : null;
+      const a = e.target.closest ? e.target.closest('a[href]') : null;
       if (isInternalNav(a)) {
         show();
       }
@@ -407,36 +407,36 @@
   // redireciona para a tela de cadastro (o e-mail vai como parametro na URL).
   // ---------------------------------------------------------------------------
   function initNewsletterModal() {
-    var el = byId('newsletterModal');
+    const el = byId('newsletterModal');
     if (!el) {
       return;
     }
 
-    var DONE_KEY = 'generico_newsletter';        // 'done' => ja mostrado/decidido
-    var FIRST_KEY = 'generico_newsletter_first'; // timestamp do primeiro acesso
+    const DONE_KEY = 'generico_newsletter';        // 'done' => ja mostrado/decidido
+    const FIRST_KEY = 'generico_newsletter_first'; // timestamp do primeiro acesso
 
     // Mostra apenas no primeiro acesso: se ja foi exibido/decidido, nao repete.
     if (safeStorage.get(DONE_KEY) === 'done') {
       return;
     }
 
-    var delay = intAttr(el, 'data-delay', 60);
+    const delay = intAttr(el, 'data-delay', 60);
 
     // Tempo acumulado desde o primeiro acesso (sobrevive a navegacao entre paginas).
-    var now = Date.now();
-    var first = parseInt(safeStorage.get(FIRST_KEY), 10);
+    const now = Date.now();
+    let first = parseInt(safeStorage.get(FIRST_KEY), 10);
     if (isNaN(first)) {
       first = now;
       safeStorage.set(FIRST_KEY, String(first));
     }
-    var elapsed = Math.floor((now - first) / 1000);
-    var remaining = Math.max(0, delay - elapsed);
+    const elapsed = Math.floor((now - first) / 1000);
+    const remaining = Math.max(0, delay - elapsed);
 
-    var form = el.querySelector('.newsletter-modal-form');
-    var emailInput = el.querySelector('input[type="email"]');
-    var errorEl = el.querySelector('.newsletter-modal-error');
-    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    var lastFocused = null;
+    const form = el.querySelector('.newsletter-modal-form');
+    const emailInput = el.querySelector('input[type="email"]');
+    const errorEl = el.querySelector('.newsletter-modal-error');
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let lastFocused = null;
 
     function onKeydown(e) {
       if (e.key === 'Escape' || e.keyCode === 27) {
@@ -497,17 +497,17 @@
     if (form) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        var email = emailInput ? emailInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
         // Valida o e-mail em JS antes de enviar para o Joomla.
-        var valid = email !== '' && emailRe.test(email) &&
+        const valid = email !== '' && emailRe.test(email) &&
           (!emailInput || typeof emailInput.checkValidity !== 'function' || emailInput.checkValidity());
         if (!valid) {
           showError(true);
           if (emailInput) { emailInput.focus(); }
           return;
         }
-        var url = form.getAttribute('action') || '';
-        var param = form.getAttribute('data-email-param') || 'email';
+        let url = form.getAttribute('action') || '';
+        const param = form.getAttribute('data-email-param') || 'email';
         safeStorage.set(DONE_KEY, 'done');
         if (!url) {
           close();
