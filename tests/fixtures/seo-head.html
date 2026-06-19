@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+  Fixture do <head> de SEO. Espelha as tags que tpl_generico/index.php emite via
+  TplGenericoHelper::applyHeadSeo() + injectGlobalJsonLd() na Fase 3:
+    - rel="canonical" (só caminho, sem query);
+    - Open Graph (og:*) e Twitter Cards (twitter:*);
+    - theme-color (derivado da cor de marca);
+    - JSON-LD Organization + WebSite (com SearchAction), emitidos na home.
+  O <body> reproduz o contrato de landmarks: o role="banner" é único (no <header>),
+  e a <section id="banner"> usa aria-label em vez de um segundo role="banner" (G1).
+  Valores absolutos/fixos imitam a saída renderizada do template (o contrato).
+-->
+<html lang="pt-BR" dir="ltr" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Artigo de exemplo</title>
+
+  <link rel="canonical" href="https://example.test/artigo">
+  <meta name="description" content="Descrição de exemplo do artigo para o snippet.">
+  <meta name="theme-color" content="#1F4E79">
+
+  <meta property="og:site_name" content="Site de Exemplo">
+  <meta property="og:title" content="Artigo de exemplo">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://example.test/artigo">
+  <meta property="og:description" content="Descrição de exemplo do artigo para o snippet.">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:image" content="https://example.test/images/logo.png">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Artigo de exemplo">
+  <meta name="twitter:description" content="Descrição de exemplo do artigo para o snippet.">
+  <meta name="twitter:image" content="https://example.test/images/logo.png">
+
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Site de Exemplo","url":"https://example.test/","logo":"https://example.test/images/logo.png"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Site de Exemplo","url":"https://example.test/","potentialAction":{"@type":"SearchAction","target":"https://example.test/index.php?option=com_search&searchword={search_term_string}","query-input":"required name=search_term_string"}}</script>
+</head>
+<body class="site">
+  <header id="header" class="header" role="banner">
+    <nav aria-label="Navegação principal"><a class="navbar-brand" href="/">Site de Exemplo</a></nav>
+  </header>
+  <section id="banner" aria-label="Destaque">
+    <div class="mod-custom"><p>Banner em destaque</p></div>
+  </section>
+  <main id="main-content" role="main" tabindex="-1">
+    <h1>Artigo de exemplo</h1>
+  </main>
+</body>
+</html>

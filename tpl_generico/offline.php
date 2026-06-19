@@ -28,6 +28,9 @@ $wa->useStyle('tpl_generico.offline');
 // Inline depois dos <link>s garante que as cores do admin sobrescrevam o CSS base.
 $this->addStyleDeclaration(":root { $cssVars }");
 
+// A3 — a pagina de site offline nao deve ser indexada.
+$this->setMetaData('robots', 'noindex, follow');
+
 
 // Logo file or site title param
 $sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');

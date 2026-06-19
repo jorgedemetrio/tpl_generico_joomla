@@ -64,6 +64,12 @@ $activeMenu  = $menu ? $menu->getActive() : null;
 $activeParams = ($activeMenu && method_exists($activeMenu, 'getParams')) ? $activeMenu->getParams() : null;
 $pageclass   = $activeParams ? (string) $activeParams->get('pageclass_sfx', '') : '';
 
+// SEO: canonical, fallback de meta description, theme-color, Open Graph e
+// Twitter Cards (B1/B2/A1/A2/I2) + schemas globais Organization/WebSite na home
+// (C1). Centralizado no helper para manter este index.php enxuto.
+TplGenericoHelper::applyHeadSeo($this, $this->params, $app, $input);
+TplGenericoHelper::injectGlobalJsonLd($this, $this->params, $app);
+
 // Logo — esta acima da dobra: carrega com prioridade (eager + fetchpriority)
 // e reserva espaco com width para reduzir layout shift (CLS).
 $logoWidth = (int) $this->params->get('logoWidth', 150);
@@ -277,14 +283,16 @@ if ($customHeadCode !== '') {
         <?php endif; ?>
     </header>
 
-    <?php if ($this->countModules('banner', true)) : ?><section id="banner" role="banner"><jdoc:include type="modules" name="banner" style="none" /></section><?php endif; ?>
+    <?php // O landmark "banner" ja e o <header>; aqui usamos aria-label para nao
+    // duplicar o role banner (deve ser unico na pagina). ?>
+    <?php if ($this->countModules('banner', true)) : ?><section id="banner" aria-label="<?php echo Text::_('TPL_GENERICO_BANNER_LABEL'); ?>"><jdoc:include type="modules" name="banner" style="none" /></section><?php endif; ?>
 
 
 
     <main id="main-content" role="main" tabindex="-1">
         <div class="<?php echo $containerClass; ?>">
             <?php if ($this->countModules('breadcrumbs', true)) : ?>
-            <div class="row"><div class="col-12"><nav aria-label="breadcrumb"><jdoc:include type="modules" name="breadcrumbs" style="none" /></nav></div></div>
+            <div class="row"><div class="col-12"><nav aria-label="<?php echo Text::_('TPL_GENERICO_BREADCRUMB_LABEL'); ?>"><jdoc:include type="modules" name="breadcrumbs" style="none" /></nav></div></div>
             <?php endif; ?>
             <?php if ($this->countModules('top-a', true) || $this->countModules('top-b', true)) : ?>
             <div class="row">

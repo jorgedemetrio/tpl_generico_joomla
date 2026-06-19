@@ -37,6 +37,10 @@ $this->addStyleDeclaration(':root { ' . TplGenericoHelper::buildCssVars($params)
 
 $colorScheme = $params ? $params->get('colorScheme', 'light') : 'light';
 $htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 'light';
+
+// A3 — a view de componente (popups, impressao, modais com tmpl=component) e
+// uma pagina fina/duplicada: nao indexar nem seguir.
+$this->setMetaData('robots', 'noindex, nofollow');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>">

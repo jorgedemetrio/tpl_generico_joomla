@@ -45,6 +45,9 @@ if ($logoFile) {
 }
 
 $this->setMetaData('viewport', 'width=device-width, initial-scale=1');
+// A3 — paginas de erro nao devem ser indexadas (conteudo fino/duplicado), mas
+// seguir os links e util para o crawler reencontrar o caminho.
+$this->setMetaData('robots', 'noindex, follow');
 $errorCode = $this->error->getCode();
 ?>
 <!DOCTYPE html>

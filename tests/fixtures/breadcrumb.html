@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+  Fixture do breadcrumb. Espelha EXATAMENTE a saída do override
+  tpl_generico/html/mod_breadcrumbs/default.php após a Fase 3 (SEO):
+    - <ol class="breadcrumb"> com itens escapados; o último com aria-current="page"
+      e SEM <a> (página atual).
+    - Bloco JSON-LD (BreadcrumbList) com:
+        * URLs ABSOLUTAS no campo "item" (schema.org exige);
+        * o ÚLTIMO ListItem SEM "item" (recomendação do schema.org/Google);
+        * sem JSON_PRETTY_PRINT (compacto).
+  O CSS real do template é carregado para detectar regressões de estilo/erros.
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — breadcrumb</title>
+  <style>
+    :root {
+      --cor-texto: #222222;
+      --cor-texto-secundario: #6B7280;
+      --cor-cta: #2F80ED;
+      --cor-superficie-alt: #F5F7FA;
+      --raio-borda-global: 4px;
+    }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://example.test/"},{"@type":"ListItem","position":2,"name":"Categoria","item":"https://example.test/categoria"},{"@type":"ListItem","position":3,"name":"Artigo atual"}]}</script>
+</head>
+<body class="site">
+  <nav aria-label="Trilha de navegação">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="https://example.test/"><span>Início</span></a></li>
+      <li class="breadcrumb-item"><a href="https://example.test/categoria"><span>Categoria</span></a></li>
+      <li class="breadcrumb-item active" aria-current="page"><span>Artigo atual</span></li>
+    </ol>
+  </nav>
+</body>
+</html>

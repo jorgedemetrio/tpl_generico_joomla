@@ -225,3 +225,37 @@ flowchart LR
 3. **Multilíngue** (D1): hreflang — maior impacto SEO para este site específico.
 4. **Structured data** (C1, C2, C3): globais + correção dos existentes.
 5. **Semântica/CWV** (G1, F2, F3, H1): banner único, logo com height, banner como `<img>`, FontAwesome enxuto.
+
+## Status de implementação (Fase 3)
+
+> Lote entregue na branch `feature/melhorias` (segue o commit da Fase 1/2). Toda a
+> emissão de `<head>` foi centralizada em `TplGenericoHelper::applyHeadSeo()` e
+> `::injectGlobalJsonLd()` (sem arquivo novo — `helper.php` já está no `<files>`),
+> mantendo o `index.php` enxuto e a complexidade Sonar baixa.
+
+| ID | Achado | Status | Onde |
+|----|--------|--------|------|
+| A1 | canonical | ✅ feito | `helper.php::applyHeadSeo` (não duplica se o componente já setou) |
+| A2 | meta description fallback | ✅ feito | `helper.php::applyHeadSeo` |
+| A3 | robots noindex | ✅ feito | `error.php` (`noindex,follow`), `offline.php` (idem), `component.php` (`noindex,nofollow`) |
+| B1 | Open Graph | ✅ feito | `helper.php::applyHeadSeo` (og:site_name/title/type/url/description/locale/image) |
+| B2 | Twitter Cards | ✅ feito | `helper.php::applyHeadSeo` (card/title/description/image) |
+| I2 | theme-color | ✅ feito | derivado de `primaryColor` |
+| C1 | Organization + WebSite (SearchAction) | ✅ feito | `helper.php::injectGlobalJsonLd` (só na home; `JSON_HEX_TAG`) |
+| C2 | BreadcrumbList URLs absolutas | ✅ feito | `html/mod_breadcrumbs/default.php` (último nó sem `item`; sem `PRETTY_PRINT`; `JSON_HEX_TAG`) |
+| C3 | Article JSON-LD frágil | ✅ feito | `author` condicional, `@id` canônico (sem query), `description`, `JSON_HEX_TAG` |
+| D1 | hreflang/alternate | ⚠️ parcial | `html/com_content/article/default.php` (via associações do artigo, sob guardas) + `og:locale`. Páginas não-artigo: depende do plugin **Filtro de Idioma** do core (documentado) |
+| G1 | `role="banner"` duplicado | ✅ feito | `index.php` (a `<section id="banner">` passou a usar `aria-label`) |
+| J2 | aria-label do breadcrumb traduzido | ✅ feito | `index.php` + chave `TPL_GENERICO_BREADCRUMB_LABEL` (8 idiomas) |
+
+### Adiados (com justificativa)
+- **E1 (`h1` único/ausente):** mexe na lógica de heading do override de artigo (`show_page_heading`) e em home só-módulos; risco de regressão visual sem Joomla local para validar. Avaliar com teste em instalação real.
+- **F2 (logo sem `height` → CLS):** corrigir certo exige a **altura intrínseca** do logo, que não temos (só `logoWidth`). Evitar `height` chutado. Opção futura: parâmetro `logoHeight` ou `aspect-ratio`.
+- **F3 (banner `background-image` → LCP):** trocar para `<img>` muda o contrato de markup do `mod_custom/banner` e pode quebrar o estilo de sites existentes. Adiar para um lote dedicado com migração de CSS.
+- **H1 (FontAwesome render-blocking):** subsetar/trocar por SVG inline mexe no pipeline de assets — que tem **inconsistência conhecida** (`media/` vs URIs do `joomla.asset.json`, ver `04`/`05`). Fazer junto da higienização do `joomla.asset.json` (pendência cruzada #5), não isolado.
+
+### Testes (Playwright, em `tests/`)
+- `specs/i18n-parity.spec.js` — paridade total de chaves entre os 8 idiomas + ausência de valor vazio + presença das chaves novas (**"falta tradução"**).
+- `specs/breadcrumb-seo.spec.js` (+ `fixtures/breadcrumb.html`) — contrato de markup + **validade do BreadcrumbList** (URLs absolutas, último sem `item`, posições sequenciais), sem erro/warning de console, sem chave crua.
+- `specs/seo-head.spec.js` (+ `fixtures/seo-head.html`) — canonical/OG/Twitter/theme-color coerentes, **Organization/WebSite válidos** (com SearchAction) e **landmark `banner` único** (G1).
+- Suíte completa: **35/35 verdes** (13 anteriores + 22 desta fase).
