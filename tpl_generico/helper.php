@@ -22,6 +22,31 @@ if (!class_exists('TplGenericoHelper', false)) {
      */
     class TplGenericoHelper
     {
+        /** Cores padrao de marca (defaults dos parametros do admin). */
+        private const DEFAULT_PRIMARY   = '#1F4E79';
+        private const DEFAULT_SECONDARY = '#2E7D32';
+        private const DEFAULT_CTA       = '#2F80ED';
+        /** Fallback da tripla RGB quando o hex e invalido. */
+        private const RGB_FALLBACK      = '0, 0, 0';
+
+        /**
+         * Le um parametro tratando vazio/null como "use o default".
+         * Promovido do closure local do buildCssVars para ser reutilizavel.
+         *
+         * @param  Registry|null  $params   Template parameters
+         * @param  string         $key      Nome do parametro
+         * @param  mixed          $default  Valor padrao
+         * @return mixed
+         */
+        public static function getParam($params, string $key, $default)
+        {
+            if ($params === null) {
+                return $default;
+            }
+            $value = $params->get($key, $default);
+            return ($value === null || $value === '') ? $default : $value;
+        }
+
         /**
          * Build CSS variables string from template parameters.
          *
@@ -31,24 +56,30 @@ if (!class_exists('TplGenericoHelper', false)) {
         public static function buildCssVars($params): string
         {
             $get = static function ($key, $default) use ($params) {
-                if ($params === null) {
-                    return $default;
-                }
-                $value = $params->get($key, $default);
-                return ($value === null || $value === '') ? $default : $value;
+                return self::getParam($params, $key, $default);
             };
 
-            $cssVars  = "--cor-primaria: {$get('primaryColor', '#1F4E79')};";
-            $cssVars .= "--cor-secundaria: {$get('secondaryColor', '#2E7D32')};";
-            $cssVars .= "--cor-cta: {$get('ctaColor', '#2F80ED')};";
-            // Cor do destaque do item de menu ativo. Configuravel no admin; se vazio,
-            // usa o padrao (mesmo azul do CTA). Tripla RGB para o leve fundo em rgba().
-            $cssVars .= "--cor-menu-ativo: {$get('menuActiveColor', '#2F80ED')};";
-            $cssVars .= '--cor-menu-ativo-rgb: ' . self::hexToRgb($get('menuActiveColor', '#2F80ED')) . ';';
+            // Cada cor de marca e lida UMA vez e reutilizada para a variavel e sua
+            // tripla RGB (antes o mesmo default era lido 2-4x por cor).
+            $primary    = $get('primaryColor', self::DEFAULT_PRIMARY);
+            $secondary  = $get('secondaryColor', self::DEFAULT_SECONDARY);
+            $cta        = $get('ctaColor', self::DEFAULT_CTA);
+            // Destaque do menu ativo: se vazio, usa o mesmo azul do CTA.
+            $menuActive = $get('menuActiveColor', self::DEFAULT_CTA);
+            $primaryRgb   = self::hexToRgb($primary);
+            $secondaryRgb = self::hexToRgb($secondary);
+            $ctaRgb       = self::hexToRgb($cta);
+
+            $cssVars  = "--cor-primaria: {$primary};";
+            $cssVars .= "--cor-secundaria: {$secondary};";
+            $cssVars .= "--cor-cta: {$cta};";
+            // Cor do destaque do item de menu ativo. Tripla RGB para o leve fundo em rgba().
+            $cssVars .= "--cor-menu-ativo: {$menuActive};";
+            $cssVars .= '--cor-menu-ativo-rgb: ' . self::hexToRgb($menuActive) . ';';
             // Triplas RGB das cores de marca, usadas em rgba() (focus rings, overlays).
-            $cssVars .= '--cor-primaria-rgb: ' . self::hexToRgb($get('primaryColor', '#1F4E79')) . ';';
-            $cssVars .= '--cor-secundaria-rgb: ' . self::hexToRgb($get('secondaryColor', '#2E7D32')) . ';';
-            $cssVars .= '--cor-cta-rgb: ' . self::hexToRgb($get('ctaColor', '#2F80ED')) . ';';
+            $cssVars .= '--cor-primaria-rgb: ' . $primaryRgb . ';';
+            $cssVars .= '--cor-secundaria-rgb: ' . $secondaryRgb . ';';
+            $cssVars .= '--cor-cta-rgb: ' . $ctaRgb . ';';
             $cssVars .= "--cor-texto: {$get('textColor', '#222222')};";
             $cssVars .= "--cor-texto-secundario: {$get('textSecondaryColor', '#6B7280')};";
             $cssVars .= "--cor-superficie-clara: {$get('surfaceLightColor', '#FFFFFF')};";
@@ -86,10 +117,7 @@ if (!class_exists('TplGenericoHelper', false)) {
             // Sincroniza as variaveis do Bootstrap 5 com as cores do template,
             // garantindo que componentes do core (alerts, badges, navs, links,
             // dropdowns, paginacao, etc.) respeitem as cores definidas no admin.
-            $primaryRgb   = self::hexToRgb($get('primaryColor', '#1F4E79'));
-            $secondaryRgb = self::hexToRgb($get('secondaryColor', '#2E7D32'));
-            $ctaRgb       = self::hexToRgb($get('ctaColor', '#2F80ED'));
-
+            // (As triplas RGB ja foram calculadas uma vez no topo do metodo.)
             $cssVars .= '--bs-primary: var(--cor-primaria);';
             $cssVars .= '--bs-secondary: var(--cor-secundaria);';
             $cssVars .= "--bs-primary-rgb: {$primaryRgb};";
@@ -340,7 +368,7 @@ if (!class_exists('TplGenericoHelper', false)) {
                 $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
             }
             if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
-                return '0, 0, 0';
+                return self::RGB_FALLBACK;
             }
 
             return hexdec(substr($hex, 0, 2)) . ', ' . hexdec(substr($hex, 2, 2)) . ', ' . hexdec(substr($hex, 4, 2));

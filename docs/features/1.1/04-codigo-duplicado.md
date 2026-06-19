@@ -196,3 +196,38 @@ flowchart LR
     L2 --> L3["Lote 3 - menu:<br/>genericoMenuLinkType<br/>(+ escape do Eixo 3)"]
     L3 --> L4["Lote 4 - chromes + JS:<br/>chromeSetup +<br/>helpers do IIFE"]
 ```
+
+## Status de implementação (Fase 4)
+
+> Critério desta fase: priorizar refactors **mecanicamente seguros** (sem mudança
+> de comportamento comprovável), já que não há PHP local e só parte do JS tem
+> cobertura de teste. Refactors que **alteram o HTML gerado** (montagem de markup)
+> ficam para quando houver Joomla local/homologação.
+
+### Feito
+- **B1/B3/B4 (`helper.php`):** constantes `DEFAULT_PRIMARY/SECONDARY/CTA` e
+  `RGB_FALLBACK`; closure `$get` promovido a `TplGenericoHelper::getParam()`
+  (público, reutilizável); cada cor de marca **lida uma vez** e reaproveitada para
+  `--cor-*`, `--cor-*-rgb` e `--bs-*-rgb`. **Saída CSS idêntica** (mesma ordem e
+  valores) — verificado linha a linha.
+- **C1–C8 (`media/js/template.js`):** helpers no IIFE — `byId`, `forEach`,
+  `forceReflow`, `onViewportChange`, `rafThrottle`, `intAttr`, `opensInSameTab` e
+  `safeStorage` (promovido do `store` local do modal) — aplicados em todos os
+  inicializadores. Extrações fiéis (sem mudança de comportamento).
+- **Testes:** novo fluxo funcional do **aviso de cookies**
+  (`tests/specs/cookie-notice.spec.js` + fixture) cobrindo aparecer → aceitar /
+  auto-aceitar → gravar consentimento → não reaparecer (exercita o caminho
+  refatorado: `intAttr`/`byId`). Suíte: **38/38 verdes**.
+
+### Adiado (com justificativa)
+- **B2 (tabela genérica de `--var: valor`):** ganho cosmético; reestruturar as ~30
+  linhas em uma tabela aumenta o risco de reordenar/perder uma var sem PHP local
+  para validar. O maior valor (ler cada cor 1×) já foi capturado.
+- **A* (`index.php`): `moduleFlags`, `buildLogo`, `renderSidebar`, `openModulePosition`, `col-class`** — mudam a montagem do HTML e o `index.php` não tem teste de render. Requer Joomla local.
+- **D* (overrides de menu):** dedup via `genericoMenuLinkType()` mexe em 4 arquivos
+  recém-alterados na Fase 1 e altera markup; o escape de segurança já foi aplicado
+  lá (Fase 1). Fazer junto de uma validação em instalação real.
+- **E* (chromes `card`/`noCard`):** `chromeSetup`/`buildModuleHeader` alteram a
+  saída dos cards de módulo, sem teste de render. Adiar.
+- **F* (entre entrypoints):** secundário (o foco é intra-arquivo); `getParam` já
+  cobre parte de F2/B3.

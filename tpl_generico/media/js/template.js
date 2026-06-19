@@ -31,17 +31,76 @@
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---------------------------------------------------------------------------
+  // Helpers compartilhados (evitam repetir os mesmos padroes em cada recurso).
+  // ---------------------------------------------------------------------------
+
+  /** document.getElementById, mais curto. */
+  function byId(id) {
+    return document.getElementById(id);
+  }
+
+  /** Itera uma NodeList/colecao (compativel com navegadores antigos). */
+  function forEach(list, fn) {
+    Array.prototype.forEach.call(list, fn);
+  }
+
+  /** Forca um reflow para que a transicao seguinte de fato anime. */
+  function forceReflow(el) {
+    void el.offsetWidth;
+  }
+
+  /** Reage a mudancas de viewport (redimensionar + girar o aparelho). */
+  function onViewportChange(fn) {
+    window.addEventListener('resize', fn, { passive: true });
+    window.addEventListener('orientationchange', fn, { passive: true });
+  }
+
+  /** Limita uma callback a no maximo uma execucao por frame (scroll/resize). */
+  function rafThrottle(fn) {
+    var ticking = false;
+    return function () {
+      if (ticking) {
+        return;
+      }
+      ticking = true;
+      window.requestAnimationFrame(function () {
+        fn();
+        ticking = false;
+      });
+    };
+  }
+
+  /** Le um atributo inteiro com fallback (NaN ou negativo -> fallback). */
+  function intAttr(el, name, fallback) {
+    var n = parseInt(el.getAttribute(name), 10);
+    return (isNaN(n) || n < 0) ? fallback : n;
+  }
+
+  /** True quando o alvo (link/form) abre na mesma aba (sem target ou _self). */
+  function opensInSameTab(el) {
+    if (!el || typeof el.getAttribute !== 'function') {
+      return false;
+    }
+    var target = el.getAttribute('target');
+    return !(target && target !== '_self');
+  }
+
+  /** Acesso ao localStorage tolerante a falhas (modo privado, cota, etc.). */
+  var safeStorage = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  // ---------------------------------------------------------------------------
   // Header: altura sincronizada + efeito "encolher ao rolar".
   // O header usa position: sticky (classe .sticky-top do Bootstrap), que ocupa
   // espaco no fluxo normal — por isso NAO ajustamos padding-top do conteudo.
   // ---------------------------------------------------------------------------
   function initHeader() {
-    var header = document.getElementById('header');
+    var header = byId('header');
     if (!header) {
       return;
     }
-
-    var ticking = false;
 
     function syncHeaderHeight() {
       document.documentElement.style.setProperty(
@@ -50,21 +109,13 @@
       );
     }
 
-    function onScroll() {
-      if (ticking) {
-        return;
-      }
-      ticking = true;
-      window.requestAnimationFrame(function () {
-        header.classList.toggle('is-scrolled', window.scrollY > 10);
-        ticking = false;
-      });
-    }
+    var onScroll = rafThrottle(function () {
+      header.classList.toggle('is-scrolled', window.scrollY > 10);
+    });
 
     // Altura inicial e em mudancas de viewport/orientacao.
     syncHeaderHeight();
-    window.addEventListener('resize', syncHeaderHeight, { passive: true });
-    window.addEventListener('orientationchange', syncHeaderHeight, { passive: true });
+    onViewportChange(syncHeaderHeight);
 
     // Efeito de encolher apenas quando o header e fixo.
     if (header.classList.contains('sticky-top')) {
@@ -79,7 +130,7 @@
   // evitando flash; aqui so tratamos o clique e o estado do botao.
   // ---------------------------------------------------------------------------
   function initThemeToggle() {
-    var btn = document.getElementById('themeToggle');
+    var btn = byId('themeToggle');
     if (!btn) {
       return;
     }
@@ -101,9 +152,7 @@
     btn.addEventListener('click', function () {
       var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
       root.setAttribute('data-bs-theme', next);
-      try {
-        localStorage.setItem(KEY, next);
-      } catch (e) {}
+      safeStorage.set(KEY, next);
       reflect();
     });
   }
@@ -120,17 +169,16 @@
     }
 
     function evaluate() {
-      var headerEl = document.getElementById('header');
+      var headerEl = byId('header');
       var headerH = headerEl ? headerEl.offsetHeight : 0;
       var available = window.innerHeight - headerH - 24; // ~1.5rem de folga
-      Array.prototype.forEach.call(sidebars, function (el) {
+      forEach(sidebars, function (el) {
         el.classList.toggle('is-tall', el.scrollHeight > available);
       });
     }
 
     evaluate();
-    window.addEventListener('resize', evaluate, { passive: true });
-    window.addEventListener('orientationchange', evaluate, { passive: true });
+    onViewportChange(evaluate);
     // Recalcula apos imagens/fontes carregarem (a altura pode mudar).
     window.addEventListener('load', evaluate);
   }
@@ -139,13 +187,12 @@
   // Voltar ao topo: so em paginas longas e fora do mobile (largura >= 768px).
   // ---------------------------------------------------------------------------
   function initBackToTop() {
-    var btn = document.getElementById('backToTop');
+    var btn = byId('backToTop');
     if (!btn) {
       return;
     }
 
     var MOBILE_MAX = 768; // abaixo disso e considerado celular
-    var ticking = false;
 
     function isEligible() {
       return window.innerWidth >= MOBILE_MAX &&
@@ -157,16 +204,7 @@
       btn.classList.toggle('is-visible', show);
     }
 
-    function onScroll() {
-      if (ticking) {
-        return;
-      }
-      ticking = true;
-      window.requestAnimationFrame(function () {
-        update();
-        ticking = false;
-      });
-    }
+    var onScroll = rafThrottle(update);
 
     btn.addEventListener('click', function () {
       window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
@@ -185,7 +223,7 @@
       return;
     }
 
-    Array.prototype.forEach.call(imgs, function (img) {
+    forEach(imgs, function (img) {
       if (img.complete && img.naturalWidth > 0) {
         img.classList.add('is-loaded');
         return;
@@ -203,7 +241,7 @@
   // opcao de recusar — o site depende de cookies essenciais.
   // ---------------------------------------------------------------------------
   function initCookieNotice() {
-    var el = document.getElementById('cookieNotice');
+    var el = byId('cookieNotice');
     if (!el) {
       return;
     }
@@ -215,12 +253,9 @@
       return;
     }
 
-    var btn = document.getElementById('cookieAccept');
+    var btn = byId('cookieAccept');
     var countEl = el.querySelector('.cookie-notice-countdown');
-    var timeout = parseInt(el.getAttribute('data-timeout'), 10);
-    if (isNaN(timeout) || timeout < 0) {
-      timeout = 20;
-    }
+    var timeout = intAttr(el, 'data-timeout', 20);
     var remaining = timeout;
     var timerId = null;
 
@@ -279,7 +314,7 @@
   // pagina seguinte (markup nasce oculto) e ao voltar pelo bfcache (pageshow).
   // ---------------------------------------------------------------------------
   function initPageLoader() {
-    var el = document.getElementById('pageLoader');
+    var el = byId('pageLoader');
     if (!el) {
       return;
     }
@@ -299,7 +334,7 @@
         return;
       }
       el.removeAttribute('hidden');
-      void el.offsetWidth; // forca reflow para a transicao de opacidade valer
+      forceReflow(el); // para a transicao de opacidade valer
       el.classList.add('is-active');
       if (safetyTimer) {
         window.clearTimeout(safetyTimer);
@@ -309,11 +344,7 @@
     }
 
     function isInternalNav(a) {
-      if (!a || a.hasAttribute('download')) {
-        return false;
-      }
-      var target = a.getAttribute('target');
-      if (target && target !== '_self') {
+      if (!a || a.hasAttribute('download') || !opensInSameTab(a)) {
         return false;
       }
       var href = a.getAttribute('href');
@@ -342,8 +373,7 @@
       if (e.defaultPrevented) {
         return;
       }
-      var target = e.target && e.target.getAttribute ? e.target.getAttribute('target') : null;
-      if (target && target !== '_self') {
+      if (!opensInSameTab(e.target)) {
         return;
       }
       show();
@@ -363,7 +393,7 @@
   // redireciona para a tela de cadastro (o e-mail vai como parametro na URL).
   // ---------------------------------------------------------------------------
   function initNewsletterModal() {
-    var el = document.getElementById('newsletterModal');
+    var el = byId('newsletterModal');
     if (!el) {
       return;
     }
@@ -371,27 +401,19 @@
     var DONE_KEY = 'generico_newsletter';        // 'done' => ja mostrado/decidido
     var FIRST_KEY = 'generico_newsletter_first'; // timestamp do primeiro acesso
 
-    var store = {
-      get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-      set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-    };
-
     // Mostra apenas no primeiro acesso: se ja foi exibido/decidido, nao repete.
-    if (store.get(DONE_KEY) === 'done') {
+    if (safeStorage.get(DONE_KEY) === 'done') {
       return;
     }
 
-    var delay = parseInt(el.getAttribute('data-delay'), 10);
-    if (isNaN(delay) || delay < 0) {
-      delay = 60;
-    }
+    var delay = intAttr(el, 'data-delay', 60);
 
     // Tempo acumulado desde o primeiro acesso (sobrevive a navegacao entre paginas).
     var now = Date.now();
-    var first = parseInt(store.get(FIRST_KEY), 10);
+    var first = parseInt(safeStorage.get(FIRST_KEY), 10);
     if (isNaN(first)) {
       first = now;
-      store.set(FIRST_KEY, String(first));
+      safeStorage.set(FIRST_KEY, String(first));
     }
     var elapsed = Math.floor((now - first) / 1000);
     var remaining = Math.max(0, delay - elapsed);
@@ -414,11 +436,11 @@
       }
       lastFocused = document.activeElement;
       el.removeAttribute('hidden');
-      void el.offsetWidth; // forca reflow para a transicao valer
+      forceReflow(el); // para a transicao valer
       el.classList.add('is-visible');
       document.addEventListener('keydown', onKeydown);
       // So mostra uma vez: marca como concluido assim que abre.
-      store.set(DONE_KEY, 'done');
+      safeStorage.set(DONE_KEY, 'done');
       if (emailInput) {
         emailInput.focus();
       }
@@ -472,7 +494,7 @@
         }
         var url = form.getAttribute('action') || '';
         var param = form.getAttribute('data-email-param') || 'email';
-        store.set(DONE_KEY, 'done');
+        safeStorage.set(DONE_KEY, 'done');
         if (!url) {
           close();
           return;
