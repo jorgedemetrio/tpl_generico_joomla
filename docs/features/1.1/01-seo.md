@@ -248,11 +248,29 @@ flowchart LR
 | G1 | `role="banner"` duplicado | ✅ feito | `index.php` (a `<section id="banner">` passou a usar `aria-label`) |
 | J2 | aria-label do breadcrumb traduzido | ✅ feito | `index.php` + chave `TPL_GENERICO_BREADCRUMB_LABEL` (8 idiomas) |
 
+### Feito (continuação — com Joomla real)
+- **F2 (logo `height` → CLS):** ✅ resolvido **sem** parâmetro novo. Descoberta no
+  ambiente real: a URL do logo (joomlaImage) **já traz as dimensões intrínsecas**
+  (`#joomlaImage://...?width=W&height=H`). O `TplGenericoHelper::buildLogo` agora
+  extrai W/H e emite `height` proporcional ao `logoWidth` + `style: height:<n>px`
+  (em vez de `auto`), reservando o espaço. Imagem com o mesmo tamanho visual; CLS
+  eliminado. Coberto por `tests/specs/e2e/logo-cls.e2e.spec.js`. Sem dimensões na
+  URL, mantém `height: auto`.
+
 ### Adiados (com justificativa)
-- **E1 (`h1` único/ausente):** mexe na lógica de heading do override de artigo (`show_page_heading`) e em home só-módulos; risco de regressão visual sem Joomla local para validar. Avaliar com teste em instalação real.
-- **F2 (logo sem `height` → CLS):** corrigir certo exige a **altura intrínseca** do logo, que não temos (só `logoWidth`). Evitar `height` chutado. Opção futura: parâmetro `logoHeight` ou `aspect-ratio`.
-- **F3 (banner `background-image` → LCP):** trocar para `<img>` muda o contrato de markup do `mod_custom/banner` e pode quebrar o estilo de sites existentes. Adiar para um lote dedicado com migração de CSS.
-- **H1 (FontAwesome render-blocking):** subsetar/trocar por SVG inline mexe no pipeline de assets — que tem **inconsistência conhecida** (`media/` vs URIs do `joomla.asset.json`, ver `04`/`05`). Fazer junto da higienização do `joomla.asset.json` (pendência cruzada #5), não isolado.
+- **E1 (`h1` único/ausente):** diagnóstico no ambiente real — a **home tem 0 `<h1>`**,
+  mas o conteúdo vem do componente (`com_automoveis`, via `jdoc:include component`),
+  não do template; e este site não usa `com_content` (o override de artigo, onde o
+  achado incide, não é exercido). O template injetar um `h1` cego duplicaria/competiria
+  com o `h1` do conteúdo — incorreto. É responsabilidade do componente/menu
+  (`Show Page Heading`). Mantido fora do template.
+- **F3 (banner `background-image` → LCP):** o site **não tem módulo na posição
+  `banner`** (não exercido); trocar para `<img>` muda o contrato do `mod_custom/banner`
+  e pode quebrar sites existentes. Adiado para lote dedicado com migração de CSS.
+- **H1 (FontAwesome render-blocking):** o FontAwesome é asset do **core**
+  (`data-asset-name="fontawesome"`) e **dependência do `template.css`**; torná-lo
+  assíncrono/subsetado mexe no pipeline do core com risco de quebrar o estilo.
+  Adiado para um lote dedicado de assets.
 
 ### Testes (Playwright, em `tests/`)
 - `specs/i18n-parity.spec.js` — paridade total de chaves entre os 8 idiomas + ausência de valor vazio + presença das chaves novas (**"falta tradução"**).

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+  Fixture do corpo de artigo (override com_content/article/default.php:
+  <div class="com-content-article__body">) com uma TABELA larga e um <pre> longo,
+  carregando o CSS REAL do template. Valida o achado F1 (responsividade mobile):
+  conteúdo largo do editor (tabelas, <pre>) deve rolar na HORIZONTAL dentro do
+  artigo, sem estourar a largura da página no celular. A célula tem uma string
+  longa sem espaços (como um código/URL real) para forçar o estouro sem a regra.
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — tabela responsiva no artigo</title>
+  <style>
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-primaria: #1F4E79;
+      --cor-texto: #222222;
+      --cor-borda: #E5E7EB;
+      --raio-borda-global: 4px;
+    }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <main id="main-content">
+    <div class="container">
+      <article>
+        <div class="com-content-article__body">
+          <p>Parágrafo de introdução do artigo, com largura normal.</p>
+          <table id="wide-table">
+            <thead>
+              <tr><th>Código</th><th>Descrição</th><th>Qtd.</th><th>Preço</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ABCDEFGHIJKLMNOPQRSTUVWXYZ-0123456789-CODIGO-MUITO-LONGO-SEM-ESPACOS-PARA-FORCAR-LARGURA</td>
+                <td>Item de exemplo</td>
+                <td>10</td>
+                <td>R$ 1.234,56</td>
+              </tr>
+              <tr>
+                <td>ZYXWVUTSRQPONMLKJIHGFEDCBA-9876543210-OUTRO-CODIGO-IGUALMENTE-LONGO-E-CONTINUO</td>
+                <td>Outro item</td>
+                <td>5</td>
+                <td>R$ 789,00</td>
+              </tr>
+            </tbody>
+          </table>
+          <pre id="wide-pre">$ comando --argumento-bastante-longo=valor-continuo-que-nao-quebra-de-linha-e-estouraria-a-largura-da-pagina-no-celular</pre>
+        </div>
+      </article>
+    </div>
+  </main>
+</body>
+</html>

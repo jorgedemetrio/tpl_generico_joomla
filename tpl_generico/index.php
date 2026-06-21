@@ -72,23 +72,12 @@ TplGenericoHelper::injectGlobalJsonLd($this, $this->params, $app);
 
 // Logo — esta acima da dobra: carrega com prioridade (eager + fetchpriority)
 // e reserva espaco com width para reduzir layout shift (CLS).
-$logoWidth = (int) $this->params->get('logoWidth', 150);
-$logo = '';
-if ($this->params->get('logoFile')) {
-    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" width="' . $logoWidth . '" style="width: ' . $logoWidth . 'px; height: auto;" loading="eager" fetchpriority="high" decoding="async" />';
-} else {
-    $logo = '<span class="site-title" title="' . $sitename . '">' . htmlspecialchars($this->params->get('siteTitle', $sitename), ENT_COMPAT, 'UTF-8') . '</span>';
-}
+$logo = TplGenericoHelper::buildLogo($this->params, $sitename, Uri::root(false));
 
 // Sidebar and Grid Logic
 $sidebarLeft  = $this->countModules('sidebar-left', true);
 $sidebarRight = $this->countModules('sidebar-right', true);
-$mainClass = 'col-12';
-if ($sidebarLeft && $sidebarRight) {
-    $mainClass = 'col-lg-6';
-} elseif ($sidebarLeft || $sidebarRight) {
-    $mainClass = 'col-lg-9';
-}
+$mainClass = TplGenericoHelper::mainColClass($sidebarLeft, $sidebarRight);
 $containerClass = ($this->params->get('layoutWidth', 'boxed') === 'full-width') ? 'container-fluid' : 'container';
 
 // Header settings
@@ -108,6 +97,13 @@ $themeToggle = $this->params->get('themeToggle', '1') === '1';
 
 // Barra de navegacao inferior (mobile): so renderiza com modulo na posicao.
 $hasBottomNav = $this->countModules('bottom-nav', true);
+
+// Posicoes do grid contadas 2x na montagem (no "if (a||b)" e em cada "if(a)"):
+// cacheia uma vez para nao recontar (A2). Valor identico ao countModules direto.
+$topA    = $this->countModules('top-a', true);
+$topB    = $this->countModules('top-b', true);
+$bottomA = $this->countModules('bottom-a', true);
+$bottomB = $this->countModules('bottom-b', true);
 
 // Aviso de cookies: banner discreto no rodape que NAO bloqueia a navegacao.
 // O visitante aceita (ou e aceito automaticamente apos N segundos) e a escolha
@@ -297,10 +293,10 @@ if ($customHeadCode !== '') {
             <?php if ($this->countModules('breadcrumbs', true)) : ?>
             <div class="row"><div class="col-12"><nav aria-label="<?php echo Text::_('TPL_GENERICO_BREADCRUMB_LABEL'); ?>"><jdoc:include type="modules" name="breadcrumbs" style="none" /></nav></div></div>
             <?php endif; ?>
-            <?php if ($this->countModules('top-a', true) || $this->countModules('top-b', true)) : ?>
+            <?php if ($topA || $topB) : ?>
             <div class="row">
-                <?php if ($this->countModules('top-a', true)) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="top-a" style="card" /></div><?php endif; ?>
-                <?php if ($this->countModules('top-b', true)) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="top-b" style="card" /></div><?php endif; ?>
+                <?php if ($topA) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="top-a" style="card" /></div><?php endif; ?>
+                <?php if ($topB) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="top-b" style="card" /></div><?php endif; ?>
             </div>
             <?php endif; ?>
             <div class="row">
@@ -321,10 +317,10 @@ if ($customHeadCode !== '') {
                 </aside>
                 <?php endif; ?>
             </div>
-            <?php if ($this->countModules('bottom-a', true) || $this->countModules('bottom-b', true)) : ?>
+            <?php if ($bottomA || $bottomB) : ?>
             <div class="row">
-                <?php if ($this->countModules('bottom-a', true)) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="bottom-a" style="card" /></div><?php endif; ?>
-                <?php if ($this->countModules('bottom-b', true)) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="bottom-b" style="card" /></div><?php endif; ?>
+                <?php if ($bottomA) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="bottom-a" style="card" /></div><?php endif; ?>
+                <?php if ($bottomB) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="bottom-b" style="card" /></div><?php endif; ?>
             </div>
             <?php endif; ?>
             <?php if ($this->countModules('bottom', true)) : ?>
@@ -344,9 +340,7 @@ if ($customHeadCode !== '') {
                 // tablet (md, >=768px) divide em 2/linha e abre nas N colunas no desktop
                 // (lg). Antes usava col-sm-6 (>=576px), que ja espremia 2 itens em
                 // celulares grandes/paisagem — deixando o rodape apertado.
-                $colClass = 'col-12 col-md-6 col-lg-3';
-                if ($footerColumns === 3) $colClass = 'col-12 col-md-6 col-lg-4';
-                elseif ($footerColumns === 2) $colClass = 'col-12 col-md-6';
+                $colClass = TplGenericoHelper::footerColClass($footerColumns);
                 foreach ($footerModules as $module) {
                     echo '<div class="' . $colClass . '">';
                     echo ModuleHelper::renderModule($module);

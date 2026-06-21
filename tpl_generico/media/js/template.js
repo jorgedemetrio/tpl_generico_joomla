@@ -285,6 +285,7 @@
         timerId = null;
       }
       el.classList.remove('is-visible');
+      document.body.classList.remove('has-cookie-notice');
       window.setTimeout(function () {
         el.setAttribute('hidden', '');
       }, HIDE_TRANSITION_MS);
@@ -311,6 +312,11 @@
     }
     window.requestAnimationFrame(function () {
       el.classList.add('is-visible');
+      // Expoe a altura do aviso e marca o body para o back-to-top subir e nao
+      // ficar coberto (o aviso ocupa a base full-width, acima dele). Ver o
+      // template.css (body.has-cookie-notice .back-to-top).
+      document.documentElement.style.setProperty('--cookie-notice-height', el.offsetHeight + 'px');
+      document.body.classList.add('has-cookie-notice');
     });
 
     if (btn) {

@@ -58,6 +58,7 @@ if (!function_exists('renderMenuItems')) {
                 continue;
             }
             $title      = isset($item->title) ? (string) $item->title : '';
+            $titleEsc   = htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); // usado em title="" e no texto (D8)
             $flink      = isset($item->flink) ? (string) $item->flink : '#';
             $id         = (int) ($item->id ?? 0);
             $children   = $item->children ?? [];
@@ -102,7 +103,7 @@ if (!function_exists('renderMenuItems')) {
             }
             $linkAttrs = [
                 'class="' . $linkClass . '"',
-                'title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"',
+                'title="' . $titleEsc . '"',
             ];
             // aria-current marca a pagina atual para tecnologias assistivas. O
             // pai de um dropdown e apenas destacado (nao e, ele mesmo, a pagina).
@@ -121,7 +122,7 @@ if (!function_exists('renderMenuItems')) {
                 $linkAttrs[] = 'target="_blank" rel="noopener"';
             }
 
-            echo '<a ' . implode(' ', $linkAttrs) . '>' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</a>';
+            echo '<a ' . implode(' ', $linkAttrs) . '>' . $titleEsc . '</a>';
 
             if ($hasChildren) {
                 echo '<ul class="dropdown-menu">';

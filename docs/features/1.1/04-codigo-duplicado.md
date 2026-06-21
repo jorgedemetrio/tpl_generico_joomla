@@ -233,14 +233,35 @@ flowchart LR
   (fallback defensivo). Elimina o literal duplicado PHP↔JS (ver Sonar #81). Coberto
   por `tests/specs/theme-toggle.spec.js` (persiste sob a chave do atributo).
 
+### Feito (continuação 3 — com Joomla real)
+
+> Agora há instalação Joomla real (`localhost:8081/automovel`, montada por
+> `setDevEnv.sh`). Refactors **output-idêntico** validados por **diff do HTML
+> renderizado** (antes×depois, normalizando tokens variáveis: CSRF, UUID de
+> tracking e `plg_system_schedulerunner` do core) + suíte E2E real (18/18) e de
+> fixtures (50/50).
+
+- **A* (`index.php`) — parcialmente feito:** extraídos para `TplGenericoHelper`
+  (output-idêntico, confirmado por diff): `buildLogo()` (logo img/texto),
+  `mainColClass()` (coluna principal × sidebars) e `footerColClass()` (colunas do
+  rodapé). **A2:** `countModules('top-a'/'top-b'/'bottom-a'/'bottom-b')` — antes
+  contadas 2× cada — agora cacheadas em `$topA/$topB/$bottomA/$bottomB`.
+- **D8 (`mod_menu/default.php`):** `htmlspecialchars($title,…)` (2×) → `$titleEsc`
+  computado uma vez; menu renderizado idêntico no diff.
+
 ### Adiado (com justificativa)
 - **B2 (tabela genérica de `--var: valor`):** ganho cosmético; reestruturar as ~30
   linhas em uma tabela aumenta o risco de reordenar/perder uma var sem PHP local
   para validar. O maior valor (ler cada cor 1×) já foi capturado.
-- **A* (`index.php`): `moduleFlags`, `buildLogo`, `renderSidebar`, `openModulePosition`, `col-class`** — mudam a montagem do HTML e o `index.php` não tem teste de render. Requer Joomla local.
-- **D* (overrides de menu):** dedup via `genericoMenuLinkType()` mexe em 4 arquivos
-  recém-alterados na Fase 1 e altera markup; o escape de segurança já foi aplicado
-  lá (Fase 1). Fazer junto de uma validação em instalação real.
+- **A* restante (`index.php`): `renderSidebar`, `openModulePosition`, `moduleFlags`** —
+  reestruturariam a montagem de markup (mais que extrair string); ganho cosmético
+  ante o risco. As extrações de maior valor (logo/col-class/A2) já foram feitas.
+- **D1–D7 (overrides `dropdown-metismenu_*`):** dedup adiada — **o site atual não
+  renderiza o layout metismenu** (nenhum `mm-*`/heading/separator no HTML), então
+  a mudança ficaria **sem validação por diff**; é cosmética e de alto risco
+  (markup de menu). O escape de segurança já foi aplicado na Fase 1. Refazer
+  quando houver um menu metismenu no ambiente para validar. D8 (acima) cobriu a
+  micro-dedup validável no `default.php`.
 - ~~**E\* (chromes `card`/`noCard`):**~~ **Feito na continuação** — ver "Feito
   (continuação)" acima. Só os blocos **idênticos** (aria + cabeçalho) foram
   extraídos (output-idêntico); o `chromeSetup` que reestrutura a montagem

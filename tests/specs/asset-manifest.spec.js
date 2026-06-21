@@ -6,13 +6,23 @@ const path = require('path');
 /**
  * Consistência do joomla.asset.json com o que é realmente empacotado (#37).
  *
- * Regra de negócio do empacotamento Joomla 5: os assets do template vivem em
- * `media/{css,js}/` no pacote e são instalados em
- * `media/templates/site/generico/`. O Web Asset Manager resolve a `uri` de cada
- * asset RELATIVA a essa pasta — então a `uri` precisa incluir o prefixo
- * `css/`/`js/`. Quando faltava (era `template.css` em vez de `css/template.css`),
- * numa instalação limpa o CSS/JS não carregava. Este teste lê os arquivos REAIS
- * do pacote e falha se uma `uri` própria não resolver — barrando a regressão.
+ * Regra de resolução do Web Asset Manager (Joomla 5) — VALIDADA em instalação
+ * real (template inheritable). Para um asset `style`/`script` com `uri` relativa,
+ * o core resolve o caminho como:
+ *
+ *     media/templates/site/<template>/<folder>/<uri>
+ *
+ * onde `<folder>` é FIXO por tipo: `css` para `style`, `js` para `script`
+ * (HTMLHelper::includeRelativeFiles concatena `$folder` ANTES da `uri`). Logo a
+ * `uri` NÃO pode repetir o prefixo `css/`/`js/` — se repetir, o caminho vira
+ * `.../generico/css/css/template.css`, o arquivo não existe e o `<link>`/`<script>`
+ * é silenciosamente omitido (CSS/JS do template somem). O arquivo físico, no
+ * pacote, vive em `media/<folder>/<uri>`.
+ *
+ * (Correção do erro registrado antes: o manifesto chegou a usar `css/template.css`,
+ * o que parecia certo olhando só a árvore do pacote (`media/css/template.css`),
+ * mas quebra a resolução do core. O Cassiopeia confirma: usa `template.min.css`,
+ * `offline.css`, `template.js` — sem prefixo de pasta.)
  *
  * URIs com prefixo `system/` (ex.: fontawesome) são providas pelo CORE do
  * Joomla, não vivem no pacote, e ficam fora da verificação de arquivo.
@@ -21,6 +31,9 @@ const path = require('path');
 const PKG = path.join(__dirname, '..', '..', 'tpl_generico');
 const MEDIA = path.join(PKG, 'media');
 const manifest = JSON.parse(fs.readFileSync(path.join(PKG, 'joomla.asset.json'), 'utf8'));
+
+/** Pasta que o core concatena por tipo de asset. */
+const FOLDER_BY_TYPE = { style: 'css', script: 'js' };
 
 /** Assets de arquivo (style/script) cujo binário é shippado no pacote. */
 const owned = manifest.assets.filter(
@@ -33,27 +46,31 @@ test.describe('joomla.asset.json — consistência das URIs (#37)', () => {
     expect(owned.length).toBeGreaterThanOrEqual(3);
   });
 
-  test('toda URI própria resolve para um arquivo existente em media/', () => {
+  test('toda URI própria resolve como o core resolve: media/<folder>/<uri>', () => {
     const missing = [];
     for (const a of owned) {
-      const abs = path.join(MEDIA, a.uri);
-      if (!fs.existsSync(abs)) missing.push(`${a.name} -> ${a.uri}`);
+      const folder = FOLDER_BY_TYPE[a.type];
+      const abs = path.join(MEDIA, folder, a.uri);
+      if (!fs.existsSync(abs)) missing.push(`${a.name} (${a.type}) -> media/${folder}/${a.uri}`);
     }
     expect(
       missing,
-      'URIs sem arquivo correspondente em media/ (CSS/JS não carregaria):\n' + missing.join('\n')
+      'URIs que não resolvem para um arquivo real (CSS/JS não carregaria no Joomla):\n' +
+        missing.join('\n')
     ).toEqual([]);
   });
 
-  test('assets próprios apontam para css/ (style) e js/ (script), não para a raiz', () => {
+  test('URIs próprias NÃO repetem o prefixo css/ ou js/ (o core já concatena o folder)', () => {
     const wrong = [];
     for (const a of owned) {
-      const ok =
-        (a.type === 'style' && a.uri.startsWith('css/')) ||
-        (a.type === 'script' && a.uri.startsWith('js/'));
-      if (!ok) wrong.push(`${a.name} (${a.type}) -> ${a.uri}`);
+      if (a.uri.startsWith('css/') || a.uri.startsWith('js/')) {
+        wrong.push(`${a.name} (${a.type}) -> ${a.uri}`);
+      }
     }
-    expect(wrong, 'Assets fora de css/ ou js/:\n' + wrong.join('\n')).toEqual([]);
+    expect(
+      wrong,
+      'Assets com prefixo de pasta duplicado (vira .../css/css/arquivo e some):\n' + wrong.join('\n')
+    ).toEqual([]);
   });
 
   test('as subpastas declaradas em <media> do templateDetails.xml existem no pacote', () => {

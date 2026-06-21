@@ -426,6 +426,88 @@ if (!class_exists('TplGenericoHelper', false)) {
         }
 
         /**
+         * Monta o HTML do logo do cabecalho: imagem com prioridade de carga
+         * (eager + fetchpriority) ou, sem logoFile, o titulo do site como texto.
+         * Extraido do index.php para enxugar a montagem inline. O $sitename deve
+         * chegar JA escapado (vai cru em alt/title, como no index.php original).
+         *
+         * Performance (F2/CLS): quando a URL do logo traz as dimensoes
+         * intrinsecas (campos `width`/`height` que o Joomla embute no
+         * `#joomlaImage://...?width=W&height=H`), reserva a ALTURA proporcional
+         * ao `logoWidth` — assim o navegador nao "pula" o layout ao carregar a
+         * imagem (Cumulative Layout Shift). Sem essas dimensoes, mantem
+         * `height: auto` (comportamento anterior).
+         *
+         * @param  Registry|null  $params    Parametros do template
+         * @param  string         $sitename  Nome do site, JA escapado
+         * @param  string         $rootUrl   Uri::root(false) — base do src
+         * @return string                    HTML do logo
+         */
+        public static function buildLogo($params, string $sitename, string $rootUrl): string
+        {
+            $logoWidth = (int) ($params ? $params->get('logoWidth', 150) : 150);
+            $logoFile  = $params ? $params->get('logoFile') : '';
+
+            if ($logoFile) {
+                $heightTag   = '';
+                $heightStyle = 'height: auto;';
+                if (
+                    preg_match('/[?&]width=(\d+)/', $logoFile, $mw)
+                    && preg_match('/[?&]height=(\d+)/', $logoFile, $mh)
+                    && (int) $mw[1] > 0 && (int) $mh[1] > 0
+                ) {
+                    $logoHeight  = (int) round($logoWidth * (int) $mh[1] / (int) $mw[1]);
+                    $heightTag   = ' height="' . $logoHeight . '"';
+                    $heightStyle = 'height: ' . $logoHeight . 'px;';
+                }
+
+                return '<img src="' . $rootUrl . htmlspecialchars($logoFile, ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" width="' . $logoWidth . '"' . $heightTag . ' style="width: ' . $logoWidth . 'px; ' . $heightStyle . '" loading="eager" fetchpriority="high" decoding="async" />';
+            }
+
+            $siteTitle = $params ? $params->get('siteTitle', $sitename) : $sitename;
+            return '<span class="site-title" title="' . $sitename . '">' . htmlspecialchars((string) $siteTitle, ENT_COMPAT, 'UTF-8') . '</span>';
+        }
+
+        /**
+         * Classe Bootstrap da coluna da area principal conforme as sidebars
+         * presentes (output-identico ao index.php): ambas -> col-lg-6; uma ->
+         * col-lg-9; nenhuma -> col-12.
+         *
+         * @param  mixed  $hasLeft   Contagem/flag da sidebar esquerda
+         * @param  mixed  $hasRight  Contagem/flag da sidebar direita
+         * @return string
+         */
+        public static function mainColClass($hasLeft, $hasRight): string
+        {
+            if ($hasLeft && $hasRight) {
+                return 'col-lg-6';
+            }
+            if ($hasLeft || $hasRight) {
+                return 'col-lg-9';
+            }
+            return 'col-12';
+        }
+
+        /**
+         * Classe Bootstrap de cada modulo do rodape conforme o numero de colunas
+         * configurado (output-identico ao index.php). No celular cada item ocupa
+         * a linha inteira (col-12); divide a partir do tablet.
+         *
+         * @param  int  $columns  Numero de colunas do rodape (2/3/4)
+         * @return string
+         */
+        public static function footerColClass(int $columns): string
+        {
+            if ($columns === 3) {
+                return 'col-12 col-md-6 col-lg-4';
+            }
+            if ($columns === 2) {
+                return 'col-12 col-md-6';
+            }
+            return 'col-12 col-md-6 col-lg-3';
+        }
+
+        /**
          * Fallback estático: evita fatal "method not found" em chamadas
          * legadas que possam existir em versões antigas do template.
          */

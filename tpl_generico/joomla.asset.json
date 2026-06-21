@@ -8,7 +8,7 @@
     {
       "name": "tpl_generico.css",
       "type": "style",
-      "uri": "css/template.css",
+      "uri": "template.css",
       "dependencies": [
         "bootstrap.css",
         "fontawesome"
@@ -17,7 +17,7 @@
     {
       "name": "tpl_generico.js",
       "type": "script",
-      "uri": "js/template.js",
+      "uri": "template.js",
       "dependencies": [
         "core"
       ],
@@ -36,7 +36,7 @@
     {
       "name": "tpl_generico.offline",
       "type": "style",
-      "uri": "css/offline.css",
+      "uri": "offline.css",
       "dependencies": [
         "bootstrap.css"
       ]

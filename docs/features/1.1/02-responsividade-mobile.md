@@ -117,6 +117,11 @@ Tabelas largas do editor estouram horizontalmente → scroll lateral da página 
 .com-content-article__body table { display: block; width: 100%; overflow-x: auto; }
 .com-content-article__body pre   { overflow-x: auto; }
 ```
+> ✅ **Feito** — a regra está no `template.css` (`.com-content-article__body table, pre`
+> com `display:block; max-width:100%; overflow-x:auto`). Agora **coberta por teste**:
+> `tests/specs/article-table.spec.js` (+ `fixtures/article-table.html`) abre o corpo de
+> artigo num viewport de celular e verifica que tabela/`<pre>` largos rolam internamente
+> e a **página não estoura** na horizontal.
 
 ### F3 — Banner `.banner-overlay`/`.overlay` **sem CSS** no pacote · `mod_custom/banner.php:27-28`
 O override aplica `background-image` inline e envolve o conteúdo nessas classes, mas
@@ -174,3 +179,16 @@ flowchart LR
 
 > Ao alterar CSS/overrides, **atualizar a fixture/spec Playwright** em `tests/` (regra do `CLAUDE.md`).
 > Testar em retrato + paisagem + tablet pequeno antes de versionar.
+
+## Achado adicional (descoberto no Joomla real) — ✅ corrigido
+
+- **Aviso de cookies cobria o back-to-top:** ambos são `position: fixed` na base; o
+  aviso (`left:0;right:0;bottom:0`, `z-index:1050`) ficava **sobre** o botão
+  (`bottom:1.25rem`, `z-index:1035`), interceptando o clique até o auto-aceite
+  (~20s). **Correção:** o `template.js`, ao exibir o aviso, marca
+  `body.has-cookie-notice` e expõe a altura real em `--cookie-notice-height`; o
+  `template.css` então **sobe** o back-to-top para acima do aviso
+  (`bottom: calc(var(--cookie-notice-height) + 0.75rem)`) e eleva seu `z-index`
+  para 1051. O back-to-top só aparece no desktop (≥768px), onde o aviso é uma
+  barra inferior. Coberto por `tests/specs/e2e/back-to-top.e2e.spec.js` (clica no
+  botão com o aviso visível, valida que fica acima e clicável em <3s).

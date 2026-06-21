@@ -1,9 +1,16 @@
 # Feature 1.1 — Levantamento de melhorias do `tpl_generico`
 
-> **Status:** Levantamento (análise read-only). Nenhum arquivo do template foi alterado.
-> **Data:** 2026-06-19
+> **Status:** Implementado (Fases 1–4) + continuação validada em **Joomla real** (2026-06).
+> **Data (levantamento):** 2026-06-19
 > **Branch de referência:** `feature/melhorias`
 > **Escopo analisado:** `tpl_generico/` (~3.760 linhas: PHP, CSS, JS, XML, JSON)
+>
+> **Validação (continuação):** instalação Joomla real (`localhost:8081/automovel`,
+> montada por `setDevEnv.sh`) — **diff do HTML renderizado** para refactors
+> output-idêntico + suíte **Playwright: 51 fixtures + 20 E2E reais**. O status por
+> eixo está na seção "Status de implementação" ao fim de cada documento. Itens
+> deliberadamente adiados (com justificativa): dedup metismenu (não renderiza no
+> ambiente), SEO E1/F3/H1 (fora do template / asset do core), B2 (cosmético).
 
 Este diretório consolida o levantamento técnico solicitado, dividido em **5 eixos**. Cada
 eixo tem um documento próprio com achados detalhados (`arquivo:linha`, severidade,

@@ -581,7 +581,8 @@ div.card .card-header {
     position: fixed;
     right: 1.25rem;
     bottom: 1.25rem;
-    z-index: 1035;
+    /* Acima do aviso de cookies (z-index 1050) para nao ser coberto/intercepta-lo. */
+    z-index: 1051;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -597,7 +598,7 @@ div.card .card-header {
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
-    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease, background-color 0.2s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease, background-color 0.2s ease, bottom 0.25s ease;
 }
 
 .back-to-top.is-visible {
@@ -610,6 +611,14 @@ div.card .card-header {
 .back-to-top:focus {
     background-color: var(--cor-primaria, #1F4E79);
     color: #fff;
+}
+
+/* Enquanto o aviso de cookies esta visivel (base full-width), sobe o botao para
+   cima dele — assim nao se sobrepoem e ambos ficam clicaveis. O template.js
+   expoe a altura real do aviso em --cookie-notice-height e marca o body. O
+   back-to-top so aparece no desktop, onde o aviso e uma barra inferior. */
+body.has-cookie-notice .back-to-top {
+    bottom: calc(var(--cookie-notice-height, 4rem) + 0.75rem);
 }
 
 /* ========================================================================

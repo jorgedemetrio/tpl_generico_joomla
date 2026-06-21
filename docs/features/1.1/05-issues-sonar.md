@@ -162,11 +162,18 @@ flowchart TD
 > (`build.yml`/`php -l`); CSS/JS/markup validados por Playwright (50/50 verdes).
 
 ### Feito
-- **#37 (bug — asset):** `joomla.asset.json` com URIs corrigidas para
-  `css/template.css`, `css/offline.css`, `js/template.js` (antes sem o prefixo de
-  subpasta → não carregava numa instalação limpa). Novo teste
-  `tests/specs/asset-manifest.spec.js` valida que toda URI própria resolve para um
-  arquivo real e que `<media>` ↔ pacote batem.
+- **#37 (bug — asset):** `joomla.asset.json` com URIs **sem** prefixo de pasta:
+  `template.css`, `offline.css`, `template.js`. ⚠️ **Correção do registro anterior:**
+  a Fase 4 havia trocado para `css/template.css` (etc.) achando que a `uri` era
+  relativa à raiz `media/` do pacote — mas o Web Asset Manager de um template
+  inheritable resolve `media/templates/site/generico/<folder>/<uri>` concatenando
+  `<folder>` (`css`/`js`) ANTES da `uri`. Com o prefixo, o caminho virava
+  `.../css/css/template.css` (inexistente) e o CSS/JS **não carregavam** — só
+  detectável em Joomla real (a Fase 4 foi feita sem ele). **Validado** na
+  instalação `localhost:8081/automovel` (template.css/js entram no `<head>`; HTTP
+  200). O Cassiopeia confirma o padrão (`template.min.css`, `offline.css`,
+  `template.js`). O teste `tests/specs/asset-manifest.spec.js` foi reescrito para
+  validar a resolução real (`media/<folder>/<uri>`) e barrar o prefixo duplicado.
 - **#81 (drift — chave de tema):** `'generico-theme'` centralizado em
   `TplGenericoHelper::THEME_STORAGE_KEY`; exposto via `data-theme-key` no `<html>`
   e lido pelo `template.js` — fim do literal duplicado PHP↔JS. Coberto por
