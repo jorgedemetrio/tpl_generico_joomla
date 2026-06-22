@@ -28,7 +28,7 @@ $total = count($list);
 foreach ($list as $i => $item) {
     $position = $i + 1;
     // Escape unico do nome (ENT_QUOTES, padrao do template) reutilizado abaixo.
-    $nameEsc  = htmlspecialchars($item->name, ENT_QUOTES, 'UTF-8');
+    $nameEsc  = htmlspecialchars((string) $item->name, ENT_QUOTES, 'UTF-8');
 
     // Add item to JSON-LD. O ultimo no (pagina atual) nao recebe 'item' — e a
     // recomendacao do schema.org/Google e evita um link redundante para si mesmo.
@@ -47,7 +47,7 @@ foreach ($list as $i => $item) {
 
     if ($position < $total) {
         // Not the last item — o href tambem e escapado (evita HTML injection no atributo).
-        echo '<li class="breadcrumb-item"><a href="' . htmlspecialchars($item->link, ENT_QUOTES, 'UTF-8') . '"><span>' . $nameEsc . '</span></a></li>';
+        echo '<li class="breadcrumb-item"><a href="' . htmlspecialchars((string) $item->link, ENT_QUOTES, 'UTF-8') . '"><span>' . $nameEsc . '</span></a></li>';
     } else {
         // Last item (current page)
         echo '<li class="breadcrumb-item active" aria-current="page"><span>' . $nameEsc . '</span></li>';

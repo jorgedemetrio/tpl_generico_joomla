@@ -55,7 +55,7 @@ if ($googleFontUrl) {
 }
 
 
-$sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
+$sitename = htmlspecialchars((string) $app->get('sitename'), ENT_QUOTES, 'UTF-8');
 $option   = $input->getCmd('option', '');
 $view     = $input->getCmd('view', '');
 $layout   = $input->getCmd('layout', '');

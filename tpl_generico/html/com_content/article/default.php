@@ -38,7 +38,7 @@ try {
     $logoUrl = $logoFile ? Uri::base() . htmlspecialchars($logoFile) : '';
 
     // Image Info
-    $images = json_decode($this->item->images);
+    $images = json_decode((string) ($this->item->images ?? ''));
     $imageUrl = !empty($images->image_fulltext) ? Uri::base() . htmlspecialchars($images->image_fulltext) : '';
 
     // @id canonico: so o caminho, sem query string (ordenacao/paginacao/print
@@ -156,7 +156,7 @@ $isExpired         = !is_null($this->item->publish_down) && $this->item->publish
 
 $app = Factory::getApplication();
 $document = $app->getDocument();
-if($this->item && $this->item->metakey){
+if ($this->item && !empty($this->item->metakey)) {
     $document->setMetadata(htmlspecialchars('keywords', ENT_COMPAT, 'UTF-8'), htmlspecialchars($this->item->metakey, ENT_COMPAT, 'UTF-8'));
 }
 
@@ -266,8 +266,8 @@ $document->addScriptDeclaration("
         <?php // Optional link to let them register to see the whole article. ?>
         <?php if ($params->get('show_readmore') && $this->item->fulltext != null) : ?>
             <?php $menu = Factory::getApplication()->getMenu(); ?>
-            <?php $active = $menu->getActive(); ?>
-            <?php $itemId = $active->id; ?>
+            <?php $active = $menu?->getActive(); ?>
+            <?php $itemId = $active->id ?? 0; ?>
             <?php $link = new Uri(Route::_('index.php?option=com_users&view=login&Itemid=' . $itemId, false)); ?>
             <?php $link->setVar('return', base64_encode(RouteHelper::getArticleRoute($this->item->slug, $this->item->catid, $this->item->language))); ?>
             <?php echo LayoutHelper::render('joomla.content.readmore', ['item' => $this->item, 'params' => $params, 'link' => $link]); ?>

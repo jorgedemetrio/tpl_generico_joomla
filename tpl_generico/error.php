@@ -31,7 +31,7 @@ try {
 // Aplica as cores do admin tambem na pagina de erro.
 $this->addStyleDeclaration(':root { ' . TplGenericoHelper::buildCssVars($params) . ' }');
 
-$sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
+$sitename = htmlspecialchars((string) $app->get('sitename'), ENT_QUOTES, 'UTF-8');
 // Tamanho fixo do logo na pagina de erro (independe do parametro do template).
 const TPL_GENERICO_ERROR_LOGO_WIDTH = 200;
 $logo = '';

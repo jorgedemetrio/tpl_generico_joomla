@@ -17,7 +17,9 @@ $app = Factory::getApplication();
 $wa = $this->getWebAssetManager();
 HTMLHelper::_('bootstrap.framework');
 
-$params = $app->getTemplate(true)->params;
+// getTemplate(true) sempre retorna o estilo com ->params; o ?-> evita fatal num
+// contexto improvavel sem estilo. buildCssVars/blocos abaixo ja toleram null.
+$params = $app->getTemplate(true)?->params;
 
 // CSS Variable Generation
 $cssVars = TplGenericoHelper::buildCssVars($params);
@@ -33,7 +35,7 @@ $this->setMetaData('robots', 'noindex, follow');
 
 
 // Logo file or site title param
-$sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
+$sitename = htmlspecialchars((string) $app->get('sitename'), ENT_QUOTES, 'UTF-8');
 // Tamanho fixo do logo na pagina offline (independe do parametro do template).
 const TPL_GENERICO_OFFLINE_LOGO_WIDTH = 240;
 $logo = '';
@@ -51,7 +53,7 @@ try {
 <!DOCTYPE html>
 <html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>">
 <head>
-    <title><?php echo htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8'); ?></title>
+    <title><?php echo htmlspecialchars((string) $app->get('sitename'), ENT_QUOTES, 'UTF-8'); ?></title>
     <jdoc:include type="head" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
