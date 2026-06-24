@@ -910,17 +910,34 @@ img.is-loaded {
 }
 
 /* Itens do menu empilhado (offcanvas/collapse) com altura de toque adequada —
-   so no mobile (<992px), onde o menu fica vertical e e o alvo mais usado. */
+   so no mobile (<992px), onde o menu fica vertical e e o alvo mais usado.
+   O texto e BEM maior que o padrao do Bootstrap (~1rem), que ficava pequeno
+   demais no celular. Cobre tambem o layout metismenu (.metismenu a) usado nas
+   posicoes offcanvas/sidebar. */
 @media (max-width: 991.98px) {
     .offcanvas .nav-link,
     .navbar-collapse .nav-link,
     .offcanvas .dropdown-item,
-    .navbar-collapse .dropdown-item {
+    .navbar-collapse .dropdown-item,
+    .offcanvas .metismenu a,
+    .navbar-collapse .metismenu a {
         display: flex;
         align-items: center;
-        min-height: 44px;
+        min-height: 48px;
         padding-top: 0.6rem;
         padding-bottom: 0.6rem;
+        font-size: 1.375rem;
+        line-height: 1.3;
+    }
+
+    /* Subitens (dropdown / niveis internos do menu) um pouco menores que o item
+       de topo, mas ainda bem maiores que o padrao. */
+    .offcanvas .dropdown-menu .dropdown-item,
+    .navbar-collapse .dropdown-menu .dropdown-item,
+    .offcanvas .metismenu .mm-collapse a,
+    .navbar-collapse .metismenu .mm-collapse a {
+        font-size: 1.15rem;
+        min-height: 44px;
     }
 }
 

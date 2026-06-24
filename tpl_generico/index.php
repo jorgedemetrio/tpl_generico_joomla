@@ -98,6 +98,11 @@ $themeToggle = $this->params->get('themeToggle', '1') === '1';
 // Barra de navegacao inferior (mobile): so renderiza com modulo na posicao.
 $hasBottomNav = $this->countModules('bottom-nav', true);
 
+// Menu dedicado para mobile (posicao 'mobile-menu'). Quando existe, o menu do
+// topo (posicao 'menu') NAO deve abrir um segundo hamburguer no celular — senao
+// aparecem "2 menus". No desktop o menu do topo continua inline normalmente.
+$hasMobileMenu = $this->countModules('mobile-menu', true);
+
 // Posicoes do grid contadas 2x na montagem (no "if (a||b)" e em cada "if(a)"):
 // cacheia uma vez para nao recontar (A2). Valor identico ao countModules direto.
 $topA    = $this->countModules('top-a', true);
@@ -235,7 +240,7 @@ if ($customHeadCode !== '') {
                             <i class="fas fa-moon" aria-hidden="true"></i>
                         </button>
                     <?php endif; ?>
-                    <?php if ($this->countModules('mobile-menu', true)) : ?>
+                    <?php if ($hasMobileMenu) : ?>
                         <button class="navbar-toggler d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenuArea" aria-controls="mobileMenuArea" aria-label="<?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TOGGLE'); ?>">
                             <i class="fas fa-bars" aria-hidden="true"></i>
                         </button>
@@ -247,9 +252,14 @@ if ($customHeadCode !== '') {
                         // offcanvas usam a mesma posicao 'menu', mas so um renderiza por vez).
                         $menuTargetId       = $mobileMenuBehavior === 'collapse' ? 'mobileMenuCollapse' : 'mobileMenuOffcanvas';
                     ?>
+                        <?php // Com um menu mobile dedicado (posicao 'mobile-menu'), o menu
+                        // do topo nao mostra botao no celular — evita os "2 menus". No
+                        // desktop o menu do topo continua inline (independe deste botao). ?>
+                        <?php if (!$hasMobileMenu) : ?>
                         <button class="navbar-toggler" type="button" data-bs-toggle="<?php echo $mobileMenuBehavior; ?>" data-bs-target="#<?php echo $menuTargetId; ?>" aria-controls="<?php echo $menuTargetId; ?>" aria-expanded="false" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_TOGGLE'); ?>">
                             <span class="navbar-toggler-icon"></span>
                         </button>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
 
@@ -266,7 +276,7 @@ if ($customHeadCode !== '') {
                 <?php if ($hasSearch && $searchPosition === 'inline') : ?><div id="search-header"><jdoc:include type="modules" name="search" style="none" /></div><?php endif; ?>
             </div>
         </nav>
-        <?php if ($this->countModules('mobile-menu', true)) : ?>
+        <?php if ($hasMobileMenu) : ?>
             <div class="offcanvas offcanvas-start w-100 h-100 border-0 d-lg-none" tabindex="-1" id="mobileMenuArea" aria-labelledby="mobileMenuAreaLabel">
                 <div class="offcanvas-header border-bottom">
                     <h5 class="offcanvas-title" id="mobileMenuAreaLabel"><?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TITLE'); ?></h5>
