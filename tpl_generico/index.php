@@ -55,7 +55,7 @@ if ($googleFontUrl) {
 }
 
 
-$sitename = htmlspecialchars($app->get('sitename'), ENT_QUOTES, 'UTF-8');
+$sitename = htmlspecialchars((string) $app->get('sitename'), ENT_QUOTES, 'UTF-8');
 $option   = $input->getCmd('option', '');
 $view     = $input->getCmd('view', '');
 $layout   = $input->getCmd('layout', '');
@@ -64,22 +64,20 @@ $activeMenu  = $menu ? $menu->getActive() : null;
 $activeParams = ($activeMenu && method_exists($activeMenu, 'getParams')) ? $activeMenu->getParams() : null;
 $pageclass   = $activeParams ? (string) $activeParams->get('pageclass_sfx', '') : '';
 
+// SEO: canonical, fallback de meta description, theme-color, Open Graph e
+// Twitter Cards (B1/B2/A1/A2/I2) + schemas globais Organization/WebSite na home
+// (C1). Centralizado no helper para manter este index.php enxuto.
+TplGenericoHelper::applyHeadSeo($this, $this->params, $app, $input);
+TplGenericoHelper::injectGlobalJsonLd($this, $this->params, $app);
+
 // Logo — esta acima da dobra: carrega com prioridade (eager + fetchpriority)
 // e reserva espaco com width para reduzir layout shift (CLS).
-$logoWidth = (int) $this->params->get('logoWidth', 150);
-$logo = '';
-if ($this->params->get('logoFile')) {
-    $logo = '<img src="' . Uri::root(false) . htmlspecialchars($this->params->get('logoFile'), ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" width="' . $logoWidth . '" style="width: ' . $logoWidth . 'px; height: auto;" loading="eager" fetchpriority="high" decoding="async" />';
-} else {
-    $logo = '<span class="site-title" title="' . $sitename . '">' . htmlspecialchars($this->params->get('siteTitle', $sitename), ENT_COMPAT, 'UTF-8') . '</span>';
-}
+$logo = TplGenericoHelper::buildLogo($this->params, $sitename, Uri::root(false));
 
 // Sidebar and Grid Logic
 $sidebarLeft  = $this->countModules('sidebar-left', true);
 $sidebarRight = $this->countModules('sidebar-right', true);
-$mainClass = 'col-12';
-if ($sidebarLeft && $sidebarRight) $mainClass = 'col-lg-6';
-elseif ($sidebarLeft || $sidebarRight) $mainClass = 'col-lg-9';
+$mainClass = TplGenericoHelper::mainColClass($sidebarLeft, $sidebarRight);
 $containerClass = ($this->params->get('layoutWidth', 'boxed') === 'full-width') ? 'container-fluid' : 'container';
 
 // Header settings
@@ -99,6 +97,18 @@ $themeToggle = $this->params->get('themeToggle', '1') === '1';
 
 // Barra de navegacao inferior (mobile): so renderiza com modulo na posicao.
 $hasBottomNav = $this->countModules('bottom-nav', true);
+
+// Menu dedicado para mobile (posicao 'mobile-menu'). Quando existe, o menu do
+// topo (posicao 'menu') NAO deve abrir um segundo hamburguer no celular — senao
+// aparecem "2 menus". No desktop o menu do topo continua inline normalmente.
+$hasMobileMenu = $this->countModules('mobile-menu', true);
+
+// Posicoes do grid contadas 2x na montagem (no "if (a||b)" e em cada "if(a)"):
+// cacheia uma vez para nao recontar (A2). Valor identico ao countModules direto.
+$topA    = $this->countModules('top-a', true);
+$topB    = $this->countModules('top-b', true);
+$bottomA = $this->countModules('bottom-a', true);
+$bottomB = $this->countModules('bottom-b', true);
 
 // Aviso de cookies: banner discreto no rodape que NAO bloqueia a navegacao.
 // O visitante aceita (ou e aceito automaticamente apos N segundos) e a escolha
@@ -155,7 +165,7 @@ $htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 
 if ($themeToggle || $colorScheme === 'auto') {
     $allowStored = $themeToggle ? 'true' : 'false';
     $this->addScriptDeclaration(
-        "(function(){try{var K='generico-theme',r=document.documentElement,"
+        "(function(){try{var K='" . TplGenericoHelper::THEME_STORAGE_KEY . "',r=document.documentElement,"
         . "allow=" . $allowStored . ",scheme='" . $colorScheme . "',"
         . "mql=window.matchMedia('(prefers-color-scheme: dark)'),s=null;"
         . "try{s=localStorage.getItem(K);}catch(e){}"
@@ -202,7 +212,7 @@ if ($customHeadCode !== '') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>">
+<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>" data-theme-key="<?php echo TplGenericoHelper::THEME_STORAGE_KEY; ?>">
 <head>
     <jdoc:include type="head" />
 </head>
@@ -230,7 +240,7 @@ if ($customHeadCode !== '') {
                             <i class="fas fa-moon" aria-hidden="true"></i>
                         </button>
                     <?php endif; ?>
-                    <?php if ($this->countModules('mobile-menu', true)) : ?>
+                    <?php if ($hasMobileMenu) : ?>
                         <button class="navbar-toggler d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenuArea" aria-controls="mobileMenuArea" aria-label="<?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TOGGLE'); ?>">
                             <i class="fas fa-bars" aria-hidden="true"></i>
                         </button>
@@ -242,9 +252,14 @@ if ($customHeadCode !== '') {
                         // offcanvas usam a mesma posicao 'menu', mas so um renderiza por vez).
                         $menuTargetId       = $mobileMenuBehavior === 'collapse' ? 'mobileMenuCollapse' : 'mobileMenuOffcanvas';
                     ?>
+                        <?php // Com um menu mobile dedicado (posicao 'mobile-menu'), o menu
+                        // do topo nao mostra botao no celular — evita os "2 menus". No
+                        // desktop o menu do topo continua inline (independe deste botao). ?>
+                        <?php if (!$hasMobileMenu) : ?>
                         <button class="navbar-toggler" type="button" data-bs-toggle="<?php echo $mobileMenuBehavior; ?>" data-bs-target="#<?php echo $menuTargetId; ?>" aria-controls="<?php echo $menuTargetId; ?>" aria-expanded="false" aria-label="<?php echo Text::_('TPL_GENERICO_MAIN_NAV_TOGGLE'); ?>">
                             <span class="navbar-toggler-icon"></span>
                         </button>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
 
@@ -261,7 +276,7 @@ if ($customHeadCode !== '') {
                 <?php if ($hasSearch && $searchPosition === 'inline') : ?><div id="search-header"><jdoc:include type="modules" name="search" style="none" /></div><?php endif; ?>
             </div>
         </nav>
-        <?php if ($this->countModules('mobile-menu', true)) : ?>
+        <?php if ($hasMobileMenu) : ?>
             <div class="offcanvas offcanvas-start w-100 h-100 border-0 d-lg-none" tabindex="-1" id="mobileMenuArea" aria-labelledby="mobileMenuAreaLabel">
                 <div class="offcanvas-header border-bottom">
                     <h5 class="offcanvas-title" id="mobileMenuAreaLabel"><?php echo Text::_('TPL_GENERICO_MOBILE_MENU_TITLE'); ?></h5>
@@ -277,19 +292,21 @@ if ($customHeadCode !== '') {
         <?php endif; ?>
     </header>
 
-    <?php if ($this->countModules('banner', true)) : ?><section id="banner" role="banner"><jdoc:include type="modules" name="banner" style="none" /></section><?php endif; ?>
+    <?php // O landmark "banner" ja e o <header>; aqui usamos aria-label para nao
+    // duplicar o role banner (deve ser unico na pagina). ?>
+    <?php if ($this->countModules('banner', true)) : ?><section id="banner" aria-label="<?php echo Text::_('TPL_GENERICO_BANNER_LABEL'); ?>"><jdoc:include type="modules" name="banner" style="none" /></section><?php endif; ?>
 
 
 
     <main id="main-content" role="main" tabindex="-1">
         <div class="<?php echo $containerClass; ?>">
             <?php if ($this->countModules('breadcrumbs', true)) : ?>
-            <div class="row"><div class="col-12"><nav aria-label="breadcrumb"><jdoc:include type="modules" name="breadcrumbs" style="none" /></nav></div></div>
+            <div class="row"><div class="col-12"><nav aria-label="<?php echo Text::_('TPL_GENERICO_BREADCRUMB_LABEL'); ?>"><jdoc:include type="modules" name="breadcrumbs" style="none" /></nav></div></div>
             <?php endif; ?>
-            <?php if ($this->countModules('top-a', true) || $this->countModules('top-b', true)) : ?>
+            <?php if ($topA || $topB) : ?>
             <div class="row">
-                <?php if ($this->countModules('top-a', true)) : ?><div class="col-sm-6"><jdoc:include type="modules" name="top-a" style="card" /></div><?php endif; ?>
-                <?php if ($this->countModules('top-b', true)) : ?><div class="col-sm-6"><jdoc:include type="modules" name="top-b" style="card" /></div><?php endif; ?>
+                <?php if ($topA) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="top-a" style="card" /></div><?php endif; ?>
+                <?php if ($topB) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="top-b" style="card" /></div><?php endif; ?>
             </div>
             <?php endif; ?>
             <div class="row">
@@ -310,10 +327,10 @@ if ($customHeadCode !== '') {
                 </aside>
                 <?php endif; ?>
             </div>
-            <?php if ($this->countModules('bottom-a', true) || $this->countModules('bottom-b', true)) : ?>
+            <?php if ($bottomA || $bottomB) : ?>
             <div class="row">
-                <?php if ($this->countModules('bottom-a', true)) : ?><div class="col-sm-6"><jdoc:include type="modules" name="bottom-a" style="card" /></div><?php endif; ?>
-                <?php if ($this->countModules('bottom-b', true)) : ?><div class="col-sm-6"><jdoc:include type="modules" name="bottom-b" style="card" /></div><?php endif; ?>
+                <?php if ($bottomA) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="bottom-a" style="card" /></div><?php endif; ?>
+                <?php if ($bottomB) : ?><div class="col-12 col-md-6"><jdoc:include type="modules" name="bottom-b" style="card" /></div><?php endif; ?>
             </div>
             <?php endif; ?>
             <?php if ($this->countModules('bottom', true)) : ?>
@@ -329,11 +346,11 @@ if ($customHeadCode !== '') {
             <?php
                 $footerModules = ModuleHelper::getModules('footer');
                 $footerColumns = (int) $this->params->get('footerColumns', 4);
-                // Empilha no celular (1/linha), 2/linha em tablet pequeno e abre nas
-                // N colunas so a partir do desktop (lg) — evita colunas espremidas.
-                $colClass = 'col-12 col-sm-6 col-lg-3';
-                if ($footerColumns === 3) $colClass = 'col-12 col-sm-6 col-lg-4';
-                elseif ($footerColumns === 2) $colClass = 'col-12 col-sm-6';
+                // No celular cada item ocupa a linha inteira (col-12); so a partir do
+                // tablet (md, >=768px) divide em 2/linha e abre nas N colunas no desktop
+                // (lg). Antes usava col-sm-6 (>=576px), que ja espremia 2 itens em
+                // celulares grandes/paisagem — deixando o rodape apertado.
+                $colClass = TplGenericoHelper::footerColClass($footerColumns);
                 foreach ($footerModules as $module) {
                     echo '<div class="' . $colClass . '">';
                     echo ModuleHelper::renderModule($module);

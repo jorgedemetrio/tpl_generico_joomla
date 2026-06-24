@@ -13,6 +13,7 @@
  */
 
 use Joomla\CMS\Registry\Registry;
+use Joomla\Utilities\ArrayHelper;
 
 defined('_JEXEC') or die;
 
@@ -22,6 +23,39 @@ if (!class_exists('TplGenericoHelper', false)) {
      */
     class TplGenericoHelper
     {
+        /** Cores padrao de marca (defaults dos parametros do admin). */
+        private const DEFAULT_PRIMARY   = '#1F4E79';
+        private const DEFAULT_SECONDARY = '#2E7D32';
+        private const DEFAULT_CTA       = '#2F80ED';
+        /** Fallback da tripla RGB quando o hex e invalido. */
+        private const RGB_FALLBACK      = '0, 0, 0';
+
+        /**
+         * Chave do localStorage que guarda o tema escolhido (claro/escuro).
+         * Fonte unica da verdade: o index.php injeta este valor no script inline
+         * do <head> e no atributo data-theme-key do <html>; o template.js le do
+         * atributo. Assim a chave nunca dessincroniza entre PHP e JS (#81/A10).
+         */
+        public const THEME_STORAGE_KEY  = 'generico-theme';
+
+        /**
+         * Le um parametro tratando vazio/null como "use o default".
+         * Promovido do closure local do buildCssVars para ser reutilizavel.
+         *
+         * @param  Registry|null  $params   Template parameters
+         * @param  string         $key      Nome do parametro
+         * @param  mixed          $default  Valor padrao
+         * @return mixed
+         */
+        public static function getParam($params, string $key, $default)
+        {
+            if ($params === null) {
+                return $default;
+            }
+            $value = $params->get($key, $default);
+            return ($value === null || $value === '') ? $default : $value;
+        }
+
         /**
          * Build CSS variables string from template parameters.
          *
@@ -31,24 +65,30 @@ if (!class_exists('TplGenericoHelper', false)) {
         public static function buildCssVars($params): string
         {
             $get = static function ($key, $default) use ($params) {
-                if ($params === null) {
-                    return $default;
-                }
-                $value = $params->get($key, $default);
-                return ($value === null || $value === '') ? $default : $value;
+                return self::getParam($params, $key, $default);
             };
 
-            $cssVars  = "--cor-primaria: {$get('primaryColor', '#1F4E79')};";
-            $cssVars .= "--cor-secundaria: {$get('secondaryColor', '#2E7D32')};";
-            $cssVars .= "--cor-cta: {$get('ctaColor', '#2F80ED')};";
-            // Cor do destaque do item de menu ativo. Configuravel no admin; se vazio,
-            // usa o padrao (mesmo azul do CTA). Tripla RGB para o leve fundo em rgba().
-            $cssVars .= "--cor-menu-ativo: {$get('menuActiveColor', '#2F80ED')};";
-            $cssVars .= '--cor-menu-ativo-rgb: ' . self::hexToRgb($get('menuActiveColor', '#2F80ED')) . ';';
+            // Cada cor de marca e lida UMA vez e reutilizada para a variavel e sua
+            // tripla RGB (antes o mesmo default era lido 2-4x por cor).
+            $primary    = $get('primaryColor', self::DEFAULT_PRIMARY);
+            $secondary  = $get('secondaryColor', self::DEFAULT_SECONDARY);
+            $cta        = $get('ctaColor', self::DEFAULT_CTA);
+            // Destaque do menu ativo: se vazio, usa o mesmo azul do CTA.
+            $menuActive = $get('menuActiveColor', self::DEFAULT_CTA);
+            $primaryRgb   = self::hexToRgb($primary);
+            $secondaryRgb = self::hexToRgb($secondary);
+            $ctaRgb       = self::hexToRgb($cta);
+
+            $cssVars  = "--cor-primaria: {$primary};";
+            $cssVars .= "--cor-secundaria: {$secondary};";
+            $cssVars .= "--cor-cta: {$cta};";
+            // Cor do destaque do item de menu ativo. Tripla RGB para o leve fundo em rgba().
+            $cssVars .= "--cor-menu-ativo: {$menuActive};";
+            $cssVars .= '--cor-menu-ativo-rgb: ' . self::hexToRgb($menuActive) . ';';
             // Triplas RGB das cores de marca, usadas em rgba() (focus rings, overlays).
-            $cssVars .= '--cor-primaria-rgb: ' . self::hexToRgb($get('primaryColor', '#1F4E79')) . ';';
-            $cssVars .= '--cor-secundaria-rgb: ' . self::hexToRgb($get('secondaryColor', '#2E7D32')) . ';';
-            $cssVars .= '--cor-cta-rgb: ' . self::hexToRgb($get('ctaColor', '#2F80ED')) . ';';
+            $cssVars .= '--cor-primaria-rgb: ' . $primaryRgb . ';';
+            $cssVars .= '--cor-secundaria-rgb: ' . $secondaryRgb . ';';
+            $cssVars .= '--cor-cta-rgb: ' . $ctaRgb . ';';
             $cssVars .= "--cor-texto: {$get('textColor', '#222222')};";
             $cssVars .= "--cor-texto-secundario: {$get('textSecondaryColor', '#6B7280')};";
             $cssVars .= "--cor-superficie-clara: {$get('surfaceLightColor', '#FFFFFF')};";
@@ -86,10 +126,7 @@ if (!class_exists('TplGenericoHelper', false)) {
             // Sincroniza as variaveis do Bootstrap 5 com as cores do template,
             // garantindo que componentes do core (alerts, badges, navs, links,
             // dropdowns, paginacao, etc.) respeitem as cores definidas no admin.
-            $primaryRgb   = self::hexToRgb($get('primaryColor', '#1F4E79'));
-            $secondaryRgb = self::hexToRgb($get('secondaryColor', '#2E7D32'));
-            $ctaRgb       = self::hexToRgb($get('ctaColor', '#2F80ED'));
-
+            // (As triplas RGB ja foram calculadas uma vez no topo do metodo.)
             $cssVars .= '--bs-primary: var(--cor-primaria);';
             $cssVars .= '--bs-secondary: var(--cor-secundaria);';
             $cssVars .= "--bs-primary-rgb: {$primaryRgb};";
@@ -111,6 +148,223 @@ if (!class_exists('TplGenericoHelper', false)) {
         }
 
         /**
+         * Emite os metadados de SEO/redes sociais no <head>: canonical, fallback
+         * de meta description, theme-color, Open Graph e Twitter Cards.
+         *
+         * Recebe o proprio documento ($doc) para nao depender de estado global.
+         * Os valores sao passados crus — o renderizador de metas do Joomla escapa
+         * na saida (passar ja-escapado causaria duplo-escape do "&").
+         *
+         * @param  object  $doc     Documento HTML (Joomla\CMS\Document\HtmlDocument)
+         * @param  Registry|null  $params  Parametros do template
+         * @param  object  $app     Aplicacao Joomla
+         * @param  object  $input   Input da requisicao
+         * @return void
+         */
+        public static function applyHeadSeo($doc, $params, $app, $input): void
+        {
+            if (!is_object($doc) || !method_exists($doc, 'setMetaData')) {
+                return;
+            }
+
+            $uri      = \Joomla\CMS\Uri\Uri::getInstance();
+            $base     = rtrim(\Joomla\CMS\Uri\Uri::root(), '/');
+            $sitename = (string) $app->get('sitename');
+
+            // A1 — URL canonica (so caminho, sem query/fragmento). Nao sobrescreve
+            // um canonical ja definido por outro componente (ex.: com_content).
+            $canonical = $uri->toString(['scheme', 'host', 'port', 'path']);
+            if (!self::hasCanonical($doc)) {
+                $doc->addHeadLink($canonical, 'canonical');
+            }
+
+            // A2 — Fallback de meta description (evita o Google inventar o snippet).
+            $description = (string) $doc->getMetaData('description');
+            if ($description === '') {
+                $description = (string) ($app->get('MetaDesc') ?: $sitename);
+                if ($description !== '') {
+                    $doc->setMetaData('description', $description);
+                }
+            }
+
+            // Titulo da pagina (cru; o documento escapa na saida).
+            $title = (string) $doc->getTitle();
+            if ($title === '') {
+                $title = $sitename;
+            }
+
+            // I2 — theme-color derivado da cor de marca.
+            $themeColor = (string) ($params ? $params->get('primaryColor', '#1F4E79') : '#1F4E79');
+            if ($themeColor !== '') {
+                $doc->setMetaData('theme-color', $themeColor);
+            }
+
+            $ogImage = self::resolveLogoUrl($params, $base);
+            $option  = (string) $input->getCmd('option', '');
+            $view    = (string) $input->getCmd('view', '');
+
+            // B1 — Open Graph (compartilhamento com card; o FB Pixel ja esta ativo).
+            $doc->setMetaData('og:site_name', $sitename, 'property');
+            $doc->setMetaData('og:title', $title, 'property');
+            $doc->setMetaData('og:type', ($option === 'com_content' && $view === 'article') ? 'article' : 'website', 'property');
+            $doc->setMetaData('og:url', $canonical, 'property');
+            if ($description !== '') {
+                $doc->setMetaData('og:description', $description, 'property');
+            }
+            $locale = self::currentLocale($app);
+            if ($locale !== '') {
+                $doc->setMetaData('og:locale', $locale, 'property');
+            }
+            if ($ogImage !== '') {
+                $doc->setMetaData('og:image', $ogImage, 'property');
+            }
+
+            // B2 — Twitter Cards (fallback do X quando ha/nao ha imagem).
+            $doc->setMetaData('twitter:card', $ogImage !== '' ? 'summary_large_image' : 'summary');
+            $doc->setMetaData('twitter:title', $title);
+            if ($description !== '') {
+                $doc->setMetaData('twitter:description', $description);
+            }
+            if ($ogImage !== '') {
+                $doc->setMetaData('twitter:image', $ogImage);
+            }
+        }
+
+        /**
+         * C1 — Injeta os schemas globais Organization e WebSite (com SearchAction)
+         * como JSON-LD, apenas na pagina inicial, para nao repetir em cada URL.
+         *
+         * @param  object  $doc     Documento HTML
+         * @param  Registry|null  $params  Parametros do template
+         * @param  object  $app     Aplicacao Joomla
+         * @return void
+         */
+        public static function injectGlobalJsonLd($doc, $params, $app): void
+        {
+            if (!is_object($doc) || !method_exists($doc, 'addCustomTag') || !self::isHome($app)) {
+                return;
+            }
+
+            $base     = rtrim(\Joomla\CMS\Uri\Uri::root(), '/');
+            $sitename = (string) $app->get('sitename');
+
+            $organization = [
+                '@context' => 'https://schema.org',
+                '@type'    => 'Organization',
+                'name'     => $sitename,
+                'url'      => $base . '/',
+            ];
+            $logo = self::resolveLogoUrl($params, $base);
+            if ($logo !== '') {
+                $organization['logo'] = $logo;
+            }
+            self::addJsonLd($doc, $organization);
+
+            $website = [
+                '@context'        => 'https://schema.org',
+                '@type'           => 'WebSite',
+                'name'            => $sitename,
+                'url'             => $base . '/',
+                'potentialAction' => [
+                    '@type'       => 'SearchAction',
+                    'target'      => $base . '/index.php?option=com_search&searchword={search_term_string}',
+                    'query-input' => 'required name=search_term_string',
+                ],
+            ];
+            self::addJsonLd($doc, $website);
+        }
+
+        /**
+         * Verifica se ja existe um <link rel="canonical"> no head (definido por
+         * outro componente), para nao emitir um segundo.
+         */
+        private static function hasCanonical($doc): bool
+        {
+            if (!method_exists($doc, 'getHeadData')) {
+                return false;
+            }
+            try {
+                $head  = $doc->getHeadData();
+                $links = $head['links'] ?? [];
+                foreach ($links as $data) {
+                    if (is_array($data) && ($data['relation'] ?? '') === 'canonical') {
+                        return true;
+                    }
+                }
+            } catch (\Throwable $e) {
+                return false;
+            }
+            return false;
+        }
+
+        /**
+         * Resolve a URL absoluta do logo do template (para og:image/JSON-LD).
+         * Aceita URL absoluta ou caminho relativo; descarta o sufixo "#joomlaImage://"
+         * que o campo media pode anexar. Retorna '' quando nao ha logo.
+         */
+        private static function resolveLogoUrl($params, string $base): string
+        {
+            $logo = $params ? (string) $params->get('logoFile', '') : '';
+            if ($logo === '') {
+                return '';
+            }
+            $logo = explode('#', $logo)[0];
+            if ($logo === '') {
+                return '';
+            }
+            if (preg_match('#^https?://#i', $logo)) {
+                return $logo;
+            }
+            return $base . '/' . ltrim($logo, '/');
+        }
+
+        /**
+         * Locale BCP-47 com underscore para og:locale (ex.: "pt_BR").
+         */
+        private static function currentLocale($app): string
+        {
+            try {
+                $tag = method_exists($app, 'getLanguage') ? (string) $app->getLanguage()->getTag() : '';
+                if ($tag === '') {
+                    $tag = (string) $app->get('language', '');
+                }
+                return $tag !== '' ? str_replace('-', '_', $tag) : '';
+            } catch (\Throwable $e) {
+                return '';
+            }
+        }
+
+        /**
+         * True quando a requisicao corresponde ao item de menu padrao (home).
+         */
+        private static function isHome($app): bool
+        {
+            try {
+                $menu = (is_object($app) && method_exists($app, 'getMenu')) ? $app->getMenu() : null;
+                if (!$menu) {
+                    return false;
+                }
+                $active  = $menu->getActive();
+                $default = $menu->getDefault();
+                return $active && $default && (int) $active->id === (int) $default->id;
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+
+        /**
+         * Serializa um array como bloco JSON-LD e o injeta no <head>.
+         * JSON_HEX_TAG protege contra fechamento prematuro de </script>.
+         */
+        private static function addJsonLd($doc, array $data): void
+        {
+            $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
+            if ($json !== false) {
+                $doc->addCustomTag('<script type="application/ld+json">' . $json . '</script>');
+            }
+        }
+
+        /**
          * Converte um valor hexadecimal (#RGB ou #RRGGBB) na tripla "R, G, B"
          * usada pelas variaveis `--bs-*-rgb` do Bootstrap 5.
          */
@@ -123,10 +377,134 @@ if (!class_exists('TplGenericoHelper', false)) {
                 $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
             }
             if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
-                return '0, 0, 0';
+                return self::RGB_FALLBACK;
             }
 
             return hexdec(substr($hex, 0, 2)) . ', ' . hexdec(substr($hex, 2, 2)) . ', ' . hexdec(substr($hex, 4, 2));
+        }
+
+        /**
+         * Aplica os atributos ARIA compartilhados pelos chromes de modulo
+         * (card/noCard) quando a tag do modulo NAO e <div>: associa o titulo via
+         * aria-labelledby/id quando ha titulo visivel, ou aria-label quando nao
+         * ha. Bloco identico nos dois chromes (dedup E2/#48), por referencia para
+         * preencher os arrays de atributos ja montados no chrome.
+         *
+         * @param  array   $moduleAttribs  Atributos do elemento do modulo (por ref)
+         * @param  array   $headerAttribs  Atributos do cabecalho (por ref)
+         * @param  object  $module         Objeto do modulo (showtitle/id/title)
+         * @param  string  $moduleTag      Tag do modulo (div, section, aside...)
+         * @return void
+         */
+        public static function applyChromeAria(array &$moduleAttribs, array &$headerAttribs, $module, string $moduleTag): void
+        {
+            if ($moduleTag === 'div') {
+                return;
+            }
+            if ($module->showtitle) {
+                $moduleAttribs['aria-labelledby'] = 'mod-' . $module->id;
+                $headerAttribs['id']              = 'mod-' . $module->id;
+            } else {
+                $moduleAttribs['aria-label'] = htmlspecialchars((string) $module->title, ENT_QUOTES, 'UTF-8');
+            }
+        }
+
+        /**
+         * Monta o cabecalho `<headerTag ...>titulo</headerTag>` do modulo —
+         * identico nos chromes card/noCard (dedup E3/#48). O titulo NAO e escapado
+         * aqui, preservando o comportamento atual (o mod_* entrega o titulo pronto
+         * para saida, como nos chromes do core do Joomla).
+         *
+         * @param  string  $headerTag      Tag do cabecalho (h3, h2...)
+         * @param  array   $headerAttribs  Atributos do cabecalho
+         * @param  string  $title          Titulo do modulo (saida pronta)
+         * @return string                  HTML do cabecalho
+         */
+        public static function buildChromeHeader(string $headerTag, array $headerAttribs, string $title): string
+        {
+            return '<' . $headerTag . ' ' . ArrayHelper::toString($headerAttribs) . '>' . $title . '</' . $headerTag . '>';
+        }
+
+        /**
+         * Monta o HTML do logo do cabecalho: imagem com prioridade de carga
+         * (eager + fetchpriority) ou, sem logoFile, o titulo do site como texto.
+         * Extraido do index.php para enxugar a montagem inline. O $sitename deve
+         * chegar JA escapado (vai cru em alt/title, como no index.php original).
+         *
+         * Performance (F2/CLS): quando a URL do logo traz as dimensoes
+         * intrinsecas (campos `width`/`height` que o Joomla embute no
+         * `#joomlaImage://...?width=W&height=H`), reserva a ALTURA proporcional
+         * ao `logoWidth` — assim o navegador nao "pula" o layout ao carregar a
+         * imagem (Cumulative Layout Shift). Sem essas dimensoes, mantem
+         * `height: auto` (comportamento anterior).
+         *
+         * @param  Registry|null  $params    Parametros do template
+         * @param  string         $sitename  Nome do site, JA escapado
+         * @param  string         $rootUrl   Uri::root(false) — base do src
+         * @return string                    HTML do logo
+         */
+        public static function buildLogo($params, string $sitename, string $rootUrl): string
+        {
+            $logoWidth = (int) ($params ? $params->get('logoWidth', 150) : 150);
+            $logoFile  = $params ? $params->get('logoFile') : '';
+
+            if ($logoFile) {
+                $heightTag   = '';
+                $heightStyle = 'height: auto;';
+                if (
+                    preg_match('/[?&]width=(\d+)/', $logoFile, $mw)
+                    && preg_match('/[?&]height=(\d+)/', $logoFile, $mh)
+                    && (int) $mw[1] > 0 && (int) $mh[1] > 0
+                ) {
+                    $logoHeight  = (int) round($logoWidth * (int) $mh[1] / (int) $mw[1]);
+                    $heightTag   = ' height="' . $logoHeight . '"';
+                    $heightStyle = 'height: ' . $logoHeight . 'px;';
+                }
+
+                return '<img src="' . $rootUrl . htmlspecialchars($logoFile, ENT_QUOTES) . '" alt="' . $sitename . '" title="' . $sitename . '" width="' . $logoWidth . '"' . $heightTag . ' style="width: ' . $logoWidth . 'px; ' . $heightStyle . '" loading="eager" fetchpriority="high" decoding="async" />';
+            }
+
+            $siteTitle = $params ? $params->get('siteTitle', $sitename) : $sitename;
+            return '<span class="site-title" title="' . $sitename . '">' . htmlspecialchars((string) $siteTitle, ENT_COMPAT, 'UTF-8') . '</span>';
+        }
+
+        /**
+         * Classe Bootstrap da coluna da area principal conforme as sidebars
+         * presentes (output-identico ao index.php): ambas -> col-lg-6; uma ->
+         * col-lg-9; nenhuma -> col-12.
+         *
+         * @param  mixed  $hasLeft   Contagem/flag da sidebar esquerda
+         * @param  mixed  $hasRight  Contagem/flag da sidebar direita
+         * @return string
+         */
+        public static function mainColClass($hasLeft, $hasRight): string
+        {
+            if ($hasLeft && $hasRight) {
+                return 'col-lg-6';
+            }
+            if ($hasLeft || $hasRight) {
+                return 'col-lg-9';
+            }
+            return 'col-12';
+        }
+
+        /**
+         * Classe Bootstrap de cada modulo do rodape conforme o numero de colunas
+         * configurado (output-identico ao index.php). No celular cada item ocupa
+         * a linha inteira (col-12); divide a partir do tablet.
+         *
+         * @param  int  $columns  Numero de colunas do rodape (2/3/4)
+         * @return string
+         */
+        public static function footerColClass(int $columns): string
+        {
+            if ($columns === 3) {
+                return 'col-12 col-md-6 col-lg-4';
+            }
+            if ($columns === 2) {
+                return 'col-12 col-md-6';
+            }
+            return 'col-12 col-md-6 col-lg-3';
         }
 
         /**

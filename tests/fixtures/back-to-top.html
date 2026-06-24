@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+  Fixture do botão "voltar ao topo". Espelha a saída de index.php (#backToTop) e
+  carrega o template.js/CSS REAIS. Regra (template.js::initBackToTop): só vale no
+  desktop (largura >= 768px) e em página longa (> 2x a altura visível); aparece
+  após rolar > 60% da viewport; clicar rola ao topo. O espaçador alto torna a
+  página "longa" de forma determinística.
+-->
+<html lang="pt-BR" dir="ltr" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — voltar ao topo</title>
+  <style>
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-primaria: #1F4E79;
+      --cor-texto: #222222;
+      --cor-superficie-clara: #FFFFFF;
+    }
+    .tall-spacer { height: 3000px; }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <header id="header" class="header sticky-top">
+    <nav class="navbar navbar-expand-lg"><div class="container">Topo da página</div></nav>
+  </header>
+  <main id="main-content" role="main" tabindex="-1">
+    <p id="page-top">Início do conteúdo.</p>
+    <div class="tall-spacer" aria-hidden="true"></div>
+    <p id="page-bottom">Fim do conteúdo.</p>
+  </main>
+  <button id="backToTop" class="back-to-top" type="button" aria-label="Voltar ao topo" title="Voltar ao topo">
+    <i class="fas fa-chevron-up" aria-hidden="true"></i>
+  </button>
+  <script src="../../tpl_generico/media/js/template.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+  Fixture do menu empilhado no MOBILE: o menu da posicao "menu" (override
+  html/mod_menu/default.php = <ul class="navbar-nav">) dentro do wrapper
+  .collapse.navbar-collapse que o index.php usa no celular (comportamento
+  'collapse'; o 'offcanvas' usa as MESMAS classes de link). Carrega o CSS REAL.
+  Valida que o texto do menu mobile ficou BEM maior que o padrao do Bootstrap
+  (~1rem/16px), conforme pedido — itens de topo ~1.375rem e subitens ~1.15rem.
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — menu mobile (texto maior)</title>
+  <style>
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-cta-rgb: 47, 128, 237;
+      --cor-menu-ativo: #2F80ED;
+      --cor-menu-ativo-rgb: 47, 128, 237;
+      --cor-primaria: #1F4E79;
+      --cor-texto: #222222;
+    }
+    body { margin: 0; }
+    /* Sem Bootstrap no fixture: torna o collapse e o dropdown visiveis para
+       medir os estilos (em producao o Bootstrap controla a visibilidade). */
+    .navbar-collapse { display: block; }
+    .dropdown-menu { display: block; }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <header id="header" class="header">
+    <nav class="navbar navbar-expand-lg" aria-label="Navegacao principal">
+      <div class="container">
+        <div class="collapse navbar-collapse" id="mobileMenuCollapse">
+          <ul class="navbar-nav me-auto" id="main-menu-1">
+            <li class="nav-item active"><a id="link-inicio" class="nav-link active" title="Inicio" aria-current="page" href="/">Inicio</a></li>
+            <li class="nav-item"><a id="link-sobre" class="nav-link" title="Sobre" href="/sobre">Sobre</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" title="Servicos" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Servicos</a>
+              <ul class="dropdown-menu">
+                <li class="nav-item"><a id="sub-web" class="dropdown-item" title="Web" href="/servicos/web">Web</a></li>
+                <li class="nav-item"><a class="dropdown-item" title="Mobile" href="/servicos/mobile">Mobile</a></li>
+              </ul>
+            </li>
+            <li class="nav-item"><a class="nav-link" title="Contato" href="/contato">Contato</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+</body>
+</html>

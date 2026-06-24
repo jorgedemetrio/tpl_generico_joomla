@@ -15,36 +15,41 @@ use Joomla\Utilities\ArrayHelper;
 
 $attributes = [];
 
+// Escapa os campos editaveis do item de menu antes de injeta-los em atributos
+// HTML (ver dropdown-metismenu_url.php) — evita XSS armazenado via anchor_*/title.
+$titleEsc = htmlspecialchars((string) $item->title, ENT_QUOTES, 'UTF-8');
+
 if ($item->anchor_title) {
-    $attributes['title'] = $item->anchor_title;
+    $attributes['title'] = htmlspecialchars((string) $item->anchor_title, ENT_QUOTES, 'UTF-8');
 }
 
 $attributes['class'] = 'mod-menu__separator separator';
-$attributes['class'] .= $item->anchor_css ? ' ' . $item->anchor_css : null;
+$attributes['class'] .= $item->anchor_css ? ' ' . htmlspecialchars((string) $item->anchor_css, ENT_QUOTES, 'UTF-8') : '';
 
-$linktype = $item->title;
+$linktype = $titleEsc;
 
 if ($item->menu_icon) {
+    $iconClass = htmlspecialchars((string) $item->menu_icon, ENT_QUOTES, 'UTF-8');
     // The link is an icon
     if ($itemParams->get('menu_text', 1)) {
         // If the link text is to be displayed, the icon is added with aria-hidden
-        $linktype = '<span class="p-2 ' . $item->menu_icon . '" aria-hidden="true"></span>' . $item->title;
+        $linktype = '<span class="p-2 ' . $iconClass . '" aria-hidden="true"></span>' . $titleEsc;
     } else {
         // If the icon itself is the link, it needs a visually hidden text
-        $linktype = '<span class="p-2 ' . $item->menu_icon . '" aria-hidden="true"></span><span class="visually-hidden">' . $item->title . '</span>';
+        $linktype = '<span class="p-2 ' . $iconClass . '" aria-hidden="true"></span><span class="visually-hidden">' . $titleEsc . '</span>';
     }
 } elseif ($item->menu_image) {
     // The link is an image, maybe with an own class
     $image_attributes = [];
 
     if ($item->menu_image_css) {
-        $image_attributes['class'] = $item->menu_image_css;
+        $image_attributes['class'] = htmlspecialchars((string) $item->menu_image_css, ENT_QUOTES, 'UTF-8');
     }
 
     $linktype = HTMLHelper::_('image', $item->menu_image, '', $image_attributes);
 
     if ($itemParams->get('menu_text', 1)) {
-        $linktype .= '<span class="image-title">' . $item->title . '</span>';
+        $linktype .= '<span class="image-title">' . $titleEsc . '</span>';
     }
 }
 

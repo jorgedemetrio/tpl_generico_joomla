@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+  Fixture do aviso de cookies. Espelha a saída de index.php (bloco #cookieNotice)
+  e carrega o CSS e o JS REAIS do template. O comportamento (aparecer só sem
+  consentimento, contagem regressiva, auto-aceite no tempo de data-timeout,
+  gravar cookie e não repetir) vem de template.js::initCookieNotice — exatamente
+  o caminho que a Fase 4 refatorou (intAttr/byId). data-timeout curto (2s) para
+  exercitar o auto-aceite de forma determinística.
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — aviso de cookies</title>
+  <style>
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-cta-rgb: 47, 128, 237;
+      --cor-primaria: #1F4E79;
+      --cor-footer: #0F172A;
+      --cor-texto: #222222;
+      --raio-borda-global: 4px;
+    }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <section id="cookieNotice" class="cookie-notice" aria-label="Aviso de cookies" data-timeout="2" hidden>
+    <div class="cookie-notice-inner">
+      <p class="cookie-notice-text">Este site usa cookies essenciais para funcionar.</p>
+      <button type="button" id="cookieAccept" class="btn btn-primary btn-sm cookie-notice-accept">Aceitar<span class="cookie-notice-countdown" aria-hidden="true"></span></button>
+    </div>
+  </section>
+  <script src="../../tpl_generico/media/js/template.js"></script>
+</body>
+</html>

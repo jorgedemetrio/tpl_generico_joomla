@@ -59,12 +59,36 @@ tests/
     └── newsletter-modal.spec.js
 ```
 
+## Testes E2E reais (contra um Joomla de verdade)
+
+Além das fixtures, há uma suíte **E2E** em [`specs/e2e/`](specs/e2e) que roda
+contra uma instalação Joomla real com o template montado por
+[`../setDevEnv.sh`](../setDevEnv.sh) (symlinks → `localhost:8081/automovel`).
+Ela valida o template renderizando o site real (smoke de várias telas: sem erro
+JS, sem erro PHP, sem chave de tradução crua, com CSS/JS do template aplicados) e
+os **fluxos funcionais** ponta a ponta — tema (persiste entre páginas), aviso de
+cookies, back-to-top e newsletter modal (este liga/desliga o recurso pelo admin).
+
+Config própria: [`playwright.e2e.config.js`](playwright.e2e.config.js). A config
+padrão **ignora** `specs/e2e` (via `testIgnore`), então o CI não tenta rodá-los.
+
+```bash
+cd tests
+# fluxos que usam o admin (newsletter) exigem credenciais — passe por ambiente,
+# nunca commite. Base configurável por E2E_BASE_URL (default localhost:8081/automovel).
+ADMIN_USER='...' ADMIN_PASS='...' npx playwright test --config=playwright.e2e.config.js
+```
+
+Helpers (não são specs): `specs/e2e/_helpers.js` (coletores de console/erro PHP/
+chave crua, com allowlist de terceiros) e `specs/e2e/_admin.js` (login no admin e
+configuração do estilo do template).
+
 ## CI
 
 O workflow [`.github/workflows/playwright.yml`](../.github/workflows/playwright.yml)
 roda estas specs em pushes/PRs que tocam `index.php`, `media/`, `html/` ou a
 pasta `tests/`. Como as fixtures são estáticas, o CI não precisa de Joomla nem
-de FTP.
+de FTP. (A suíte `specs/e2e` fica fora do CI: depende de um Joomla rodando.)
 
 > Esta pasta fica **fora** de `tpl_generico/` de propósito: o pacote instalável
 > é só `tpl_generico/`, então os testes nunca vão para o ZIP de produção.

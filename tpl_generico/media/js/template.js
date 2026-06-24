@@ -27,8 +27,74 @@
     }
   }
 
-  var prefersReducedMotion = window.matchMedia &&
+  const prefersReducedMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Duracao (ms) do fade-out antes de ocultar overlays (aviso de cookies e modal
+  // de newsletter). Deve casar com a `transition` definida para essas classes no
+  // template.css — por isso fica nomeada e num lugar so.
+  const HIDE_TRANSITION_MS = 300;
+
+  // ---------------------------------------------------------------------------
+  // Helpers compartilhados (evitam repetir os mesmos padroes em cada recurso).
+  // ---------------------------------------------------------------------------
+
+  /** document.getElementById, mais curto. */
+  function byId(id) {
+    return document.getElementById(id);
+  }
+
+  /** Itera uma NodeList/colecao (compativel com navegadores antigos). */
+  function forEach(list, fn) {
+    Array.prototype.forEach.call(list, fn);
+  }
+
+  /** Forca um reflow para que a transicao seguinte de fato anime. */
+  function forceReflow(el) {
+    void el.offsetWidth;
+  }
+
+  /** Reage a mudancas de viewport (redimensionar + girar o aparelho). */
+  function onViewportChange(fn) {
+    window.addEventListener('resize', fn, { passive: true });
+    window.addEventListener('orientationchange', fn, { passive: true });
+  }
+
+  /** Limita uma callback a no maximo uma execucao por frame (scroll/resize). */
+  function rafThrottle(fn) {
+    let ticking = false;
+    return function () {
+      if (ticking) {
+        return;
+      }
+      ticking = true;
+      window.requestAnimationFrame(function () {
+        fn();
+        ticking = false;
+      });
+    };
+  }
+
+  /** Le um atributo inteiro com fallback (NaN ou negativo -> fallback). */
+  function intAttr(el, name, fallback) {
+    const n = parseInt(el.getAttribute(name), 10);
+    return (isNaN(n) || n < 0) ? fallback : n;
+  }
+
+  /** True quando o alvo (link/form) abre na mesma aba (sem target ou _self). */
+  function opensInSameTab(el) {
+    if (!el || typeof el.getAttribute !== 'function') {
+      return false;
+    }
+    const target = el.getAttribute('target');
+    return !(target && target !== '_self');
+  }
+
+  /** Acesso ao localStorage tolerante a falhas (modo privado, cota, etc.). */
+  const safeStorage = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
 
   // ---------------------------------------------------------------------------
   // Header: altura sincronizada + efeito "encolher ao rolar".
@@ -36,12 +102,10 @@
   // espaco no fluxo normal — por isso NAO ajustamos padding-top do conteudo.
   // ---------------------------------------------------------------------------
   function initHeader() {
-    var header = document.getElementById('header');
+    const header = byId('header');
     if (!header) {
       return;
     }
-
-    var ticking = false;
 
     function syncHeaderHeight() {
       document.documentElement.style.setProperty(
@@ -50,21 +114,14 @@
       );
     }
 
-    function onScroll() {
-      if (ticking) {
-        return;
-      }
-      ticking = true;
-      window.requestAnimationFrame(function () {
-        header.classList.toggle('is-scrolled', window.scrollY > 10);
-        ticking = false;
-      });
-    }
+    const SCROLLED_AFTER_PX = 10; // aplica .is-scrolled apos rolar este tanto
+    const onScroll = rafThrottle(function () {
+      header.classList.toggle('is-scrolled', window.scrollY > SCROLLED_AFTER_PX);
+    });
 
     // Altura inicial e em mudancas de viewport/orientacao.
     syncHeaderHeight();
-    window.addEventListener('resize', syncHeaderHeight, { passive: true });
-    window.addEventListener('orientationchange', syncHeaderHeight, { passive: true });
+    onViewportChange(syncHeaderHeight);
 
     // Efeito de encolher apenas quando o header e fixo.
     if (header.classList.contains('sticky-top')) {
@@ -79,17 +136,19 @@
   // evitando flash; aqui so tratamos o clique e o estado do botao.
   // ---------------------------------------------------------------------------
   function initThemeToggle() {
-    var btn = document.getElementById('themeToggle');
+    const btn = byId('themeToggle');
     if (!btn) {
       return;
     }
 
-    var KEY = 'generico-theme';
-    var root = document.documentElement;
+    const root = document.documentElement;
+    // Chave do localStorage vem do PHP via data-theme-key (fonte unica da
+    // verdade, evita drift PHP<->JS). Fallback so para markup sem o atributo.
+    const KEY = root.getAttribute('data-theme-key') || 'generico-theme';
 
     function reflect() {
-      var theme = root.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
-      var icon = btn.querySelector('i');
+      const theme = root.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
+      const icon = btn.querySelector('i');
       if (icon) {
         icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
       }
@@ -99,11 +158,9 @@
     reflect();
 
     btn.addEventListener('click', function () {
-      var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
       root.setAttribute('data-bs-theme', next);
-      try {
-        localStorage.setItem(KEY, next);
-      } catch (e) {}
+      safeStorage.set(KEY, next);
       reflect();
     });
   }
@@ -114,23 +171,23 @@
   // junto com a pagina), evitando o item final inalcancavel.
   // ---------------------------------------------------------------------------
   function initStickySidebars() {
-    var sidebars = document.querySelectorAll('.sidebar-content');
+    const sidebars = document.querySelectorAll('.sidebar-content');
     if (!sidebars.length) {
       return;
     }
 
     function evaluate() {
-      var headerEl = document.getElementById('header');
-      var headerH = headerEl ? headerEl.offsetHeight : 0;
-      var available = window.innerHeight - headerH - 24; // ~1.5rem de folga
-      Array.prototype.forEach.call(sidebars, function (el) {
+      const headerEl = byId('header');
+      const headerH = headerEl ? headerEl.offsetHeight : 0;
+      const VIEWPORT_GAP_PX = 24; // ~1.5rem de folga abaixo do header
+      const available = window.innerHeight - headerH - VIEWPORT_GAP_PX;
+      forEach(sidebars, function (el) {
         el.classList.toggle('is-tall', el.scrollHeight > available);
       });
     }
 
     evaluate();
-    window.addEventListener('resize', evaluate, { passive: true });
-    window.addEventListener('orientationchange', evaluate, { passive: true });
+    onViewportChange(evaluate);
     // Recalcula apos imagens/fontes carregarem (a altura pode mudar).
     window.addEventListener('load', evaluate);
   }
@@ -139,34 +196,26 @@
   // Voltar ao topo: so em paginas longas e fora do mobile (largura >= 768px).
   // ---------------------------------------------------------------------------
   function initBackToTop() {
-    var btn = document.getElementById('backToTop');
+    const btn = byId('backToTop');
     if (!btn) {
       return;
     }
 
-    var MOBILE_MAX = 768; // abaixo disso e considerado celular
-    var ticking = false;
+    const MOBILE_MAX = 768;       // abaixo disso e considerado celular
+    const LONG_PAGE_FACTOR = 2;   // pagina "longa" = mais de 2x a altura visivel
+    const SHOW_AFTER_FACTOR = 0.6; // so aparece apos rolar 60% da altura visivel
 
     function isEligible() {
       return window.innerWidth >= MOBILE_MAX &&
-        document.documentElement.scrollHeight > window.innerHeight * 2;
+        document.documentElement.scrollHeight > window.innerHeight * LONG_PAGE_FACTOR;
     }
 
     function update() {
-      var show = isEligible() && window.scrollY > window.innerHeight * 0.6;
+      const show = isEligible() && window.scrollY > window.innerHeight * SHOW_AFTER_FACTOR;
       btn.classList.toggle('is-visible', show);
     }
 
-    function onScroll() {
-      if (ticking) {
-        return;
-      }
-      ticking = true;
-      window.requestAnimationFrame(function () {
-        update();
-        ticking = false;
-      });
-    }
+    const onScroll = rafThrottle(update);
 
     btn.addEventListener('click', function () {
       window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
@@ -180,17 +229,17 @@
   // Imagens lazy: remove o shimmer (skeleton) quando a imagem termina de carregar.
   // ---------------------------------------------------------------------------
   function initLazyImages() {
-    var imgs = document.querySelectorAll('img[loading="lazy"]');
+    const imgs = document.querySelectorAll('img[loading="lazy"]');
     if (!imgs.length) {
       return;
     }
 
-    Array.prototype.forEach.call(imgs, function (img) {
+    forEach(imgs, function (img) {
       if (img.complete && img.naturalWidth > 0) {
         img.classList.add('is-loaded');
         return;
       }
-      var done = function () { img.classList.add('is-loaded'); };
+      const done = function () { img.classList.add('is-loaded'); };
       img.addEventListener('load', done, { once: true });
       img.addEventListener('error', done, { once: true });
     });
@@ -203,31 +252,30 @@
   // opcao de recusar — o site depende de cookies essenciais.
   // ---------------------------------------------------------------------------
   function initCookieNotice() {
-    var el = document.getElementById('cookieNotice');
+    const el = byId('cookieNotice');
     if (!el) {
       return;
     }
-    var KEY = 'generico_cookie_consent';
-    var already = document.cookie.split('; ').some(function (c) {
+    const KEY = 'generico_cookie_consent';
+    const COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // consentimento dura ~1 ano
+    const COUNTDOWN_TICK_MS = 1000;                      // 1s entre os passos da contagem
+    const already = document.cookie.split('; ').some(function (c) {
       return c.indexOf(KEY + '=') === 0;
     });
     if (already) {
       return;
     }
 
-    var btn = document.getElementById('cookieAccept');
-    var countEl = el.querySelector('.cookie-notice-countdown');
-    var timeout = parseInt(el.getAttribute('data-timeout'), 10);
-    if (isNaN(timeout) || timeout < 0) {
-      timeout = 20;
-    }
-    var remaining = timeout;
-    var timerId = null;
+    const btn = byId('cookieAccept');
+    const countEl = el.querySelector('.cookie-notice-countdown');
+    const timeout = intAttr(el, 'data-timeout', 20);
+    let remaining = timeout;
+    let timerId = null;
 
     function persist() {
-      var d = new Date();
-      d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
-      var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+      const d = new Date();
+      d.setTime(d.getTime() + COOKIE_MAX_AGE_MS);
+      const secure = window.location.protocol === 'https:' ? '; Secure' : '';
       document.cookie = KEY + '=1; expires=' + d.toUTCString() + '; path=/; SameSite=Lax' + secure;
     }
 
@@ -237,9 +285,10 @@
         timerId = null;
       }
       el.classList.remove('is-visible');
+      document.body.classList.remove('has-cookie-notice');
       window.setTimeout(function () {
         el.setAttribute('hidden', '');
-      }, 300);
+      }, HIDE_TRANSITION_MS);
     }
 
     function accept() {
@@ -263,13 +312,18 @@
     }
     window.requestAnimationFrame(function () {
       el.classList.add('is-visible');
+      // Expoe a altura do aviso e marca o body para o back-to-top subir e nao
+      // ficar coberto (o aviso ocupa a base full-width, acima dele). Ver o
+      // template.css (body.has-cookie-notice .back-to-top).
+      document.documentElement.style.setProperty('--cookie-notice-height', el.offsetHeight + 'px');
+      document.body.classList.add('has-cookie-notice');
     });
 
     if (btn) {
       btn.addEventListener('click', accept);
     }
     if (timeout > 0) {
-      timerId = window.setInterval(tick, 1000);
+      timerId = window.setInterval(tick, COUNTDOWN_TICK_MS);
     }
   }
 
@@ -279,11 +333,12 @@
   // pagina seguinte (markup nasce oculto) e ao voltar pelo bfcache (pageshow).
   // ---------------------------------------------------------------------------
   function initPageLoader() {
-    var el = document.getElementById('pageLoader');
+    const el = byId('pageLoader');
     if (!el) {
       return;
     }
-    var safetyTimer = null;
+    const LOADER_SAFETY_MS = 12000; // se a navegacao nao acontecer, esconde sozinho
+    let safetyTimer = null;
 
     function hide() {
       if (safetyTimer) {
@@ -299,28 +354,24 @@
         return;
       }
       el.removeAttribute('hidden');
-      void el.offsetWidth; // forca reflow para a transicao de opacidade valer
+      forceReflow(el); // para a transicao de opacidade valer
       el.classList.add('is-active');
       if (safetyTimer) {
         window.clearTimeout(safetyTimer);
       }
       // Rede de seguranca: se a navegacao nao acontecer (ex.: download), esconde.
-      safetyTimer = window.setTimeout(hide, 12000);
+      safetyTimer = window.setTimeout(hide, LOADER_SAFETY_MS);
     }
 
     function isInternalNav(a) {
-      if (!a || a.hasAttribute('download')) {
+      if (!a || a.hasAttribute('download') || !opensInSameTab(a)) {
         return false;
       }
-      var target = a.getAttribute('target');
-      if (target && target !== '_self') {
-        return false;
-      }
-      var href = a.getAttribute('href');
+      const href = a.getAttribute('href');
       if (!href || href.charAt(0) === '#') {
         return false;
       }
-      var proto = (a.protocol || '').toLowerCase();
+      const proto = (a.protocol || '').toLowerCase();
       if (proto === 'mailto:' || proto === 'tel:' || proto === 'javascript:') {
         return false;
       }
@@ -332,7 +383,7 @@
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
         return;
       }
-      var a = e.target.closest ? e.target.closest('a[href]') : null;
+      const a = e.target.closest ? e.target.closest('a[href]') : null;
       if (isInternalNav(a)) {
         show();
       }
@@ -342,8 +393,7 @@
       if (e.defaultPrevented) {
         return;
       }
-      var target = e.target && e.target.getAttribute ? e.target.getAttribute('target') : null;
-      if (target && target !== '_self') {
+      if (!opensInSameTab(e.target)) {
         return;
       }
       show();
@@ -363,44 +413,36 @@
   // redireciona para a tela de cadastro (o e-mail vai como parametro na URL).
   // ---------------------------------------------------------------------------
   function initNewsletterModal() {
-    var el = document.getElementById('newsletterModal');
+    const el = byId('newsletterModal');
     if (!el) {
       return;
     }
 
-    var DONE_KEY = 'generico_newsletter';        // 'done' => ja mostrado/decidido
-    var FIRST_KEY = 'generico_newsletter_first'; // timestamp do primeiro acesso
-
-    var store = {
-      get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-      set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-    };
+    const DONE_KEY = 'generico_newsletter';        // 'done' => ja mostrado/decidido
+    const FIRST_KEY = 'generico_newsletter_first'; // timestamp do primeiro acesso
 
     // Mostra apenas no primeiro acesso: se ja foi exibido/decidido, nao repete.
-    if (store.get(DONE_KEY) === 'done') {
+    if (safeStorage.get(DONE_KEY) === 'done') {
       return;
     }
 
-    var delay = parseInt(el.getAttribute('data-delay'), 10);
-    if (isNaN(delay) || delay < 0) {
-      delay = 60;
-    }
+    const delay = intAttr(el, 'data-delay', 60);
 
     // Tempo acumulado desde o primeiro acesso (sobrevive a navegacao entre paginas).
-    var now = Date.now();
-    var first = parseInt(store.get(FIRST_KEY), 10);
+    const now = Date.now();
+    let first = parseInt(safeStorage.get(FIRST_KEY), 10);
     if (isNaN(first)) {
       first = now;
-      store.set(FIRST_KEY, String(first));
+      safeStorage.set(FIRST_KEY, String(first));
     }
-    var elapsed = Math.floor((now - first) / 1000);
-    var remaining = Math.max(0, delay - elapsed);
+    const elapsed = Math.floor((now - first) / 1000);
+    const remaining = Math.max(0, delay - elapsed);
 
-    var form = el.querySelector('.newsletter-modal-form');
-    var emailInput = el.querySelector('input[type="email"]');
-    var errorEl = el.querySelector('.newsletter-modal-error');
-    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    var lastFocused = null;
+    const form = el.querySelector('.newsletter-modal-form');
+    const emailInput = el.querySelector('input[type="email"]');
+    const errorEl = el.querySelector('.newsletter-modal-error');
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let lastFocused = null;
 
     function onKeydown(e) {
       if (e.key === 'Escape' || e.keyCode === 27) {
@@ -414,11 +456,11 @@
       }
       lastFocused = document.activeElement;
       el.removeAttribute('hidden');
-      void el.offsetWidth; // forca reflow para a transicao valer
+      forceReflow(el); // para a transicao valer
       el.classList.add('is-visible');
       document.addEventListener('keydown', onKeydown);
       // So mostra uma vez: marca como concluido assim que abre.
-      store.set(DONE_KEY, 'done');
+      safeStorage.set(DONE_KEY, 'done');
       if (emailInput) {
         emailInput.focus();
       }
@@ -427,7 +469,7 @@
     function close() {
       el.classList.remove('is-visible');
       document.removeEventListener('keydown', onKeydown);
-      window.setTimeout(function () { el.setAttribute('hidden', ''); }, 300);
+      window.setTimeout(function () { el.setAttribute('hidden', ''); }, HIDE_TRANSITION_MS);
       if (lastFocused && typeof lastFocused.focus === 'function') {
         lastFocused.focus();
       }
@@ -461,18 +503,18 @@
     if (form) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        var email = emailInput ? emailInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
         // Valida o e-mail em JS antes de enviar para o Joomla.
-        var valid = email !== '' && emailRe.test(email) &&
+        const valid = email !== '' && emailRe.test(email) &&
           (!emailInput || typeof emailInput.checkValidity !== 'function' || emailInput.checkValidity());
         if (!valid) {
           showError(true);
           if (emailInput) { emailInput.focus(); }
           return;
         }
-        var url = form.getAttribute('action') || '';
-        var param = form.getAttribute('data-email-param') || 'email';
-        store.set(DONE_KEY, 'done');
+        let url = form.getAttribute('action') || '';
+        const param = form.getAttribute('data-email-param') || 'email';
+        safeStorage.set(DONE_KEY, 'done');
         if (!url) {
           close();
           return;

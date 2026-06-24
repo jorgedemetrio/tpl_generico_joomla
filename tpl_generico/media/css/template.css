@@ -16,7 +16,9 @@ body.site {
     flex-direction: column;
     min-height: 100%;
     font-family: var(--familia-fonte-primaria, system-ui, sans-serif);
-    font-size: var(--tamanho-base-fonte, 1rem);
+    /* Piso de 1rem (16px): o corpo nunca fica menor que isso mesmo se o admin
+       reduzir --tamanho-base-fonte — evita texto miudo, sobretudo no celular. */
+    font-size: max(1rem, var(--tamanho-base-fonte, 1rem));
     font-weight: var(--peso-fonte-normal, 400);
     color: var(--cor-texto, #222222);
     background-color: var(--cor-superficie-clara, #FFFFFF);
@@ -122,7 +124,9 @@ hr {
 }
 
 .navbar-nav .nav-link.active {
-    font-weight: bold;
+    /* 700 (numerico) em vez de "bold": mesma intencao, peso consistente com o
+       resto do CSS (#76) e com o que os testes verificam (computed = 700). */
+    font-weight: 700;
 }
 
 .navbar-nav .nav-item.active{
@@ -360,7 +364,9 @@ div.card .card-header {
 }
 
 
-@media (width >= 992px) {
+/* min-width (em vez de "(width >= 992px)") para padronizar a sintaxe de
+   breakpoint com as demais media queries do arquivo (#75) — equivalentes. */
+@media (min-width: 992px) {
     .col-lg-3 {
         flex: none;
         width: var(--col-lg-fixed-width, 280px);
@@ -434,9 +440,11 @@ div.card .card-header {
    Em telas pequenas aumenta levemente o corpo de texto e a entrelinha, e
    ajusta o respiro lateral do container.
  ========================================================================== */
-@media (max-width: 575.98px) {
+@media (max-width: 767.98px) {
     body.site {
-        font-size: calc(var(--tamanho-base-fonte, 1rem) * 1.0625);
+        /* Conforto de leitura no celular (inclui paisagem/tablet pequeno, ate
+           767px): corpo levemente maior, mas nunca abaixo de 1rem (16px). */
+        font-size: max(1rem, calc(var(--tamanho-base-fonte, 1rem) * 1.0625));
         line-height: 1.7;
     }
 
@@ -472,8 +480,9 @@ div.card .card-header {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    /* Alvo de toque minimo 44x44px (WCAG 2.5.5). */
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 1px solid var(--cor-borda, #E5E7EB);
     border-radius: var(--raio-borda-global, 4px);
@@ -525,6 +534,7 @@ div.card .card-header {
 
 .bottom-nav li {
     flex: 1 1 0;
+    min-height: 48px;
     text-align: center;
 }
 
@@ -533,10 +543,13 @@ div.card .card-header {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 2px;
-    padding: 0.35rem 0.25rem;
-    font-size: 0.7rem;
-    line-height: 1.1;
+    /* Alvo de toque confortavel (>=48px) e label legivel (nao mais 0.7rem/11px). */
+    min-height: 48px;
+    padding: 0.4rem 0.25rem;
+    font-size: clamp(0.72rem, 0.68rem + 0.4vw, 0.8rem);
+    line-height: 1.15;
     color: var(--cor-texto, #222222);
 }
 
@@ -568,7 +581,8 @@ div.card .card-header {
     position: fixed;
     right: 1.25rem;
     bottom: 1.25rem;
-    z-index: 1035;
+    /* Acima do aviso de cookies (z-index 1050) para nao ser coberto/intercepta-lo. */
+    z-index: 1051;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -584,7 +598,7 @@ div.card .card-header {
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
-    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease, background-color 0.2s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease, background-color 0.2s ease, bottom 0.25s ease;
 }
 
 .back-to-top.is-visible {
@@ -597,6 +611,14 @@ div.card .card-header {
 .back-to-top:focus {
     background-color: var(--cor-primaria, #1F4E79);
     color: #fff;
+}
+
+/* Enquanto o aviso de cookies esta visivel (base full-width), sobe o botao para
+   cima dele — assim nao se sobrepoem e ambos ficam clicaveis. O template.js
+   expoe a altura real do aviso em --cookie-notice-height e marca o body. O
+   back-to-top so aparece no desktop, onde o aviso e uma barra inferior. */
+body.has-cookie-notice .back-to-top {
+    bottom: calc(var(--cookie-notice-height, 4rem) + 0.75rem);
 }
 
 /* ========================================================================
@@ -810,8 +832,9 @@ img.is-loaded {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    /* Alvo de toque minimo 44x44px (WCAG 2.5.5) — fechar o modal no celular. */
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: none;
     border-radius: 50%;
@@ -857,4 +880,201 @@ img.is-loaded {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* ========================================================================
+   Responsividade mobile — toque, legibilidade e overflow (Fase 1.1)
+   Aumenta areas de toque para >=44px, evita o zoom automatico do iOS em
+   campos de formulario e impede que tabelas/banner estourem a largura.
+ ========================================================================== */
+
+/* Inputs com fonte >=16px no mobile: abaixo disso o Safari iOS aplica zoom
+   automatico ao focar o campo, "quebrando" o layout/viewport. */
+@media (max-width: 767.98px) {
+    .form-control,
+    .form-select,
+    input,
+    textarea,
+    select {
+        font-size: 16px;
+    }
+}
+
+/* Botoes de alternancia da navbar (hamburguer / mobile-menu): alvo >=44x44px. */
+.navbar-toggler {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* Itens do menu empilhado (offcanvas/collapse) com altura de toque adequada —
+   so no mobile (<992px), onde o menu fica vertical e e o alvo mais usado.
+   O texto e BEM maior que o padrao do Bootstrap (~1rem), que ficava pequeno
+   demais no celular. Cobre tambem o layout metismenu (.metismenu a) usado nas
+   posicoes offcanvas/sidebar. */
+@media (max-width: 991.98px) {
+    .offcanvas .nav-link,
+    .navbar-collapse .nav-link,
+    .offcanvas .dropdown-item,
+    .navbar-collapse .dropdown-item,
+    .offcanvas .metismenu a,
+    .navbar-collapse .metismenu a {
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+        font-size: 1.375rem;
+        line-height: 1.3;
+    }
+
+    /* Subitens (dropdown / niveis internos do menu) um pouco menores que o item
+       de topo, mas ainda bem maiores que o padrao. */
+    .offcanvas .dropdown-menu .dropdown-item,
+    .navbar-collapse .dropdown-menu .dropdown-item,
+    .offcanvas .metismenu .mm-collapse a,
+    .navbar-collapse .metismenu .mm-collapse a {
+        font-size: 1.15rem;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Botao "Aceitar" do aviso de cookies: alvo minimo (remove o aperto do btn-sm). */
+    .cookie-notice-accept {
+        min-height: 44px;
+    }
+
+    /* Header "normal" mais baixo no celular para nao comer o viewport. */
+    .header.header-normal .navbar {
+        min-height: 60px;
+    }
+}
+
+/* Tabelas e blocos <pre> dentro de artigos rolam na horizontal em vez de
+   estourar a largura da pagina no celular (img/video/iframe ja tem max-width). */
+.com-content-article__body table,
+.com-content-article__body pre {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Banner (override mod_custom/banner.php): cobre a area e da respiro fluido ao
+   conteudo. Sem isto as classes .banner-overlay/.overlay ficavam sem estilo. */
+.banner-overlay {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.banner-overlay .overlay {
+    padding: clamp(1.5rem, 4vw, 4rem);
+}
+
+/* Modal de newsletter: nunca ultrapassa a altura da tela (rola por dentro),
+   evitando que o botao de envio fique inacessivel em telas baixas/paisagem. */
+.newsletter-modal-dialog {
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+/* =========================================================================
+   Blog de Categoria / multi-colunas (com_content)
+   -------------------------------------------------------------------------
+   O core do Joomla 5 (components/com_content/tmpl/category/blog.php) emite as
+   classes do grid de artigos a partir de DOIS parametros do item de menu:
+     - "Colunas" (num_columns)
+     - "Ordem de Multiplas Colunas" (multi_column_order):
+         * 0 (padrao, "Descendo")    -> .blog-items.masonry-N  (CSS multi-column)
+         * 1 ("Atravessando")        -> .blog-items.columns-N  (CSS grid)
+   O template padrao do Joomla (Cassiopeia) fornece estas regras; o generico
+   NAO as tinha, entao o parametro "Colunas" nao surtia efeito e os artigos
+   empilhavam em coluna unica. Mobile-first: 1 coluna no celular, 2 no tablet
+   (>=768px) e N colunas (2-6) no desktop (>=992px), igual ao comportamento
+   padrao do Joomla. Os itens "lead" (items-leading) ficam sempre em 1 coluna. */
+.blog-items {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 0 0 1em;
+    padding: 0;
+}
+
+.blog-items .blog-item {
+    padding: 0;
+    min-width: 0; /* impede que conteudo largo (tabela/pre/img) estoure a coluna */
+}
+
+/* --- Variante GRID: .columns-N (multi_column_order = 1) --- */
+@media (min-width: 768px) {
+    .blog-items.columns-2,
+    .blog-items.columns-3,
+    .blog-items.columns-4,
+    .blog-items.columns-5,
+    .blog-items.columns-6 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 992px) {
+    .blog-items.columns-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .blog-items.columns-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .blog-items.columns-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .blog-items.columns-6 {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* --- Variante MASONRY: .masonry-N (multi_column_order = 0, PADRAO do Joomla) ---
+   Usa CSS multi-column (column-count). display:block sobrescreve o grid base. */
+.blog-items[class*="masonry-"] {
+    display: block;
+    column-gap: 1.5rem;
+}
+
+.blog-items[class*="masonry-"] .blog-item {
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    break-inside: avoid; /* nao deixa um artigo ser cortado entre duas colunas */
+}
+
+@media (min-width: 768px) {
+    .blog-items.masonry-2,
+    .blog-items.masonry-3,
+    .blog-items.masonry-4,
+    .blog-items.masonry-5,
+    .blog-items.masonry-6 {
+        column-count: 2;
+    }
+}
+
+@media (min-width: 992px) {
+    .blog-items.masonry-3 {
+        column-count: 3;
+    }
+
+    .blog-items.masonry-4 {
+        column-count: 4;
+    }
+
+    .blog-items.masonry-5 {
+        column-count: 5;
+    }
+
+    .blog-items.masonry-6 {
+        column-count: 6;
+    }
 }

@@ -15,6 +15,9 @@ const PORT = 3210;
 
 module.exports = defineConfig({
   testDir: './specs',
+  // Os specs E2E (./specs/e2e) exigem um Joomla real e rodam pela
+  // playwright.e2e.config.js — fora daqui (e do CI, que não tem Joomla).
+  testIgnore: ['**/e2e/**'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
