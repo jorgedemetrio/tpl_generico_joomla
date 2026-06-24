@@ -963,3 +963,101 @@ img.is-loaded {
     max-height: calc(100vh - 2rem);
     overflow-y: auto;
 }
+
+/* =========================================================================
+   Blog de Categoria / multi-colunas (com_content)
+   -------------------------------------------------------------------------
+   O core do Joomla 5 (components/com_content/tmpl/category/blog.php) emite as
+   classes do grid de artigos a partir de DOIS parametros do item de menu:
+     - "Colunas" (num_columns)
+     - "Ordem de Multiplas Colunas" (multi_column_order):
+         * 0 (padrao, "Descendo")    -> .blog-items.masonry-N  (CSS multi-column)
+         * 1 ("Atravessando")        -> .blog-items.columns-N  (CSS grid)
+   O template padrao do Joomla (Cassiopeia) fornece estas regras; o generico
+   NAO as tinha, entao o parametro "Colunas" nao surtia efeito e os artigos
+   empilhavam em coluna unica. Mobile-first: 1 coluna no celular, 2 no tablet
+   (>=768px) e N colunas (2-6) no desktop (>=992px), igual ao comportamento
+   padrao do Joomla. Os itens "lead" (items-leading) ficam sempre em 1 coluna. */
+.blog-items {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 0 0 1em;
+    padding: 0;
+}
+
+.blog-items .blog-item {
+    padding: 0;
+    min-width: 0; /* impede que conteudo largo (tabela/pre/img) estoure a coluna */
+}
+
+/* --- Variante GRID: .columns-N (multi_column_order = 1) --- */
+@media (min-width: 768px) {
+    .blog-items.columns-2,
+    .blog-items.columns-3,
+    .blog-items.columns-4,
+    .blog-items.columns-5,
+    .blog-items.columns-6 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 992px) {
+    .blog-items.columns-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .blog-items.columns-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .blog-items.columns-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .blog-items.columns-6 {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* --- Variante MASONRY: .masonry-N (multi_column_order = 0, PADRAO do Joomla) ---
+   Usa CSS multi-column (column-count). display:block sobrescreve o grid base. */
+.blog-items[class*="masonry-"] {
+    display: block;
+    column-gap: 1.5rem;
+}
+
+.blog-items[class*="masonry-"] .blog-item {
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    break-inside: avoid; /* nao deixa um artigo ser cortado entre duas colunas */
+}
+
+@media (min-width: 768px) {
+    .blog-items.masonry-2,
+    .blog-items.masonry-3,
+    .blog-items.masonry-4,
+    .blog-items.masonry-5,
+    .blog-items.masonry-6 {
+        column-count: 2;
+    }
+}
+
+@media (min-width: 992px) {
+    .blog-items.masonry-3 {
+        column-count: 3;
+    }
+
+    .blog-items.masonry-4 {
+        column-count: 4;
+    }
+
+    .blog-items.masonry-5 {
+        column-count: 5;
+    }
+
+    .blog-items.masonry-6 {
+        column-count: 6;
+    }
+}

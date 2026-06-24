@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+  Fixture do Blog de Categoria (com_content/category/blog.php do core do Joomla 5),
+  carregando o CSS REAL do template. Espelha a marcacao que o core emite a partir
+  dos parametros do item de menu "Colunas" (num_columns) + "Ordem de Multiplas
+  Colunas" (multi_column_order):
+    - multi_column_order = 0 (padrao) -> .blog-items.masonry-N  (CSS multi-column)
+    - multi_column_order = 1          -> .blog-items.columns-N  (CSS grid)
+  Valida a correcao do bug em producao: "Blog de Categoria com 3 colunas sempre
+  renderiza em 1 coluna" — o template nao tinha as regras de grid/masonry que o
+  Cassiopeia fornece. Cada container tem 6 itens para evidenciar as colunas.
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — Blog de Categoria multi-coluna</title>
+  <style>
+    :root {
+      --cor-cta: #2F80ED;
+      --cor-primaria: #1F4E79;
+      --cor-texto: #222222;
+      --cor-borda: #E5E7EB;
+      --raio-borda-global: 4px;
+    }
+    body { margin: 0; }
+    /* Largura previsivel para o container do conteudo (sem depender do Bootstrap,
+       que nao e carregado nesta fixture). As media queries do template usam a
+       largura do VIEWPORT, controlada pelo Playwright. */
+    .wrap { width: 960px; max-width: 100%; margin: 0 auto; }
+    .blog-item { background: #f3f4f6; border: 1px solid var(--cor-borda); }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <main id="main-content">
+    <div class="wrap">
+
+      <!-- Variante GRID: multi_column_order = 1 -> columns-3 -->
+      <div class="com-content-category-blog blog">
+        <div id="grid" class="com-content-category-blog__items blog-items columns-3">
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo 1</h3><p>Texto introdutorio do primeiro artigo.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo 2</h3><p>Texto introdutorio do segundo artigo.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo 3</h3><p>Texto introdutorio do terceiro artigo.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo 4</h3><p>Texto introdutorio do quarto artigo.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo 5</h3><p>Texto introdutorio do quinto artigo.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo 6</h3><p>Texto introdutorio do sexto artigo.</p></div>
+        </div>
+      </div>
+
+      <!-- Variante MASONRY (PADRAO do Joomla): multi_column_order = 0 -> masonry-3 -->
+      <div class="com-content-category-blog blog">
+        <div id="masonry" class="com-content-category-blog__items blog-items masonry-3">
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo A</h3><p>Texto introdutorio do artigo A.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo B</h3><p>Texto introdutorio do artigo B.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo C</h3><p>Texto introdutorio do artigo C.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo D</h3><p>Texto introdutorio do artigo D.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo E</h3><p>Texto introdutorio do artigo E.</p></div>
+          <div class="com-content-category-blog__item blog-item"><h3>Artigo F</h3><p>Texto introdutorio do artigo F.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</body>
+</html>
