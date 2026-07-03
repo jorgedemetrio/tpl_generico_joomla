@@ -1,1 +1,3 @@
 *.zip
+# Cache local do sonar-scanner CLI (analise SonarCloud rodada na maquina).
+.scannerwork/

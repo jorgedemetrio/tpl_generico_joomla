@@ -402,6 +402,7 @@ if ($customHeadCode !== '') {
     </button>
 
     <?php if ($pageLoader) : ?>
+    <?php // Div com role="status" e aria-live="polite" para acessibilidade do loader (Web:S6819). ?>
     <div id="pageLoader" class="page-loader" role="status" aria-live="polite" hidden>
         <div class="page-loader-box">
             <?php if ($pageLoaderImage !== '') : ?>

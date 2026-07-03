@@ -51,7 +51,7 @@ $start = (int) $params->get('startLevel', 1);
     } elseif ($item->type === 'alias') {
         $aliasToId = $itemParams->get('aliasoptions');
 
-        if (count($path) > 0 && $aliasToId == $path[count($path) - 1]) {
+        if (!empty($path) && $aliasToId == $path[count($path) - 1]) {
             $class[] = 'active';
         } elseif (in_array($aliasToId, $path)) {
             $class[] = 'alias-parent-active';

@@ -165,11 +165,11 @@ if ($this->item && !empty($this->item->metakey)) {
 // Vanilla JS (o template nao carrega mais jQuery) e com guarda: se o Pixel nao
 // estiver configurado, `fbq` nao existe e o script simplesmente nao faz nada.
 $document->addScriptDeclaration("
-	document.addEventListener('DOMContentLoaded', function () {
-		if (typeof fbq === 'function') {
-			fbq('track', 'ViewContent');
-		}
-	});
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof fbq === 'function') {
+            fbq('track', 'ViewContent');
+        }
+    });
 ");
 
 ?>
@@ -260,7 +260,7 @@ $document->addScriptDeclaration("
             <?php echo $this->loadTemplate('links'); ?>
         <?php endif; ?>
         <?php // Optional teaser intro text for guests ?>
-    <?php elseif ($params->get('show_noauth') == true && $user->guest) : ?>
+    <?php elseif ($params->get('show_noauth') && $user->guest) : ?>
         <?php echo LayoutHelper::render('joomla.content.intro_image', $this->item); ?>
         <?php echo HTMLHelper::_('content.prepare', $this->item->introtext); ?>
         <?php // Optional link to let them register to see the whole article. ?>

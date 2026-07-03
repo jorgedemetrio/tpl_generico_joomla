@@ -26,6 +26,10 @@ const path = require('path');
  *
  * URIs com prefixo `system/` (ex.: fontawesome) são providas pelo CORE do
  * Joomla, não vivem no pacote, e ficam fora da verificação de arquivo.
+ *
+ * URIs EXTERNAS (`http://`, `https://` ou `//`, ex.: bootstrap-icons via CDN)
+ * também ficam fora: o core (HTMLHelper::includeRelativeFiles) as detecta e
+ * emite o <link>/<script> com a URL como está, sem resolver no filesystem.
  */
 
 const PKG = path.join(__dirname, '..', '..', 'tpl_generico');
@@ -35,9 +39,16 @@ const manifest = JSON.parse(fs.readFileSync(path.join(PKG, 'joomla.asset.json'),
 /** Pasta que o core concatena por tipo de asset. */
 const FOLDER_BY_TYPE = { style: 'css', script: 'js' };
 
+/** URI externa (CDN): o core emite como está, sem resolver no filesystem. */
+const isExternal = (uri) => /^(https?:)?\/\//.test(uri);
+
 /** Assets de arquivo (style/script) cujo binário é shippado no pacote. */
 const owned = manifest.assets.filter(
-  (a) => a.uri && !a.uri.startsWith('system/') && (a.type === 'style' || a.type === 'script')
+  (a) =>
+    a.uri &&
+    !a.uri.startsWith('system/') &&
+    !isExternal(a.uri) &&
+    (a.type === 'style' || a.type === 'script')
 );
 
 test.describe('joomla.asset.json — consistência das URIs (#37)', () => {

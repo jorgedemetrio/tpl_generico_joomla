@@ -31,10 +31,14 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        # npm ci usa as versoes travadas no package-lock.json; --ignore-scripts
+        # impede lifecycle scripts de dependencias na instalacao (supply chain).
+        run: npm ci --ignore-scripts
 
       - name: Install Playwright browser (chromium)
-        run: npx playwright install --with-deps chromium
+        # --no-install garante o playwright ja instalado pelo npm ci (versao do
+        # lockfile), sem baixar pacote on-demand.
+        run: npx --no-install playwright install --with-deps chromium
 
       - name: Run UI tests
         run: npm test

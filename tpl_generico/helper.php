@@ -194,7 +194,7 @@ if (!class_exists('TplGenericoHelper', false)) {
             }
 
             // I2 — theme-color derivado da cor de marca.
-            $themeColor = (string) ($params ? $params->get('primaryColor', '#1F4E79') : '#1F4E79');
+            $themeColor = (string) self::getParam($params, 'primaryColor', self::DEFAULT_PRIMARY);
             if ($themeColor !== '') {
                 $doc->setMetaData('theme-color', $themeColor);
             }
@@ -204,24 +204,69 @@ if (!class_exists('TplGenericoHelper', false)) {
             $view    = (string) $input->getCmd('view', '');
 
             // B1 — Open Graph (compartilhamento com card; o FB Pixel ja esta ativo).
-            $doc->setMetaData('og:site_name', $sitename, 'property');
-            $doc->setMetaData('og:title', $title, 'property');
-            $doc->setMetaData('og:type', ($option === 'com_content' && $view === 'article') ? 'article' : 'website', 'property');
-            $doc->setMetaData('og:url', $canonical, 'property');
-            if ($description !== '') {
-                $doc->setMetaData('og:description', $description, 'property');
-            }
-            $locale = self::currentLocale($app);
-            if ($locale !== '') {
-                $doc->setMetaData('og:locale', $locale, 'property');
-            }
-            if ($ogImage !== '') {
-                $doc->setMetaData('og:image', $ogImage, 'property');
-            }
+            self::applyOpenGraph($doc, [
+                'site_name'   => $sitename,
+                'title'       => $title,
+                'type'        => ($option === 'com_content' && $view === 'article') ? 'article' : 'website',
+                'url'         => $canonical,
+                'description' => $description,
+                'locale'      => self::currentLocale($app),
+                'image'       => $ogImage,
+            ]);
 
             // B2 — Twitter Cards (fallback do X quando ha/nao ha imagem).
-            $doc->setMetaData('twitter:card', $ogImage !== '' ? 'summary_large_image' : 'summary');
-            $doc->setMetaData('twitter:title', $title);
+            self::applyTwitterCards($doc, $title, $description, $ogImage);
+        }
+
+        /**
+         * Emite as propriedades Open Graph que ainda nao existem no documento.
+         * RESPEITA OG ja emitido pelo componente (ex.: com_automoveis detalhe de
+         * item emite og:title/imagem especificos via AutomoveisHelperSeo) — o
+         * template so preenche a propriedade quando ela ainda NAO existe.
+         *
+         * @param  object  $doc  Documento HTML
+         * @param  array   $og   Valores: site_name, title, type, url, description, locale, image
+         * @return void
+         */
+        private static function applyOpenGraph($doc, array $og): void
+        {
+            $tem = function ($k) use ($doc) {
+                return (string) $doc->getMetaData($k, 'property') !== '';
+            };
+
+            if (!$tem('og:site_name')) { $doc->setMetaData('og:site_name', $og['site_name'], 'property'); }
+            if (!$tem('og:title'))     { $doc->setMetaData('og:title', $og['title'], 'property'); }
+            if (!$tem('og:type'))      { $doc->setMetaData('og:type', $og['type'], 'property'); }
+            if (!$tem('og:url'))       { $doc->setMetaData('og:url', $og['url'], 'property'); }
+            if ($og['description'] !== '' && !$tem('og:description')) {
+                $doc->setMetaData('og:description', $og['description'], 'property');
+            }
+            if ($og['locale'] !== '' && !$tem('og:locale')) {
+                $doc->setMetaData('og:locale', $og['locale'], 'property');
+            }
+            if ($og['image'] !== '' && !$tem('og:image')) {
+                $doc->setMetaData('og:image', $og['image'], 'property');
+            }
+        }
+
+        /**
+         * Emite as metas de Twitter Card que ainda nao existem no documento
+         * (fallback do X quando ha/nao ha imagem).
+         *
+         * @param  object  $doc          Documento HTML
+         * @param  string  $title        Titulo da pagina
+         * @param  string  $description  Meta description resolvida
+         * @param  string  $ogImage      URL absoluta da imagem (ou '')
+         * @return void
+         */
+        private static function applyTwitterCards($doc, string $title, string $description, string $ogImage): void
+        {
+            $tem = function ($k) use ($doc) {
+                return (string) $doc->getMetaData($k) !== '';
+            };
+
+            if (!$tem('twitter:card'))  { $doc->setMetaData('twitter:card', $ogImage !== '' ? 'summary_large_image' : 'summary'); }
+            if (!$tem('twitter:title')) { $doc->setMetaData('twitter:title', $title); }
             if ($description !== '') {
                 $doc->setMetaData('twitter:description', $description);
             }
@@ -280,21 +325,20 @@ if (!class_exists('TplGenericoHelper', false)) {
          */
         private static function hasCanonical($doc): bool
         {
-            if (!method_exists($doc, 'getHeadData')) {
-                return false;
-            }
+            $found = false;
             try {
-                $head  = $doc->getHeadData();
+                $head  = method_exists($doc, 'getHeadData') ? $doc->getHeadData() : [];
                 $links = $head['links'] ?? [];
                 foreach ($links as $data) {
                     if (is_array($data) && ($data['relation'] ?? '') === 'canonical') {
-                        return true;
+                        $found = true;
+                        break;
                     }
                 }
             } catch (\Throwable $e) {
-                return false;
+                $found = false;
             }
-            return false;
+            return $found;
         }
 
         /**
@@ -305,9 +349,6 @@ if (!class_exists('TplGenericoHelper', false)) {
         private static function resolveLogoUrl($params, string $base): string
         {
             $logo = $params ? (string) $params->get('logoFile', '') : '';
-            if ($logo === '') {
-                return '';
-            }
             $logo = explode('#', $logo)[0];
             if ($logo === '') {
                 return '';

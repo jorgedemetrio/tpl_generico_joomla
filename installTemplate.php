@@ -26,7 +26,7 @@ define('TEMP_EXTRACT_DIR', 'tpl_generico_temp');
  * @param string $message The message to display.
  * @param bool $isError   Whether the message is an error.
  */
-function show_message(string $message, bool $isError = false): void
+function showMessage(string $message, bool $isError = false): void
 {
     if ($isError) {
         echo '<p style="color: #721c24; background-color: #f8d7da; padding: 10px; border-radius: 5px;"><strong>Error:</strong> ' . htmlspecialchars($message) . '</p>';
@@ -43,52 +43,69 @@ function show_message(string $message, bool $isError = false): void
  */
 function fail(string $message): void
 {
-    show_message($message, true);
+    showMessage($message, true);
     echo "</body></html>";
     exit;
 }
 
 /**
+ * Ensures a directory exists, creating it recursively if needed.
+ */
+function ensureDirectory(string $dir): void
+{
+    if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+        fail("Could not create directory: " . $dir);
+    }
+}
+
+/**
+ * Copies a single file, creating the destination directory if needed.
+ */
+function copySingleFile(string $source, string $destination): void
+{
+    ensureDirectory(dirname($destination));
+    if (!copy($source, $destination)) {
+        fail("Could not copy file: " . $source . " to " . $destination);
+    }
+}
+
+/**
  * Recursively copies files and directories from a source to a destination.
  */
-function recursive_copy(string $source, string $destination): void
+function recursiveCopy(string $source, string $destination): void
 {
-    if (!file_exists($source)) return;
-    if (is_dir($source)) {
-        if (!is_dir($destination)) {
-            if (!mkdir($destination, 0755, true)) fail("Could not create directory: " . $destination);
+    if (!file_exists($source)) {
+        return;
+    }
+    if (!is_dir($source)) {
+        copySingleFile($source, $destination);
+        return;
+    }
+    ensureDirectory($destination);
+    $files = new DirectoryIterator($source);
+    foreach ($files as $file) {
+        if ($file->isDot() || !$file->isReadable()) {
+            continue;
         }
-        $files = new DirectoryIterator($source);
-        foreach ($files as $file) {
-            if ($file->isDot() || !$file->isReadable()) continue;
-            $sourcePath = $file->getRealPath();
-            $destinationPath = rtrim($destination, '/') . '/' . $file->getFilename();
-            if ($file->isDir()) {
-                recursive_copy($sourcePath, $destinationPath);
-            } else {
-                if (!copy($sourcePath, $destinationPath)) fail("Could not copy file: " . $sourcePath . " to " . $destinationPath);
-            }
-        }
-    } else {
-        $dir = dirname($destination);
-        if (!is_dir($dir)) {
-            if (!mkdir($dir, 0755, true)) fail("Could not create directory: " . $dir);
-        }
-        if (!copy($source, $destination)) fail("Could not copy file: " . $source . " to " . $destination);
+        recursiveCopy($file->getRealPath(), rtrim($destination, '/') . '/' . $file->getFilename());
     }
 }
 
 /**
  * Recursively deletes a directory and its contents.
  */
-function delete_directory(string $dir): void
+function deleteDirectory(string $dir): void
 {
-    if (!is_dir($dir)) return;
+    if (!is_dir($dir)) {
+        return;
+    }
     $files = new DirectoryIterator($dir);
     foreach ($files as $file) {
-        if ($file->isDot()) continue;
+        if ($file->isDot()) {
+            continue;
+        }
         if ($file->isDir()) {
-            delete_directory($file->getRealPath());
+            deleteDirectory($file->getRealPath());
         } else {
             unlink($file->getRealPath());
         }
@@ -104,12 +121,18 @@ echo "<!DOCTYPE html><html><head><title>Template Installation</title><style>body
 echo "<h1>Template Installation</h1>";
 
 // 1. Check for required PHP extensions
-if (!function_exists('simplexml_load_string')) fail("The 'SimpleXML' PHP extension is required.");
-if (!function_exists('curl_init') && !ini_get('allow_url_fopen')) fail("Either the 'cURL' PHP extension must be enabled, or 'allow_url_fopen' must be set to 'On' in php.ini.");
-if (!class_exists('ZipArchive')) fail("The 'ZipArchive' PHP extension is required.");
+if (!function_exists('simplexml_load_string')) {
+    fail("The 'SimpleXML' PHP extension is required.");
+}
+if (!function_exists('curl_init') && !ini_get('allow_url_fopen')) {
+    fail("Either the 'cURL' PHP extension must be enabled, or 'allow_url_fopen' must be set to 'On' in php.ini.");
+}
+if (!class_exists('ZipArchive')) {
+    fail("The 'ZipArchive' PHP extension is required.");
+}
 
 // --- Phase 1: Download latest version ---
-show_message("Fetching update information from " . UPDATE_XML_URL . "...");
+showMessage("Fetching update information from " . UPDATE_XML_URL . "...");
 
 $xmlContent = @file_get_contents(UPDATE_XML_URL);
 if ($xmlContent === false) {
@@ -125,11 +148,10 @@ $latestVersion = '0.0.0';
 $latestUrl = '';
 
 foreach ($updates->update as $update) {
-    if (isset($update->version) && isset($update->downloads->downloadurl)) {
-        if (version_compare((string)$update->version, $latestVersion, '>')) {
-            $latestVersion = (string)$update->version;
-            $latestUrl = (string)$update->downloads->downloadurl;
-        }
+    if (isset($update->version, $update->downloads->downloadurl)
+        && version_compare((string) $update->version, $latestVersion, '>')) {
+        $latestVersion = (string) $update->version;
+        $latestUrl = (string) $update->downloads->downloadurl;
     }
 }
 
@@ -137,7 +159,7 @@ if (empty($latestUrl)) {
     fail("Could not find a valid download URL in the update XML file.");
 }
 
-show_message("Latest version found: {$latestVersion}. Downloading from: {$latestUrl}");
+showMessage("Latest version found: {$latestVersion}. Downloading from: {$latestUrl}");
 
 $zipFilePath = JOOMLA_ROOT . '/' . ZIP_FILE;
 $downloadedData = @file_get_contents($latestUrl);
@@ -148,7 +170,7 @@ if (@file_put_contents($zipFilePath, $downloadedData) === false) {
     fail("Failed to save the downloaded ZIP file. Check file permissions for the Joomla root directory.");
 }
 
-show_message("Successfully downloaded and saved as '" . ZIP_FILE . "'.");
+showMessage("Successfully downloaded and saved as '" . ZIP_FILE . "'.");
 
 
 // --- Phase 2: Install from ZIP ---
@@ -161,7 +183,7 @@ if (!file_exists($zipFilePath)) {
 // 3. Create a temporary directory for extraction
 $tempDir = JOOMLA_ROOT . '/' . TEMP_EXTRACT_DIR;
 if (is_dir($tempDir)) {
-    delete_directory($tempDir); // Clean up previous attempts
+    deleteDirectory($tempDir); // Clean up previous attempts
 }
 if (!mkdir($tempDir, 0755, true)) {
     fail("Could not create temporary directory: " . $tempDir);
@@ -176,7 +198,7 @@ if (!$zip->extractTo($tempDir)) {
     fail("Could not extract the ZIP file to the temporary directory.");
 }
 $zip->close();
-show_message("Successfully extracted '" . ZIP_FILE . "' to a temporary directory.");
+showMessage("Successfully extracted '" . ZIP_FILE . "' to a temporary directory.");
 
 // 5. Define source and destination paths
 $sourceBase = $tempDir;
@@ -212,7 +234,7 @@ foreach ($destinationPaths as $sourceName => $destination) {
             continue;
         }
 
-        recursive_copy($sourcePath, $destination);
+        recursiveCopy($sourcePath, $destination);
         echo "<li>Copied '{$sourceName}' to '{$destination}'</li>";
     } else {
         echo "<li>Source '{$sourceName}' not found in ZIP, skipping.</li>";
@@ -221,16 +243,15 @@ foreach ($destinationPaths as $sourceName => $destination) {
 echo "</ul><p>File copying complete.</p>";
 
 // 7. Clean up
-show_message("Cleaning up temporary files...");
-delete_directory($tempDir);
+showMessage("Cleaning up temporary files...");
+deleteDirectory($tempDir);
 if (!unlink($zipFilePath)) {
     fail("Could not delete the ZIP file: " . ZIP_FILE . ". Please remove it manually.");
 }
-show_message("Deleted temporary directory and '" . ZIP_FILE . "'.");
+showMessage("Deleted temporary directory and '" . ZIP_FILE . "'.");
 
 // --- Success Message ---
-show_message("The <strong>tpl_generico</strong> template has been successfully installed or updated to version {$latestVersion}!");
+showMessage("The <strong>tpl_generico</strong> template has been successfully installed or updated to version {$latestVersion}!");
 echo "</body></html>";
 
 exit;
-?>
