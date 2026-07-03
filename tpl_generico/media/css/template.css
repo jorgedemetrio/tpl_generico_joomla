@@ -812,6 +812,10 @@ img.is-loaded {
     position: relative;
     width: 100%;
     max-width: 420px;
+    /* Nunca ultrapassa a altura da tela (rola por dentro), evitando que o
+       botao de envio fique inacessivel em telas baixas/paisagem. */
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
     padding: 1.5rem;
     background-color: var(--cor-superficie-clara-topo, #FFFFFF);
     color: var(--cor-texto, #222222);
@@ -972,13 +976,6 @@ img.is-loaded {
 
 .banner-overlay .overlay {
     padding: clamp(1.5rem, 4vw, 4rem);
-}
-
-/* Modal de newsletter: nunca ultrapassa a altura da tela (rola por dentro),
-   evitando que o botao de envio fique inacessivel em telas baixas/paisagem. */
-.newsletter-modal-dialog {
-    max-height: calc(100vh - 2rem);
-    overflow-y: auto;
 }
 
 /* =========================================================================

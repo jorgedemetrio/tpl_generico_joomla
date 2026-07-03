@@ -19,13 +19,13 @@ $wa->usePreset('tpl_generico.preset');
 
 // Get template params for the logo, with fallbacks
 try {
-	$params = Factory::getApplication()->getTemplate(true)->params;
-	$logoFile = $params->get('logoFile');
-	$siteTitle = $params->get('siteTitle');
+    $params = Factory::getApplication()->getTemplate(true)->params;
+    $logoFile = $params->get('logoFile');
+    $siteTitle = $params->get('siteTitle');
 } catch (\Exception $e) {
-	$params = null;
-	$logoFile = '';
-	$siteTitle = '';
+    $params = null;
+    $logoFile = '';
+    $siteTitle = '';
 }
 
 // Aplica as cores do admin tambem na pagina de erro.
