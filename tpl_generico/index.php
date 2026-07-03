@@ -402,8 +402,8 @@ if ($customHeadCode !== '') {
     </button>
 
     <?php if ($pageLoader) : ?>
-    <?php // <output> tem role="status" implicito (a11y sem role explicito — Web:S6819). ?>
-    <output id="pageLoader" class="page-loader" aria-live="polite" hidden>
+    <?php // Div com role="status" e aria-live="polite" para acessibilidade do loader (Web:S6819). ?>
+    <div id="pageLoader" class="page-loader" role="status" aria-live="polite" hidden>
         <div class="page-loader-box">
             <?php if ($pageLoaderImage !== '') : ?>
             <img class="page-loader-img" src="<?php echo Uri::root(false) . htmlspecialchars($pageLoaderImage, ENT_QUOTES); ?>" alt="" aria-hidden="true" />
@@ -412,7 +412,7 @@ if ($customHeadCode !== '') {
             <?php endif; ?>
             <span class="visually-hidden"><?php echo Text::_('TPL_GENERICO_LOADING'); ?></span>
         </div>
-    </output>
+    </div>
     <?php endif; ?>
 
     <jdoc:include type="modules" name="debug" style="none" />
