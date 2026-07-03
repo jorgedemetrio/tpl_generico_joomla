@@ -204,24 +204,29 @@ if (!class_exists('TplGenericoHelper', false)) {
             $view    = (string) $input->getCmd('view', '');
 
             // B1 — Open Graph (compartilhamento com card; o FB Pixel ja esta ativo).
-            $doc->setMetaData('og:site_name', $sitename, 'property');
-            $doc->setMetaData('og:title', $title, 'property');
-            $doc->setMetaData('og:type', ($option === 'com_content' && $view === 'article') ? 'article' : 'website', 'property');
-            $doc->setMetaData('og:url', $canonical, 'property');
-            if ($description !== '') {
+            // RESPEITA OG ja emitido pelo componente (ex.: com_automoveis detalhe de
+            // item emite og:title/imagem especificos via AutomoveisHelperSeo) — o
+            // template so preenche a propriedade quando ela ainda NAO existe.
+            $ogTem = function ($k) use ($doc) { return (string) $doc->getMetaData($k, 'property') !== ''; };
+            if (!$ogTem('og:site_name')) { $doc->setMetaData('og:site_name', $sitename, 'property'); }
+            if (!$ogTem('og:title'))     { $doc->setMetaData('og:title', $title, 'property'); }
+            if (!$ogTem('og:type'))      { $doc->setMetaData('og:type', ($option === 'com_content' && $view === 'article') ? 'article' : 'website', 'property'); }
+            if (!$ogTem('og:url'))       { $doc->setMetaData('og:url', $canonical, 'property'); }
+            if ($description !== '' && !$ogTem('og:description')) {
                 $doc->setMetaData('og:description', $description, 'property');
             }
             $locale = self::currentLocale($app);
-            if ($locale !== '') {
+            if ($locale !== '' && !$ogTem('og:locale')) {
                 $doc->setMetaData('og:locale', $locale, 'property');
             }
-            if ($ogImage !== '') {
+            if ($ogImage !== '' && !$ogTem('og:image')) {
                 $doc->setMetaData('og:image', $ogImage, 'property');
             }
 
             // B2 — Twitter Cards (fallback do X quando ha/nao ha imagem).
-            $doc->setMetaData('twitter:card', $ogImage !== '' ? 'summary_large_image' : 'summary');
-            $doc->setMetaData('twitter:title', $title);
+            $twTem = function ($k) use ($doc) { return (string) $doc->getMetaData($k) !== ''; };
+            if (!$twTem('twitter:card'))  { $doc->setMetaData('twitter:card', $ogImage !== '' ? 'summary_large_image' : 'summary'); }
+            if (!$twTem('twitter:title')) { $doc->setMetaData('twitter:title', $title); }
             if ($description !== '') {
                 $doc->setMetaData('twitter:description', $description);
             }
