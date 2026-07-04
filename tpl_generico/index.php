@@ -14,6 +14,15 @@ $app   = Factory::getApplication();
 $input = $app->getInput();
 $wa    = $this->getWebAssetManager();
 
+// Carrega as strings do template a partir da pasta do PROPRIO template
+// (templates/generico/language/<tag>/tpl_generico.ini). O manifesto nao instala
+// mais os idiomas na pasta global [ROOT]/language: o bloco <languages> foi
+// removido porque no Joomla 6 aquela copia para a raiz do site falha
+// ("File::copy ... Copy failed") e, de todo modo, o core resolve as strings pela
+// pasta do template. Este load explicito garante os textos do frontend sem
+// depender do fallback do core (o admin ja le a language da pasta do template).
+$app->getLanguage()->load('tpl_generico', __DIR__);
+
 // Viewport responsivo: sem isto o celular renderiza a pagina como desktop (~980px),
 // o Bootstrap aplica .container { max-width: 720px } e o navegador "da zoom out" na
 // pagina inteira — o container fica muito mais estreito que a tela do celular.

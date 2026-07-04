@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Fixture — aba Manutenção (backup/atualização) do estilo do template</title>
+  <!--
+    Espelha o markup que fields/genericoconfigtools.php emite dentro do
+    formulário de edição do estilo (admin do Joomla):
+      - inputs jform[params][*] representativos (texto, radio switcher,
+        select e textarea), como o com_templates os nomeia;
+      - o painel [data-gct-root] com o bloco JSON de configuração e os botões;
+      - o JS REAL do pacote (media/js/admin-configtools.js).
+    As URLs de update apontam para caminhos relativos interceptados pelo
+    Playwright (page.route) — nenhum Joomla é necessário.
+    Ao mudar o markup do campo, atualize esta fixture e o spec
+    tests/specs/admin-configtools.spec.js.
+  -->
+</head>
+<body>
+<form id="style-form" method="post">
+  <fieldset>
+    <label for="jform_params_primaryColor">Cor Primária</label>
+    <input type="text" id="jform_params_primaryColor" name="jform[params][primaryColor]" value="#1F4E79">
+
+    <label for="jform_params_gtmId">ID do GTM</label>
+    <input type="text" id="jform_params_gtmId" name="jform[params][gtmId]" value="GTM-ABC123">
+
+    <input type="radio" id="jform_params_layoutWidth0" name="jform[params][layoutWidth]" value="boxed" checked>
+    <label for="jform_params_layoutWidth0">Boxed</label>
+    <input type="radio" id="jform_params_layoutWidth1" name="jform[params][layoutWidth]" value="full-width">
+    <label for="jform_params_layoutWidth1">Full width</label>
+
+    <input type="radio" id="jform_params_stickyHeader0" name="jform[params][stickyHeader]" value="1" checked>
+    <label for="jform_params_stickyHeader0">Sim</label>
+    <input type="radio" id="jform_params_stickyHeader1" name="jform[params][stickyHeader]" value="0">
+    <label for="jform_params_stickyHeader1">Não</label>
+
+    <label for="jform_params_verticalSpacing">Espaçamento vertical</label>
+    <select id="jform_params_verticalSpacing" name="jform[params][verticalSpacing]">
+      <option value="S">Pequeno</option>
+      <option value="M" selected>Médio</option>
+      <option value="L">Grande</option>
+    </select>
+
+    <label for="jform_params_customHeadCode">Código no head</label>
+    <textarea id="jform_params_customHeadCode" name="jform[params][customHeadCode]"></textarea>
+  </fieldset>
+
+  <div class="generico-configtools" data-gct-root>
+    <script type="application/json" data-gct-config>{
+      "template": "generico",
+      "version": "1.0.2",
+      "ajaxUrl": "index.php?option=com_installer&view=update&task=update.ajax&eid=999&cache_timeout=0&testtoken=1",
+      "updateUrl": "index.php?option=com_installer&task=update.update",
+      "token": "testtoken",
+      "text": {
+        "checking": "Consultando o servidor de atualização…",
+        "uptodate": "O template já está na versão mais recente.",
+        "available": "Nova versão disponível: %s",
+        "confirm": "Atualizar o template agora? As configurações dos estilos são preservadas. Alterações não salvas neste formulário serão perdidas.",
+        "updateError": "Não foi possível consultar as atualizações. Use Sistema > Atualizar > Extensões.",
+        "importInvalid": "O arquivo não é um JSON de configurações válido deste template.",
+        "importApplied": "%s parâmetro(s) carregado(s) no formulário. Revise e clique em Salvar.",
+        "importIgnored": "Ignorados (não existem nesta versão): %s",
+        "importReadError": "Não foi possível ler o arquivo.",
+        "versionDiff": "O arquivo foi exportado da versão %s; a instalada é %s."
+      }
+    }</script>
+    <div class="btn-toolbar gap-2 mb-2">
+      <button type="button" class="btn btn-primary" data-gct-action="export">Exportar configurações (JSON)</button>
+      <button type="button" class="btn btn-outline-primary" data-gct-action="view">Ver JSON</button>
+      <button type="button" class="btn btn-outline-secondary" data-gct-action="import">Importar configurações…</button>
+      <input type="file" accept=".json,application/json" hidden data-gct-file>
+    </div>
+    <textarea class="form-control font-monospace" rows="12" readonly hidden data-gct-json aria-label="Ver JSON"></textarea>
+    <div role="status" data-gct-report hidden></div>
+    <hr>
+    <p class="mb-2">Versão instalada: <strong>1.0.2</strong></p>
+    <div class="btn-toolbar gap-2">
+      <button type="button" class="btn btn-outline-primary" data-gct-action="check">Buscar atualização</button>
+      <button type="button" class="btn btn-danger" data-gct-action="update" hidden>Atualizar agora</button>
+    </div>
+    <div aria-live="polite" data-gct-update-status hidden></div>
+    <p class="mt-2 mb-0"><a href="index.php?option=com_installer&view=update">Abrir o Gerenciador de Atualizações do Joomla</a></p>
+  </div>
+</form>
+<script src="../../tpl_generico/media/js/admin-configtools.js" defer></script>
+</body>
+</html>

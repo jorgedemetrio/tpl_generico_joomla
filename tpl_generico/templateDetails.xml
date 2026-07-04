@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension type="template" client="site">
+<!-- method="upgrade": permite instalar o ZIP por cima da instalacao existente
+     (Extensoes > Instalar) sem desinstalar antes — os estilos e suas
+     configuracoes (#__template_styles) sao preservados. -->
+<extension type="template" client="site" method="upgrade">
 	<name>generico</name>
 	<version>1.0.2</version>
 	<creationDate>2017-02</creationDate>
@@ -15,6 +18,7 @@
 		<filename>joomla.asset.json</filename>
 		<filename>offline.php</filename>
 		<filename>templateDetails.xml</filename>
+		<folder>fields</folder>
 		<folder>html</folder>
 		<folder>language</folder>
 	</files>
@@ -47,24 +51,12 @@
 		<position>error-403</position>
 		<position>error-404</position>
 	</positions>
-	<languages folder="language">
-		<language tag="en-GB">en-GB/tpl_generico.ini</language>
-		<language tag="en-GB">en-GB/tpl_generico.sys.ini</language>
-		<language tag="pt-BR">pt-BR/tpl_generico.ini</language>
-		<language tag="pt-BR">pt-BR/tpl_generico.sys.ini</language>
-		<language tag="es-ES">es-ES/tpl_generico.ini</language>
-		<language tag="es-ES">es-ES/tpl_generico.sys.ini</language>
-		<language tag="de-DE">de-DE/tpl_generico.ini</language>
-		<language tag="de-DE">de-DE/tpl_generico.sys.ini</language>
-		<language tag="fr-FR">fr-FR/tpl_generico.ini</language>
-		<language tag="fr-FR">fr-FR/tpl_generico.sys.ini</language>
-		<language tag="it-IT">it-IT/tpl_generico.ini</language>
-		<language tag="it-IT">it-IT/tpl_generico.sys.ini</language>
-		<language tag="ja-JP">ja-JP/tpl_generico.ini</language>
-		<language tag="ja-JP">ja-JP/tpl_generico.sys.ini</language>
-		<language tag="zh-CN">zh-CN/tpl_generico.ini</language>
-		<language tag="zh-CN">zh-CN/tpl_generico.sys.ini</language>
-	</languages>
+	<!-- NAO usar o bloco <languages> (instalava os .ini em [ROOT]/language/<tag>):
+	     no Joomla 6 essa copia para a pasta global falha ("File::copy ... Copy
+	     failed") e aborta a instalacao. Os idiomas viajam dentro do pacote via
+	     <folder>language</folder> em <files> (instala em templates/generico/language/)
+	     e sao resolvidos dali — o admin (com_templates) le a .sys.ini/.ini da pasta
+	     do template e o frontend faz um load explicito no index.php. -->
 	<config>
 		<fields name="params">
 			<fieldset name="appearance" label="TPL_GENERICO_APPEARANCE_LABEL">
@@ -174,6 +166,13 @@
 				<field name="customHeadCode" type="textarea" rows="6" label="TPL_GENERICO_CUSTOM_HEAD_CODE_LABEL" description="TPL_GENERICO_CUSTOM_HEAD_CODE_DESC" filter="raw" />
 				<field name="customBodyTopCode" type="textarea" rows="6" label="TPL_GENERICO_CUSTOM_BODY_TOP_CODE_LABEL" description="TPL_GENERICO_CUSTOM_BODY_TOP_CODE_DESC" filter="raw" />
 				<field name="customBodyBottomCode" type="textarea" rows="6" label="TPL_GENERICO_CUSTOM_BODY_BOTTOM_CODE_LABEL" description="TPL_GENERICO_CUSTOM_BODY_BOTTOM_CODE_DESC" filter="raw" />
+			</fieldset>
+			<!-- Aba Manutencao: backup (exportar/importar JSON) e atualizacao pelo
+			     com_installer. O addfieldpath carrega o campo custom de
+			     templates/generico/fields (declarado em <files> acima — arquivo fora
+			     de <files> NAO e instalado). -->
+			<fieldset name="maintenance" label="TPL_GENERICO_MAINTENANCE_LABEL" addfieldpath="/templates/generico/fields">
+				<field name="configtools" type="genericoconfigtools" label="TPL_GENERICO_CT_LABEL" description="TPL_GENERICO_CT_DESC" />
 			</fieldset>
 		</fields>
 	</config>
