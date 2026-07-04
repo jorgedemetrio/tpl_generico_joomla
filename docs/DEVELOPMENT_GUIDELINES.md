@@ -268,3 +268,18 @@ Complementos importantes:
 -   O manifesto tem `method="upgrade"` na tag `<extension>`: instalar o ZIP **por cima** de uma instalação existente (Extensões → Instalar) também funciona sem desinstalar, preservando as configurações dos estilos. Desinstalar continua apagando os estilos — é para esse cenário que o export/import existe.
 -   O contrato do markup/JS é validado por `tests/fixtures/admin-configtools.html` + `tests/specs/admin-configtools.spec.js`; ao mudar o campo ou o JS, atualize os dois.
 -   As strings ficam nas chaves `TPL_GENERICO_MAINTENANCE_LABEL` e `TPL_GENERICO_CT_*` dos 8 idiomas (`tpl_generico.ini`).
+
+### 6.6. Idiomas do template — NÃO usar `<languages>` (quebra no Joomla 6)
+
+O manifesto **não** deve ter o bloco `<languages>`. Ele instalava os `.ini` na pasta **global** do site (`[ROOT]/language/<tag>/`), e no **Joomla 6** essa cópia falha e **aborta a instalação inteira**:
+
+```
+File::copy([TMP]/install_.../language/pt-BR/tpl_generico.ini, [ROOT]/language/pt-BR/tpl_generico.ini): Copy failed
+```
+
+O padrão correto (e compatível com Joomla 5 e 6): os idiomas viajam **dentro do pacote** via `<folder>language</folder>` no `<files>`, instalando em `templates/generico/language/<tag>/tpl_generico[.sys].ini`. As strings são resolvidas dali:
+
+-   **Admin** (edição do estilo em `com_templates`): o core carrega a `.sys.ini`/`.ini` da pasta do template automaticamente — por isso os rótulos dos parâmetros aparecem traduzidos sem o bloco `<languages>`.
+-   **Frontend**: o `index.php` faz um load explícito — `$app->getLanguage()->load('tpl_generico', __DIR__)` — garantindo os textos independentemente do fallback do core.
+
+Verificado ponta a ponta num Joomla 6.1.1 real: instalar (upgrade por cima), abrir a aba Manutenção (exportar/importar/buscar atualização), desinstalar e reinstalar — tudo sem o erro de cópia.
