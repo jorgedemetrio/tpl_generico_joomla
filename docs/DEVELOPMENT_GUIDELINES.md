@@ -26,6 +26,8 @@ O `tpl_generico` segue a estrutura padrão de templates do Joomla. Os arquivos e
 
 -   `/language`: Contém os arquivos de tradução do template para diferentes idiomas. As strings de texto usadas no template (visíveis no admin ou no frontend) são definidas aqui.
 
+-   `/fields`: Campos de formulário customizados carregados na edição do estilo (admin) via `addfieldpath` no `templateDetails.xml`. Hoje contém o `genericoconfigtools.php`, que renderiza a aba **Manutenção** (backup/atualização — ver seção 6.5). Todo arquivo novo aqui precisa estar coberto pelo `<folder>fields</folder>` em `<files>` do manifesto.
+
 -   `/images`: Diretório para armazenar as imagens estáticas utilizadas pelo template.
 
 -   `error.php`: Arquivo que renderiza as páginas de erro (ex: 404 - Não Encontrado).
@@ -252,3 +254,17 @@ O script de deploy (localizado em `.github/scripts/deploy.sh`) irá organizar os
 4.  **Deploy via FTPS:** O script de deploy conecta ao servidor via **FTPS** (FTP sobre TLS) usando as credenciais armazenadas nos Secrets do GitHub (`FTP_URL`, `FTP_USUARIO`, `FTP_SENHA`).
 5.  **Upload:** O script cria a pasta `/tpl_generico` se ela não existir e faz o upload dos dois arquivos gerados.
 6.  **Validação:** O Joomla no site de produção irá detectar a nova versão e notificará o administrador para a atualização.
+
+### 6.5. Aba Manutenção — backup e atualização pelo admin
+
+Nas opções do template (Sistema → Templates de Site → estilo `generico`) existe a aba **Manutenção**, montada pelo campo custom `fields/genericoconfigtools.php` + `media/js/admin-configtools.js`:
+
+-   **Exportar configurações (JSON):** baixa (ou exibe, com "Ver JSON") um arquivo com todos os `jform[params][*]` do estilo, no estado atual do formulário, mais metadados (`template`, `templateVersion`, `exportedAt`). Serve de backup antes de desinstalar/reinstalar.
+-   **Importar configurações:** lê um JSON exportado, valida que pertence ao template `generico` e preenche o formulário. Chaves que não existem na versão instalada são listadas como ignoradas; nada é salvo automaticamente — o usuário revisa e clica em **Salvar**.
+-   **Buscar atualização / Atualizar agora:** consulta o `com_installer` (task `update.ajax`, com token CSRF) contra o servidor de update do manifesto e, ao confirmar, submete `update.update` — o **core do Joomla** baixa o ZIP, troca `templates/generico/` e `media/templates/site/generico/` e preserva os estilos (`#__template_styles`). Nenhum código do template roda durante a cópia, então não há risco de o script "se apagar" no meio da atualização. O bloco só aparece para usuários com `core.manage` no `com_installer`.
+
+Complementos importantes:
+
+-   O manifesto tem `method="upgrade"` na tag `<extension>`: instalar o ZIP **por cima** de uma instalação existente (Extensões → Instalar) também funciona sem desinstalar, preservando as configurações dos estilos. Desinstalar continua apagando os estilos — é para esse cenário que o export/import existe.
+-   O contrato do markup/JS é validado por `tests/fixtures/admin-configtools.html` + `tests/specs/admin-configtools.spec.js`; ao mudar o campo ou o JS, atualize os dois.
+-   As strings ficam nas chaves `TPL_GENERICO_MAINTENANCE_LABEL` e `TPL_GENERICO_CT_*` dos 8 idiomas (`tpl_generico.ini`).
