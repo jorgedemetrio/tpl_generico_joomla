@@ -132,9 +132,13 @@ test.describe('Manutenção — importar configurações', () => {
 });
 
 test.describe('Manutenção — atualização pelo com_installer', () => {
-  test('sem atualização pendente: informa que já está na última versão', async ({ page }) => {
+  // O update.ajax do com_installer responde um ARRAY CRU — VERIFICADO num Joomla
+  // 6.1.1 real: `[]` sem atualização, `[{update_id, version, ...}]` quando há.
+  // NÃO é um envelope `{data: [...]}`. Os mocks abaixo usam o formato real; um
+  // mock envelopado mascararia o bug de ler só `json.data` (some com o botão).
+  test('sem atualização pendente (array vazio): já está na última versão', async ({ page }) => {
     await page.route(/task=update\.ajax/, (route) =>
-      route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data: [] }) })
+      route.fulfill({ contentType: 'application/json', body: JSON.stringify([]) })
     );
     await page.goto(FIXTURE);
     await page.click('[data-gct-action="check"]');
@@ -143,12 +147,9 @@ test.describe('Manutenção — atualização pelo com_installer', () => {
     await expect(page.locator('[data-gct-action="update"]')).toBeHidden();
   });
 
-  test('com atualização: mostra a versão e o POST vai com cid[] + token', async ({ page }) => {
+  test('com atualização (array cru): mostra a versão e o POST vai com cid[] + token', async ({ page }) => {
     await page.route(/task=update\.ajax/, (route) =>
-      route.fulfill({
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: [{ update_id: 42, version: '9.9.9' }] }),
-      })
+      route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ update_id: 42, version: '9.9.9' }]) })
     );
     let postData = null;
     await page.route(/task=update\.update/, (route) => {
@@ -171,12 +172,20 @@ test.describe('Manutenção — atualização pelo com_installer', () => {
     expect(postData).toContain('testtoken=1');
   });
 
+  test('também aceita o formato envelopado {data:[...]} (compat entre versões)', async ({ page }) => {
+    await page.route(/task=update\.ajax/, (route) =>
+      route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data: [{ update_id: 7, version: '2.0.0' }] }) })
+    );
+    await page.goto(FIXTURE);
+    await page.click('[data-gct-action="check"]');
+
+    await expect(page.locator('[data-gct-update-status]')).toContainText('Nova versão disponível: 2.0.0');
+    await expect(page.locator('[data-gct-action="update"]')).toBeVisible();
+  });
+
   test('cancelar o confirm não dispara o update', async ({ page }) => {
     await page.route(/task=update\.ajax/, (route) =>
-      route.fulfill({
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: [{ update_id: 42, version: '9.9.9' }] }),
-      })
+      route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ update_id: 42, version: '9.9.9' }]) })
     );
     let posted = false;
     await page.route(/task=update\.update/, (route) => {
@@ -194,7 +203,18 @@ test.describe('Manutenção — atualização pelo com_installer', () => {
     expect(page.url()).toContain('admin-configtools.html');
   });
 
-  test('erro na consulta: orienta a usar o gerenciador de atualizações', async ({ page }) => {
+  test('HTTP 200 com {success:false}: trata como erro, não como "atualizado"', async ({ page }) => {
+    await page.route(/task=update\.ajax/, (route) =>
+      route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: false, message: 'boom', data: [] }) })
+    );
+    await page.goto(FIXTURE);
+    await page.click('[data-gct-action="check"]');
+
+    await expect(page.locator('[data-gct-update-status]')).toContainText('Não foi possível consultar as atualizações');
+    await expect(page.locator('[data-gct-action="update"]')).toBeHidden();
+  });
+
+  test('erro na consulta (HTTP 500): orienta a usar o gerenciador de atualizações', async ({ page }) => {
     await page.route(/task=update\.ajax/, (route) => route.fulfill({ status: 500, body: 'err' }));
     await page.goto(FIXTURE);
     await page.click('[data-gct-action="check"]');

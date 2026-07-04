@@ -184,6 +184,30 @@
     notify(ui.report, result.ignored.length ? 'warning' : 'success', lines.join('\n'));
   }
 
+  // Normaliza a resposta do update.ajax numa LISTA de atualizacoes.
+  // O com_installer responde um ARRAY CRU (verificado no Joomla 6: `[]` quando
+  // nao ha atualizacao, `[{update_id, version, ...}]` quando ha) — NAO um
+  // envelope `{data: [...]}`. Ainda assim toleramos `{data: [...]}` e
+  // `{data: {...}}` (variacoes entre versoes do Joomla). Retorna `null` quando a
+  // forma nao e reconhecida, para o chamador tratar como erro em vez de reportar
+  // "atualizado" por engano diante de uma resposta inesperada.
+  function normalizeUpdates(json) {
+    if (Array.isArray(json)) {
+      return json;
+    }
+    if (json && typeof json === 'object') {
+      if (Array.isArray(json.data)) {
+        return json.data;
+      }
+      if (json.data && typeof json.data === 'object') {
+        return Object.keys(json.data).map(function (key) {
+          return json.data[key];
+        });
+      }
+    }
+    return null;
+  }
+
   // Consulta as atualizacoes pendentes deste template no com_installer
   // (mesmo endpoint usado pelo icone "Atualizacoes de extensoes" do painel).
   function checkUpdate(ui) {
@@ -199,7 +223,15 @@
         return response.json();
       })
       .then(function (json) {
-        const list = (json && json.data) || [];
+        // Joomla pode sinalizar falha com {success:false} mesmo em HTTP 200.
+        if (json && typeof json === 'object' && !Array.isArray(json) && json.success === false) {
+          throw new Error('update.ajax retornou success=false');
+        }
+        const list = normalizeUpdates(json);
+        if (list === null) {
+          // Forma inesperada: melhor sinalizar erro do que fingir "atualizado".
+          throw new Error('resposta inesperada do update.ajax');
+        }
         if (!list.length) {
           ui.pendingUpdate = null;
           if (ui.updateBtn) {
