@@ -36,21 +36,25 @@ $this->setMetaData('viewport', 'width=device-width, initial-scale=1');
 // AdSense (o Google pode restringir a veiculação de anúncios no domínio).
 // Ordem exigida pelo Google: 1) consent mode default ('denied') ANTES de
 // qualquer tag; 2) script do CMP (Funding Choices); 3) só depois GTM/gtag
-// (mais abaixo, bloco "Integrations") — os 3 vêm juntos num único
-// addCustomTag pra garantir essa ordem exata no HTML final
-// (addScriptDeclaration/addScript do Joomla podem agrupar por tipo e quebrar
-// a sequência). A mensagem de consentimento em si (quais regiões, texto,
-// opções) é configurada no PAINEL do Google — AdSense (ou Ad Manager) ->
-// Privacidade e mensagens -> Mensagens de consentimento da UE. Sem uma
-// mensagem publicada lá, este script não exibe nada (fail-safe).
+// (mais abaixo, bloco "Integrations"). addCustomTag() NAO garante essa ordem:
+// o Joomla renderiza o bucket de custom tags separadamente do de
+// addScriptDeclaration(), entao o GTM/Pixel abaixo poderiam ser impressos
+// ANTES deste bloco no HTML final, disparando tags antes do consent mode
+// estar inicializado. Por isso $consentModeHead e montado aqui mas so e
+// ecoado mais abaixo, no INICIO literal do <head> (antes de
+// <jdoc:include type="head" />), garantindo que sempre vem primeiro no
+// markup. A mensagem de consentimento em si (quais regioes, texto, opcoes) e
+// configurada no PAINEL do Google — AdSense (ou Ad Manager) -> Privacidade e
+// mensagens -> Mensagens de consentimento da UE. Sem uma mensagem publicada
+// la, este script nao exibe nada (fail-safe).
 $adsensePubId = trim((string) $this->params->get('adsensePubId', ''));
+$consentModeHead = '';
 if ($adsensePubId !== '') {
-    $this->addCustomTag(
+    $consentModeHead =
         "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}"
         . "gtag('consent','default',{'ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','analytics_storage':'denied','wait_for_update':500});</script>"
         . '<script async src="https://fundingchoicesmessages.google.com/i/' . htmlspecialchars($adsensePubId, ENT_QUOTES) . '?ers=1"></script>'
-        . "<script>(function(){function signalGooglefcPresent(){if(!window.frames['googlefcPresent']){if(document.body){var iframe=document.createElement('iframe');iframe.style='width:0;height:0;border:none;z-index:-1000;left:-1000px;top:-1000px;';iframe.style.display='none';iframe.name='googlefcPresent';document.body.appendChild(iframe);}else{setTimeout(signalGooglefcPresent,0);}}}signalGooglefcPresent();})();</script>"
-    );
+        . "<script>(function(){function signalGooglefcPresent(){if(!window.frames['googlefcPresent']){if(document.body){var iframe=document.createElement('iframe');iframe.style='width:0;height:0;border:none;z-index:-1000;left:-1000px;top:-1000px;';iframe.style.display='none';iframe.name='googlefcPresent';document.body.appendChild(iframe);}else{setTimeout(signalGooglefcPresent,0);}}}signalGooglefcPresent();})();</script>";
 }
 
 // Favicon
@@ -250,6 +254,11 @@ if ($customHeadCode !== '') {
 <!DOCTYPE html>
 <html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>" data-bs-theme="<?php echo $htmlTheme; ?>" data-theme-key="<?php echo TplGenericoHelper::THEME_STORAGE_KEY; ?>">
 <head>
+    <?php // Consent Mode default + CMP do Funding Choices: precisa ser o PRIMEIRO
+    // script do <head> (ver bloco "Google Funding Choices" acima). Ecoado cru
+    // aqui, antes do jdoc:include, para garantir a ordem no HTML final —
+    // addCustomTag() nao garante isso.
+    echo $consentModeHead; ?>
     <jdoc:include type="head" />
 </head>
 <body class="site <?php echo $option . ' view-' . $view . ($layout ? ' layout-' . $layout : '') . ($pageclass ? ' ' . $pageclass : '') . ($hasBottomNav ? ' has-bottom-nav' : ''); ?>">

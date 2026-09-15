@@ -12,10 +12,15 @@ const { test, expect } = require('@playwright/test');
  *    Choices está ativo (evita 2 avisos de consentimento conflitantes).
  * Não aguarda a rede real do domínio fundingchoicesmessages.google.com (o
  * script é async e o teste roda sem internet garantida em CI) — só valida a
- * marcação, que é o contrato do template.
+ * marcação, que é o contrato do template. A requisição real a esse domínio é
+ * abortada em todo teste (beforeEach) para não depender de internet em CI.
  */
 
 const FIXTURE = '/tests/fixtures/funding-choices.html';
+
+test.beforeEach(async ({ page }) => {
+  await page.route('https://fundingchoicesmessages.google.com/**', (route) => route.abort());
+});
 
 test('consent mode default vem ANTES do script do Funding Choices, na ordem exigida pelo Google', async ({ page }) => {
   await page.goto(FIXTURE);
