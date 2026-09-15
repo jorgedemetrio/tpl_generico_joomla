@@ -162,6 +162,7 @@
 			<fieldset name="integrations" label="TPL_GENERICO_INTEGRATIONS_LABEL">
 				<field name="gtmId" type="text" label="TPL_GENERICO_GTM_ID_LABEL" description="TPL_GENERICO_GTM_ID_DESC" filter="string" />
 				<field name="fbPixelId" type="text" label="TPL_GENERICO_FB_PIXEL_ID_LABEL" description="TPL_GENERICO_FB_PIXEL_ID_DESC" filter="string" />
+				<field name="adsensePubId" type="text" label="TPL_GENERICO_ADSENSE_PUBID_LABEL" description="TPL_GENERICO_ADSENSE_PUBID_DESC" filter="string" />
 				<field name="customcode_note" type="note" label="TPL_GENERICO_CUSTOM_CODE_NOTE_LABEL" description="TPL_GENERICO_CUSTOM_CODE_NOTE_DESC" />
 				<field name="customHeadCode" type="textarea" rows="6" label="TPL_GENERICO_CUSTOM_HEAD_CODE_LABEL" description="TPL_GENERICO_CUSTOM_HEAD_CODE_DESC" filter="raw" />
 				<field name="customBodyTopCode" type="textarea" rows="6" label="TPL_GENERICO_CUSTOM_BODY_TOP_CODE_LABEL" description="TPL_GENERICO_CUSTOM_BODY_TOP_CODE_DESC" filter="raw" />

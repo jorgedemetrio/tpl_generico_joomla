@@ -65,6 +65,15 @@ zip -r ../${ZIP_FILE} .
 cd ..
 echo "Pacote ZIP criado com sucesso em $(pwd)/${ZIP_FILE}"
 
+# --- Checksums do pacote (Joomla 4+) ---
+# Sem <sha256>/<sha384>/<sha512> no <update>, o Joomla avisa "Nenhum checksum
+# encontrado no servidor de atualização". Calcula sobre o ZIP recém-gerado.
+echo "Calculando checksums do pacote..."
+SHA256=$(sha256sum "${ZIP_FILE}" | cut -d' ' -f1)
+SHA384=$(sha384sum "${ZIP_FILE}" | cut -d' ' -f1)
+SHA512=$(sha512sum "${ZIP_FILE}" | cut -d' ' -f1)
+echo "sha256=${SHA256}"
+
 # --- Geração da Entrada de Atualização ---
 echo "Gerando a nova entrada de atualização..."
 cat > nova_entrada.xml << EOL
@@ -78,6 +87,9 @@ cat > nova_entrada.xml << EOL
         <downloads>
             <downloadurl type="full" format="zip">https://apps.sobieskiproducoes.com.br/${APP_NAME}/${ZIP_FILE}</downloadurl>
         </downloads>
+        <sha256>${SHA256}</sha256>
+        <sha384>${SHA384}</sha384>
+        <sha512>${SHA512}</sha512>
         <tags>
             <tag>stable</tag>
         </tags>

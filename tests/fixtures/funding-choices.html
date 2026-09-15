@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  Fixture do Google Funding Choices (CMP) + Consent Mode v2, emitidos por
+  index.php via addCustomTag() SOMENTE quando o parâmetro `adsensePubId` do
+  template está preenchido (ver "Google Funding Choices" em index.php). Nesse
+  estado o aviso de cookies customizado (#cookieNotice) NÃO é renderizado — a
+  mensagem de consentimento do Google substitui a divulgação/consentimento de
+  cookies (ver TPL_GENERICO_COOKIE_NOTICE_ENABLE_DESC).
+-->
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — Funding Choices ativo</title>
+
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','analytics_storage':'denied','wait_for_update':500});</script>
+  <script async src="https://fundingchoicesmessages.google.com/i/pub-1234567890123456?ers=1"></script>
+  <script>(function(){function signalGooglefcPresent(){if(!window.frames['googlefcPresent']){if(document.body){var iframe=document.createElement('iframe');iframe.style='width:0;height:0;border:none;z-index:-1000;left:-1000px;top:-1000px;';iframe.style.display='none';iframe.name='googlefcPresent';document.body.appendChild(iframe);}else{setTimeout(signalGooglefcPresent,0);}}}signalGooglefcPresent();})();</script>
+</head>
+<body class="site">
+  <!-- #cookieNotice NAO existe neste estado — ver spec funding-choices.spec.js -->
+  <main id="main-content"></main>
+</body>
+</html>
