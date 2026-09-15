@@ -29,6 +29,30 @@ $app->getLanguage()->load('tpl_generico', __DIR__);
 // (error.php/offline.php/component.php ja definem; o index.php estava sem.)
 $this->setMetaData('viewport', 'width=device-width, initial-scale=1');
 
+// Google Funding Choices (CMP) + Consent Mode v2 — SOMENTE se um ID de editor
+// do AdSense (adsensePubId) estiver configurado nas Opções do template. Sem
+// isso, a mensagem de consentimento de anúncios personalizados não aparece pra
+// visitantes da UE/Reino Unido/Suíça, violando a EU User Consent Policy do
+// AdSense (o Google pode restringir a veiculação de anúncios no domínio).
+// Ordem exigida pelo Google: 1) consent mode default ('denied') ANTES de
+// qualquer tag; 2) script do CMP (Funding Choices); 3) só depois GTM/gtag
+// (mais abaixo, bloco "Integrations") — os 3 vêm juntos num único
+// addCustomTag pra garantir essa ordem exata no HTML final
+// (addScriptDeclaration/addScript do Joomla podem agrupar por tipo e quebrar
+// a sequência). A mensagem de consentimento em si (quais regiões, texto,
+// opções) é configurada no PAINEL do Google — AdSense (ou Ad Manager) ->
+// Privacidade e mensagens -> Mensagens de consentimento da UE. Sem uma
+// mensagem publicada lá, este script não exibe nada (fail-safe).
+$adsensePubId = trim((string) $this->params->get('adsensePubId', ''));
+if ($adsensePubId !== '') {
+    $this->addCustomTag(
+        "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}"
+        . "gtag('consent','default',{'ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','analytics_storage':'denied','wait_for_update':500});</script>"
+        . '<script async src="https://fundingchoicesmessages.google.com/i/' . htmlspecialchars($adsensePubId, ENT_QUOTES) . '?ers=1"></script>'
+        . "<script>(function(){function signalGooglefcPresent(){if(!window.frames['googlefcPresent']){if(document.body){var iframe=document.createElement('iframe');iframe.style='width:0;height:0;border:none;z-index:-1000;left:-1000px;top:-1000px;';iframe.style.display='none';iframe.name='googlefcPresent';document.body.appendChild(iframe);}else{setTimeout(signalGooglefcPresent,0);}}}signalGooglefcPresent();})();</script>"
+    );
+}
+
 // Favicon
 if ($faviconIco = $this->params->get('faviconIco')) {
     $this->addHeadLink(Uri::root(true) . '/' . htmlspecialchars($faviconIco), 'icon', 'rel', ['type' => 'image/vnd.microsoft.icon']);
@@ -123,7 +147,10 @@ $bottomB = $this->countModules('bottom-b', true);
 // O visitante aceita (ou e aceito automaticamente apos N segundos) e a escolha
 // fica num cookie para nao repetir. Nao ha opcao de recusar — o site depende de
 // cookies essenciais; a mensagem apenas informa isso de forma amigavel.
-$cookieNotice  = $this->params->get('cookieNotice', '1') === '1';
+// SUPRIMIDO quando o Funding Choices esta ativo (adsensePubId configurado) —
+// a mensagem de consentimento do Google ja cobre a divulgacao/consentimento de
+// cookies nesse caso; mostrar os dois seria 2 avisos conflitantes na tela.
+$cookieNotice  = $this->params->get('cookieNotice', '1') === '1' && $adsensePubId === '';
 $cookieTimeout = (int) $this->params->get('cookieNoticeTimeout', 20);
 $cookieText    = trim((string) $this->params->get('cookieNoticeText', ''));
 
