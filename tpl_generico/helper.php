@@ -624,11 +624,22 @@ if (!class_exists('TplGenericoSanitizer', false)) {
             return ($value !== '' && preg_match($pattern, $value) === 1) ? $value : '';
         }
 
+        /** Tags permitidas nos textos livres do admin (aviso de cookies/newsletter). */
+        private const HTML_TAGS = ['a', 'b', 'strong', 'i', 'em', 'u', 'br', 'p', 'span', 'small', 'ul', 'ol', 'li'];
+
+        /** Atributos permitidos nessas tags. */
+        private const HTML_ATTRS = ['href', 'title', 'target', 'rel', 'class'];
+
         /**
-         * Limpa um HTML livre do admin (texto do aviso de cookies/newsletter) com
-         * o filtro do core: remove <script>, atributos on*, javascript: etc.
-         * Defesa em profundidade — o campo e filter="raw" por permitir
-         * links/negrito.
+         * Limpa um HTML livre do admin (texto do aviso de cookies/newsletter): mantem
+         * so a marcacao segura (links, negrito, listas, quebras) e remove o resto
+         * — <script>, atributos on*, javascript: etc. Defesa em profundidade; o
+         * campo e filter="raw" justamente por permitir links/formatacao.
+         *
+         * IMPORTANTE: InputFilter::getInstance() SEM argumentos usa o modo "permitir
+         * so o que esta na lista" com lista VAZIA, ou seja, remove TODAS as tags
+         * (o link da politica de privacidade sumia). Por isso a allowlist explicita:
+         * tags/atributos acima, modo 0 = "somente permitir os definidos", xssAuto = 1.
          *
          * @param  string  $html  HTML cru
          * @return string
@@ -640,10 +651,34 @@ if (!class_exists('TplGenericoSanitizer', false)) {
             }
 
             try {
-                return (string) \Joomla\CMS\Filter\InputFilter::getInstance()->clean($html, 'html');
+                $filter = \Joomla\CMS\Filter\InputFilter::getInstance(self::HTML_TAGS, self::HTML_ATTRS, 0, 0, 1);
+                $clean  = (string) $filter->clean($html, 'html');
             } catch (\Throwable $e) {
                 return htmlspecialchars(strip_tags($html), ENT_QUOTES, 'UTF-8');
             }
+
+            return self::neutralizeUnsafeHref($clean);
+        }
+
+        /**
+         * Troca por "#" os href com esquema perigoso (javascript:, vbscript:, data:),
+         * inclusive disfarcados com entidades/espacos/quebras (java&#9;script:).
+         * href http(s), mailto, tel e caminhos relativos passam intactos.
+         *
+         * @param  string  $html  HTML ja filtrado
+         * @return string
+         */
+        private static function neutralizeUnsafeHref(string $html): string
+        {
+            return (string) preg_replace_callback(
+                '/\bhref\s*=\s*(["\'])(.*?)\1/is',
+                static function (array $m): string {
+                    $url = preg_replace('/[\x00-\x20]+/', '', html_entity_decode($m[2], ENT_QUOTES, 'UTF-8'));
+
+                    return preg_match('/^(?:javascript|vbscript|data):/i', (string) $url) === 1 ? 'href="#"' : $m[0];
+                },
+                $html
+            );
         }
     }
 }
