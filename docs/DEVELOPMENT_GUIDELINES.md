@@ -54,9 +54,13 @@ O template utiliza um sistema moderno e flexível de variáveis CSS (CSS Custom 
 
 ### 3.2. Scripts (JavaScript)
 
-O template carrega o JavaScript pelo Web Asset Manager do Joomla (não via CDN):
--   **Bootstrap 5.3.3**: O framework completo de componentes e plugins.
--   **jQuery NÃO é carregado.** O Joomla 5 não embarca jQuery e este template também não — o `template.js` é JavaScript puro (vanilla). Se um módulo/extensão precisar de jQuery, ele deve carregá-lo por conta própria.
+Bootstrap, Bootstrap Icons e jQuery vêm do **CDN jsDelivr**, registrados no `joomla.asset.json` com **versão fixa**, **SRI (sha384)** e `crossorigin="anonymous"`:
+-   **Bootstrap 5.3.8 (CSS)** — `bootstrap.css` e `bootstrap.css.grid` **sobrescrevem pelo mesmo nome** os assets do core (o `joomla.asset.json` do template é carregado depois), então tudo que depende deles passa a usar o CDN.
+-   **Bootstrap Icons 1.13.1** — dependência do `tpl_generico.css`.
+-   **jQuery 3.7.1** — sobrescreve o asset `jquery` do core e é carregado pelo preset (`jquery#script`). O `template.js` continua JavaScript puro; o jQuery fica disponível para módulos/extensões e código do site. O `jquery-noconflict` do core **não** é carregado (`$` fica global).
+-   **Bootstrap (JS)** — **continua vindo do core** (mesma versão 5.3.8). O core o serve como módulos ES por componente (`bootstrap.collapse`, `.dropdown`, `.offcanvas`…); carregar também o bundle do CDN registraria os handlers `data-bs-*` duas vezes (collapse/offcanvas abririam e fechariam logo em seguida).
+
+**Ao atualizar uma versão do CDN:** baixe o arquivo, gere o hash (`openssl dgst -sha384 -binary arquivo | openssl base64 -A`) e atualize `uri` + `integrity` juntos — hash errado faz o navegador bloquear o arquivo. **Não** adicione chave `"version"` por asset (o `deploy.sh` sobrescreve toda chave `"version"` do arquivo). Mantenha o Bootstrap CSS na mesma versão do JS do core (o `asset-manifest.spec.js` guarda o contrato). Se o CDN ficar indisponível, o site perde o CSS do Bootstrap — considere isso ao decidir por CDN.
 
 **Arquivo de Scripts Customizados:**
 -   As funcionalidades específicas do template devem ser adicionadas em `js/template.js`.
