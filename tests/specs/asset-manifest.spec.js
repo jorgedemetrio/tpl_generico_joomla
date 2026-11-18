@@ -93,3 +93,43 @@ test.describe('joomla.asset.json — consistência das URIs (#37)', () => {
     expect(missing, 'Subpastas de <media> ausentes no pacote: ' + missing.join(', ')).toEqual([]);
   });
 });
+
+/**
+ * Bootstrap 5 / Bootstrap Icons / jQuery por CDN (jsDelivr).
+ *
+ * `bootstrap.css`, `bootstrap.css.grid` e `jquery` sobrescrevem, PELO MESMO NOME, os
+ * assets do core: tudo que depende deles (inclusive extensoes de terceiros) passa a
+ * usar a copia do CDN. O JS do Bootstrap NAO e trocado de proposito: o core o serve
+ * como modulos ES por componente (bootstrap.collapse, .dropdown, .offcanvas...) e
+ * carregar tambem o bundle do CDN registraria os handlers data-bs-* duas vezes.
+ */
+const CDN = /^https:\/\/cdn\.jsdelivr\.net\/npm\/[a-z-]+@\d+\.\d+\.\d+\//;
+const byName = (n) => manifest.assets.find((a) => a.name === n);
+
+test.describe('joomla.asset.json — Bootstrap, Icons e jQuery por CDN', () => {
+  for (const name of ['bootstrap.css', 'bootstrap.css.grid', 'jquery', 'bootstrap-icons']) {
+    test(`${name}: CDN com versão fixa, SRI sha384 e crossorigin`, () => {
+      const a = byName(name);
+      expect(a, `asset ${name} ausente`).toBeTruthy();
+      expect(a.uri).toMatch(CDN); // versao exata (sem @latest/@5)
+      expect(a.attributes && a.attributes.integrity).toMatch(/^sha384-[A-Za-z0-9+/]{64}$/);
+      expect(a.attributes.crossorigin).toBe('anonymous');
+    });
+  }
+
+  test('o Bootstrap CSS do CDN é o mesmo 5.3.x servido pelo core (CSS e JS consistentes)', () => {
+    expect(byName('bootstrap.css').uri).toMatch(/bootstrap@5\.3\.\d+\//);
+  });
+
+  test('o preset carrega jQuery junto com o CSS e o JS do template', () => {
+    const preset = byName('tpl_generico.preset');
+    expect(preset.dependencies).toEqual(
+      expect.arrayContaining(['tpl_generico.css#style', 'tpl_generico.js#script', 'jquery#script'])
+    );
+  });
+
+  test('o manifesto não declara "version" por asset (o deploy.sh sobrescreve toda chave "version")', () => {
+    const withVersion = manifest.assets.filter((a) => 'version' in a).map((a) => a.name);
+    expect(withVersion).toEqual([]);
+  });
+});

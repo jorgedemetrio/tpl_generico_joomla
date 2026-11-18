@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+  Fixture do MODO ESCURO na ordem REAL de producao: o template.css e carregado
+  primeiro e o bloco `:root { ...variaveis do admin... }` (gerado pelo helper.php
+  via addStyleDeclaration) vem DEPOIS. Esse :root tem a mesma especificidade de
+  [data-bs-theme="dark"], entao, sem tratamento, ele anularia as cores escuras.
+  Espelha tambem o rodape, o topbar e o aviso de erro do template.
+-->
+<html lang="pt-BR" dir="ltr" data-bs-theme="dark" data-theme-key="generico-theme">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — modo escuro</title>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+  <style>
+    :root {
+      --cor-primaria: #1F4E79;
+      --cor-secundaria: #2E7D32;
+      --cor-cta: #2F80ED;
+      --cor-menu-ativo: #2F80ED;
+      --cor-menu-ativo-rgb: 47, 128, 237;
+      --cor-cta-rgb: 47, 128, 237;
+      --cor-texto: #222222;
+      --cor-texto-secundario: #6B7280;
+      --cor-superficie-clara: #FFFFFF;
+      --cor-superficie-clara-topo: #FFFFFF;
+      --cor-superficie-alt: #F5F7FA;
+      --cor-borda: #E5E7EB;
+      --cor-footer: #0F172A;
+      --cor-footer-texto: #CBD5E1;
+      --cor-footer-titulo: #FFFFFF;
+      --raio-borda-global: 4px;
+      --bs-body-color: var(--cor-texto);
+      --bs-body-bg: var(--cor-superficie-clara);
+      --bs-border-color: var(--cor-borda);
+    }
+  </style>
+</head>
+<body class="site">
+  <header id="header" class="header">
+    <div id="topbar" class="topbar"><div class="container"><p id="topbar-text">Barra superior</p></div></div>
+    <nav class="navbar navbar-expand-lg" aria-label="Navegação principal">
+      <div class="container">
+        <a class="navbar-brand" href="#"><span class="site-title">Site</span></a>
+        <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="true" aria-label="Alternar tema"><i class="fas fa-sun" aria-hidden="true"></i></button>
+      </div>
+    </nav>
+  </header>
+  <main id="main-content" role="main" tabindex="-1">
+    <div class="container">
+      <h1 id="titulo">Título da página</h1>
+      <p><a id="link" href="#">Um link no conteúdo</a></p>
+      <div class="card" id="card"><div class="card-body">Cartão</div></div>
+      <p class="newsletter-modal-error" id="erro">E-mail inválido</p>
+      <a href="#" class="btn btn-primary" id="btn">Botão</a>
+    </div>
+  </main>
+  <footer id="footer" class="footer" role="contentinfo">
+    <div class="container">
+      <h3 id="footer-titulo">Título do rodapé</h3>
+      <p id="footer-texto">Texto do rodapé</p>
+      <a id="footer-link" href="#">Link do rodapé</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,14 +1,32 @@
 /* ========================================================================
    Component: Base
  ========================================================================== */
+/* Tokens derivados (claro = cores de marca do admin). O modo escuro, mais
+   abaixo, os redefine com versoes clareadas — a cor primaria/CTA escolhida para
+   o fundo claro (ex.: #1F4E79) tem contraste insuficiente sobre o fundo escuro.
+   Sao variaveis NOVAS (nao redefinem --cor-primaria/--cor-cta), entao nao
+   conflitam com o :root gerado pelo helper.php. */
+:root {
+    --cor-titulo: var(--cor-primaria, #1F4E79);
+    --cor-link: var(--cor-cta, #2F80ED);
+    --cor-menu-ativo-texto: var(--cor-menu-ativo, #2F80ED);
+    --cor-erro: #B00020;
+    color-scheme: light;
+}
+
 html {
     height: 100%;
     /* Compensa o header fixo ao navegar para ancoras (#id) — substitui o
        antigo ajuste via JavaScript. O valor e atualizado pelo template.js
        conforme a altura real do header. */
     scroll-padding-top: var(--generico-header-height, 80px);
-    /* Scroll suave respeitando quem prefere movimento reduzido (ver media query). */
-    scroll-behavior: smooth;
+}
+
+/* Scroll suave so para quem NAO pediu movimento reduzido. */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
 }
 
 body.site {
@@ -49,14 +67,14 @@ body.site {
 }
 
 a {
-    color: var(--cor-cta, #2F80ED);
+    color: var(--cor-link, var(--cor-cta, #2F80ED));
     text-decoration: none;
     transition: color 0.2s ease-in-out;
 }
 
 a:hover,
 a:focus {
-    color: var(--cor-primaria, #1F4E79);
+    color: var(--cor-titulo, var(--cor-primaria, #1F4E79));
     text-decoration: underline;
     outline: none;
 }
@@ -71,7 +89,7 @@ h6, .h6 { font-size: clamp(0.9rem, 0.86rem + 0.25vw, 1.05rem); }
 
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-weight: var(--peso-fonte-titulos, 700);
-    color: var(--cor-primaria, #1F4E79);
+    color: var(--cor-titulo, var(--cor-primaria, #1F4E79));
     margin-top: var(--espacamento-vertical-global, 2rem);
     margin-bottom: 1rem;
     line-height: 1.25;
@@ -131,8 +149,17 @@ hr {
 
 .navbar-nav .nav-item.active{
     border-radius: 15px;
-    background-color: rgb(0 0 0 / 10%);
+    /* Tom da cor de destaque (e nao preto fixo): visivel tambem no modo escuro. */
+    background-color: rgba(var(--cor-menu-ativo-rgb, 47, 128, 237), 0.12);
     padding-left: 5px;
+}
+
+/* Barra superior (posicao topbar): usa a superficie do tema — o antigo
+   .bg-light do Bootstrap e SEMPRE claro e deixava texto claro sobre fundo
+   claro no modo escuro. */
+.topbar {
+    background-color: var(--cor-superficie-alt, #F5F7FA);
+    color: var(--cor-texto, #222222);
 }
 
 /* Header Height Variants */
@@ -150,7 +177,7 @@ hr {
 }
 
 .header .navbar-brand .site-title {
-    color: var(--cor-primaria, #1F4E79);
+    color: var(--cor-titulo, var(--cor-primaria, #1F4E79));
     font-weight: var(--peso-fonte-titulos, 700);
     font-size: clamp(1.1rem, 0.9rem + 1vw, 1.5rem);
 }
@@ -174,7 +201,7 @@ hr {
    quando a classe .active fica so no link. */
 .header .navbar .nav-item.active > .nav-link,
 .header .navbar .nav-link.active {
-    color: var(--cor-menu-ativo, #2F80ED);
+    color: var(--cor-menu-ativo-texto, var(--cor-menu-ativo, #2F80ED));
     font-weight: 700;
 }
 
@@ -221,7 +248,7 @@ hr {
    e os ancestrais do caminho — destacamos o link correspondente. */
 .metismenu .active > a,
 .metismenu .current > a {
-    color: var(--cor-menu-ativo, #2F80ED);
+    color: var(--cor-menu-ativo-texto, var(--cor-menu-ativo, #2F80ED));
     font-weight: 700;
     border-left: 3px solid var(--cor-menu-ativo, #2F80ED);
     background-color: rgba(var(--cor-menu-ativo-rgb, 47, 128, 237), 0.08);
@@ -307,26 +334,36 @@ div.card .card-header {
 /* ========================================================================
    Component: Footer
  ========================================================================== */
+/* O rodape tem fundo proprio (--cor-footer) nos dois temas, entao o texto NAO
+   segue as cores do tema: --cor-footer-texto/--cor-footer-titulo sao calculadas
+   no helper.php conforme a luminosidade do fundo (garante contraste AA). Antes
+   usava --cor-texto-secundario (#6B7280 = 3.7:1, reprovado) e, para links e
+   titulos, --cor-superficie-clara — que no modo escuro vira #0F172A e deixava
+   links/titulos escuro-sobre-escuro (invisiveis). */
 .footer {
     background-color: var(--cor-footer, #0F172A);
-    color: var(--cor-texto-secundario, #6B7280);
+    color: var(--cor-footer-texto, #CBD5E1);
     padding-top: var(--espacamento-vertical-global, 2rem);
     padding-bottom: var(--espacamento-vertical-global, 2rem);
     min-height: var(--footer-min-height, 300px);
 }
 
 .footer a {
-    color: var(--cor-superficie-clara, #FFFFFF);
+    color: var(--cor-footer-titulo, #FFFFFF);
+    text-decoration: underline;
 }
 
+/* Hover/foco: mantem a cor legivel e remove o sublinhado (o sinal visual muda
+   sem depender de uma cor de destaque que pode ter pouco contraste no fundo). */
 .footer a:hover,
 .footer a:focus {
-    color: var(--cor-cta, #2F80ED);
+    color: var(--cor-footer-titulo, #FFFFFF);
+    text-decoration: none;
 }
 
 .footer .module-title,
 .footer h1, .footer h2, .footer h3, .footer h4, .footer h5 {
-    color: var(--cor-superficie-clara, #FFFFFF);
+    color: var(--cor-footer-titulo, #FFFFFF);
     font-weight: var(--peso-fonte-titulos, 700);
     margin-bottom: 1rem;
 }
@@ -349,27 +386,26 @@ div.card .card-header {
   border-radius: var(--raio-borda-global, 4px);
 }
 
-/* Respeita usuarios que pedem menos movimento (sistema operacional). */
-@media (prefers-reduced-motion: reduce) {
-    html {
-        scroll-behavior: auto;
-    }
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
+/* (A regra de prefers-reduced-motion fica no FIM do arquivo — precisa vir depois
+   de todas as transicoes/animacoes que desliga, sem recorrer a !important.) */
 
-
-/* min-width (em vez de "(width >= 992px)") para padronizar a sintaxe de
-   breakpoint com as demais media queries do arquivo (#75) — equivalentes. */
+/* Sidebars: largura fixa so nas colunas laterais do layout (#sidebar-left/-right).
+   Antes a regra valia para QUALQUER .col-lg-3 — inclusive grades Bootstrap
+   colocadas pelo editor dentro de artigos, que ficavam travadas em 280px. A area
+   principal passa a ocupar o espaco que sobra (flex), em vez de 50%/75% fixos:
+   com as duas sidebars entre 992 e ~1200px, 50% + 2x280px passava de 100% e a
+   sidebar direita quebrava para baixo do conteudo. */
 @media (min-width: 992px) {
-    .col-lg-3 {
+    #sidebar-left.col-lg-3,
+    #sidebar-right.col-lg-3 {
         flex: none;
         width: var(--col-lg-fixed-width, 280px);
+    }
+
+    #component-area[class*="col-lg-"] {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
     }
 }
 
@@ -421,14 +457,43 @@ div.card .card-header {
    apenas inverte superficies e texto, aproveitando o suporte nativo do
    Bootstrap 5.3 a data-bs-theme.
  ========================================================================== */
-[data-bs-theme="dark"] {
+/* ATENCAO a especificidade: o helper.php imprime `:root { --cor-texto: ... }`
+   inline DEPOIS deste arquivo. `:root` e `[data-bs-theme]` valem (0,1,0) cada,
+   entao com o seletor antigo `[data-bs-theme="dark"]` o :root claro (ultimo na
+   ordem) vencia e o tema "escuro" nunca trocava as cores. `:root[...]` (0,2,0)
+   vence em qualquer ordem de carga. */
+:root[data-bs-theme="dark"] {
     --cor-texto: #E5E7EB;
     --cor-texto-secundario: #9CA3AF;
     --cor-superficie-clara: #0F172A;
     --cor-superficie-clara-topo: #111827;
     --cor-superficie-alt: #1E293B;
     --cor-borda: #334155;
+    --cor-erro: #FF8A9B;
+    /* Fallbacks neutros; a versao calculada a partir da cor de marca vem no
+       @supports abaixo (navegadores sem color-mix ficam com estes tons). */
+    --cor-titulo: #DBE4F0;
+    --cor-link: #6EA8FE;
+    --cor-menu-ativo-texto: #6EA8FE;
     color-scheme: dark;
+}
+
+/* Cores de marca clareadas para o fundo escuro: preserva o matiz escolhido no
+   admin, mas garante contraste (a primaria #1F4E79 sobre #0F172A dava ~2:1). */
+@supports (color: color-mix(in srgb, red, blue)) {
+    :root[data-bs-theme="dark"] {
+        --cor-titulo: color-mix(in srgb, var(--cor-primaria, #1F4E79) 45%, #fff);
+        --cor-link: color-mix(in srgb, var(--cor-cta, #2F80ED) 75%, #fff);
+        --cor-menu-ativo-texto: color-mix(in srgb, var(--cor-menu-ativo, #2F80ED) 75%, #fff);
+    }
+
+    /* Hover do botao: a cor primaria escura some contra o fundo escuro; escurece
+       a propria cor do CTA (continua com texto branco legivel e visivel). */
+    :root[data-bs-theme="dark"] .btn-primary:hover,
+    :root[data-bs-theme="dark"] .btn-primary:focus {
+        background-color: color-mix(in srgb, var(--cor-cta, #2F80ED) 80%, #000);
+        border-color: color-mix(in srgb, var(--cor-cta, #2F80ED) 80%, #000);
+    }
 }
 
 [data-bs-theme="dark"] .footer {
@@ -487,7 +552,7 @@ div.card .card-header {
     border: 1px solid var(--cor-borda, #E5E7EB);
     border-radius: var(--raio-borda-global, 4px);
     background-color: transparent;
-    color: var(--cor-primaria, #1F4E79);
+    color: var(--cor-titulo, var(--cor-primaria, #1F4E79));
     line-height: 1;
     cursor: pointer;
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
@@ -496,7 +561,7 @@ div.card .card-header {
 .theme-toggle:hover,
 .theme-toggle:focus {
     background-color: var(--cor-superficie-alt, #F5F7FA);
-    color: var(--cor-cta, #2F80ED);
+    color: var(--cor-link, var(--cor-cta, #2F80ED));
 }
 
 [data-bs-theme="dark"] .theme-toggle {
@@ -773,15 +838,6 @@ img.is-loaded {
     color: var(--cor-cta, #2F80ED);
 }
 
-/* O spinner e feedback essencial: mantem a animacao mesmo com movimento
-   reduzido (a regra global zera animacoes; aqui reabilitamos so o spinner). */
-@media (prefers-reduced-motion: reduce) {
-    .page-loader .spinner-border {
-        animation-duration: 1s !important;
-        animation-iteration-count: infinite !important;
-    }
-}
-
 /* ========================================================================
    Component: Newsletter modal (convite de cadastro)
    So renderiza para visitantes deslogados; o template.js o exibe uma vez, no
@@ -815,6 +871,9 @@ img.is-loaded {
     /* Nunca ultrapassa a altura da tela (rola por dentro), evitando que o
        botao de envio fique inacessivel em telas baixas/paisagem. */
     max-height: calc(100vh - 2rem);
+    /* dvh acompanha a barra de endereco dinamica do celular (iOS/Android), onde
+       100vh e MAIOR que a area visivel e empurrava o botao de envio para fora. */
+    max-height: calc(100dvh - 2rem);
     overflow-y: auto;
     padding: 1.5rem;
     background-color: var(--cor-superficie-clara-topo, #FFFFFF);
@@ -847,6 +906,9 @@ img.is-loaded {
     cursor: pointer;
 }
 
+/* Spinner do loader: sem !important. O Bootstrap ja desacelera o .spinner-border
+   com prefers-reduced-motion (e ele e feedback essencial, entao continua girando). */
+
 .newsletter-modal-close:hover,
 .newsletter-modal-close:focus {
     background-color: var(--cor-superficie-alt, #F5F7FA);
@@ -857,7 +919,7 @@ img.is-loaded {
     margin-top: 0;
     margin-bottom: 0.5rem;
     font-size: 1.25rem;
-    color: var(--cor-primaria, #1F4E79);
+    color: var(--cor-titulo, var(--cor-primaria, #1F4E79));
 }
 
 .newsletter-modal-text {
@@ -872,7 +934,7 @@ img.is-loaded {
 .newsletter-modal-error {
     margin: -0.25rem 0 0.75rem;
     font-size: 0.85rem;
-    color: #b00020;
+    color: var(--cor-erro, #B00020);
 }
 
 .newsletter-modal-error[hidden] {
@@ -1073,5 +1135,30 @@ img.is-loaded {
 
     .blog-items.masonry-6 {
         column-count: 6;
+    }
+}
+
+/* ========================================================================
+   Acessibilidade — movimento reduzido (prefers-reduced-motion)
+   Fica no FIM do arquivo de proposito: tem a mesma especificidade dos
+   seletores originais das transicoes/animacoes e vence pela ordem, sem
+   precisar de !important (Sonar css:S9423). Os componentes do Bootstrap
+   (collapse, offcanvas, spinner, botoes) ja tratam o proprio movimento reduzido.
+ ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    a,
+    .header,
+    .header .navbar-brand img,
+    .theme-toggle,
+    .back-to-top,
+    .cookie-notice,
+    .page-loader,
+    .newsletter-modal,
+    .newsletter-modal-dialog {
+        transition: none;
+    }
+
+    img[loading="lazy"]:not(.is-loaded) {
+        animation: none;
     }
 }

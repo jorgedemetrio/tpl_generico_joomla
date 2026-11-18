@@ -31,7 +31,8 @@
       "type": "preset",
       "dependencies": [
         "tpl_generico.css#style",
-        "tpl_generico.js#script"
+        "tpl_generico.js#script",
+        "jquery#script"
       ]
     },
     {
@@ -53,6 +54,36 @@
       "uri": "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css",
       "attributes": {
         "integrity": "sha384-CK2SzKma4jA5H/MXDUU7i1TqZlCFaD4T01vtyDFvPlD97JQyS+IsSh1nI2EFbpyk",
+        "crossorigin": "anonymous"
+      }
+    },
+    {
+      "name": "bootstrap.css",
+      "type": "style",
+      "uri": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css",
+      "attributes": {
+        "integrity": "sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB",
+        "crossorigin": "anonymous"
+      }
+    },
+    {
+      "name": "bootstrap.css.grid",
+      "type": "style",
+      "uri": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap-grid.min.css",
+      "dependencies": [
+        "bootstrap.css"
+      ],
+      "attributes": {
+        "integrity": "sha384-VIeCCV0aVHr99fkXDSmzLRuJhJWQXe4bDXs6hgg6w6zOTbtAWr8RqSNWu4a2ef9p",
+        "crossorigin": "anonymous"
+      }
+    },
+    {
+      "name": "jquery",
+      "type": "script",
+      "uri": "https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js",
+      "attributes": {
+        "integrity": "sha384-1H217gwSVyLSIfaLxHbE7dRb3v4mYCKbpQvzx0cegeju1MVsGrX5xXxAvs/HgeFs",
         "crossorigin": "anonymous"
       }
     }

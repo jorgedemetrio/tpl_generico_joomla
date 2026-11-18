@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*' # Aciona o workflow em tags como v1.0, v2.3.4, etc.
 
+# Menor privilégio: o job só lê o repositório (o envio é por FTPS com secrets).
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy to FTPS Server
