@@ -56,8 +56,12 @@
 
   /** Reage a mudancas de viewport (redimensionar + girar o aparelho). */
   function onViewportChange(fn) {
-    window.addEventListener('resize', fn, { passive: true });
-    window.addEventListener('orientationchange', fn, { passive: true });
+    // Throttle por frame: resize dispara dezenas de vezes por segundo e os
+    // handlers leem layout (offsetHeight/scrollHeight) — sem isto forcavam
+    // varios reflows por frame durante o redimensionamento.
+    const throttled = rafThrottle(fn);
+    window.addEventListener('resize', throttled, { passive: true });
+    window.addEventListener('orientationchange', throttled, { passive: true });
   }
 
   /** Limita uma callback a no maximo uma execucao por frame (scroll/resize). */
@@ -221,7 +225,7 @@
       window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     });
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', update, { passive: true });
+    onViewportChange(update);
     update();
   }
 

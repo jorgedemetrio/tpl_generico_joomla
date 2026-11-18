@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+  Fixture do grid com as DUAS sidebars (index.php: #sidebar-left, #component-area
+  col-lg-6, #sidebar-right) + uma grade Bootstrap dentro do artigo. Usa o CSS real
+  e o Bootstrap do CDN nao e necessario: so as regras de largura do template.css e
+  as utilitarias minimas abaixo (row/col) que o Bootstrap fornece em producao.
+-->
+<html lang="pt-BR" dir="ltr" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture — sidebars</title>
+  <style>
+    /* Subconjunto do Bootstrap 5 usado pelo layout (grid flex). */
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; }
+    .container { width: 100%; padding-right: .75rem; padding-left: .75rem; margin: 0 auto; }
+    .row { display: flex; flex-wrap: wrap; margin-right: -.75rem; margin-left: -.75rem; }
+    .row > * { flex-shrink: 0; width: 100%; max-width: 100%; padding-right: .75rem; padding-left: .75rem; }
+    .col-12 { flex: 0 0 auto; width: 100%; }
+    .d-none { display: none !important; }
+    @media (min-width: 992px) {
+      .d-lg-block { display: block !important; }
+      .col-lg-3 { flex: 0 0 auto; width: 25%; }
+      .col-lg-6 { flex: 0 0 auto; width: 50%; }
+      .col-lg-9 { flex: 0 0 auto; width: 75%; }
+      .col-lg-4 { flex: 0 0 auto; width: 33.333%; }
+    }
+  </style>
+  <link rel="stylesheet" href="../../tpl_generico/media/css/template.css">
+</head>
+<body class="site">
+  <main id="main-content">
+    <div class="container">
+      <div class="row">
+        <aside id="sidebar-left" class="col-lg-3 d-none d-lg-block"><div class="sidebar-content">Esquerda</div></aside>
+        <div id="component-area" class="col-lg-6">
+          <p>Conteúdo principal</p>
+          <div class="row" id="article-grid">
+            <div class="col-lg-3" id="article-col">Coluna dentro do artigo</div>
+          </div>
+        </div>
+        <aside id="sidebar-right" class="col-lg-3 d-none d-lg-block"><div class="sidebar-content">Direita</div></aside>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

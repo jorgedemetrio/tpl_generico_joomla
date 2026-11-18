@@ -27,6 +27,8 @@ if (!class_exists('TplGenericoHelper', false)) {
         private const DEFAULT_PRIMARY   = '#1F4E79';
         private const DEFAULT_SECONDARY = '#2E7D32';
         private const DEFAULT_CTA       = '#2F80ED';
+        /** Branco: fundo claro padrao das superficies (reutilizado por TplGenericoColor). */
+        public const WHITE_HEX      = '#FFFFFF';
         /** Fallback da tripla RGB quando o hex e invalido. */
         private const RGB_FALLBACK      = '0, 0, 0';
 
@@ -64,8 +66,12 @@ if (!class_exists('TplGenericoHelper', false)) {
          */
         public static function buildCssVars($params): string
         {
+            // Os valores vem de parametros do admin e sao impressos dentro de um
+            // <style>: sanitiza para que nenhum valor consiga fechar a declaracao,
+            // o bloco ou a propria tag (</style><script>...). Ver cssValue().
             $get = static function ($key, $default) use ($params) {
-                return self::getParam($params, $key, $default);
+                $value = TplGenericoSanitizer::cssValue(self::getParam($params, $key, $default));
+                return $value === '' ? $default : $value;
             };
 
             // Cada cor de marca e lida UMA vez e reutilizada para a variavel e sua
@@ -91,15 +97,20 @@ if (!class_exists('TplGenericoHelper', false)) {
             $cssVars .= '--cor-cta-rgb: ' . $ctaRgb . ';';
             $cssVars .= "--cor-texto: {$get('textColor', '#222222')};";
             $cssVars .= "--cor-texto-secundario: {$get('textSecondaryColor', '#6B7280')};";
-            $cssVars .= "--cor-superficie-clara: {$get('surfaceLightColor', '#FFFFFF')};";
-            $cssVars .= "--cor-superficie-clara-topo: {$get('surfaceLightColorTopo', '#FFFFFF')};";
+            $cssVars .= "--cor-superficie-clara: {$get('surfaceLightColor', self::WHITE_HEX)};";
+            $cssVars .= "--cor-superficie-clara-topo: {$get('surfaceLightColorTopo', self::WHITE_HEX)};";
             $cssVars .= "--cor-superficie-alt: {$get('surfaceAltColor', '#F5F7FA')};";
             $cssVars .= "--cor-borda: {$get('borderColor', '#E5E7EB')};";
             $cssVars .= "--espaco-interno-card: {$get('espacoInternoCard', '1.5rem')};";
             $cssVars .= "--margin-topo-card: {$get('margemTopoCard', '10px')};";
             $cssVars .= "--espaco-interno-titulo-card: {$get('espacoInternoTituloCard', '1.5rem')};";
             $cssVars .= "--margin-topo-titulo-card: {$get('margemTopoTituloCard', '10px')};";
-            $cssVars .= "--cor-footer: {$get('footerColor', '#0F172A')};";
+            $footerColor = $get('footerColor', '#0F172A');
+            $cssVars .= "--cor-footer: {$footerColor};";
+            // Texto/titulo/links do rodape com contraste garantido sobre o fundo
+            // escolhido (o rodape tem fundo proprio nos dois temas).
+            $cssVars .= '--cor-footer-texto: ' . TplGenericoColor::readableTextOn($footerColor, false) . ';';
+            $cssVars .= '--cor-footer-titulo: ' . TplGenericoColor::readableTextOn($footerColor, true) . ';';
             $defaultFontStack = "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
             $cssVars .= "--familia-fonte-primaria: {$get('fontFamilyPrimary', $defaultFontStack)};";
             $cssVars .= "--tamanho-base-fonte: {$get('fontSizeBase', '1rem')};";
@@ -409,7 +420,7 @@ if (!class_exists('TplGenericoHelper', false)) {
          * Converte um valor hexadecimal (#RGB ou #RRGGBB) na tripla "R, G, B"
          * usada pelas variaveis `--bs-*-rgb` do Bootstrap 5.
          */
-        private static function hexToRgb($hex): string
+        public static function hexToRgb($hex): string
         {
             $hex = is_string($hex) ? trim($hex) : '';
             $hex = ltrim($hex, '#');
@@ -563,6 +574,133 @@ if (!class_exists('TplGenericoHelper', false)) {
         public function __call($name, $arguments)
         {
             return '';
+        }
+    }
+}
+
+if (!class_exists('TplGenericoSanitizer', false)) {
+    /**
+     * Saneamento de valores vindos de parametros do admin antes de serem
+     * impressos em <style>, <script> ou atributos HTML. Separada do
+     * TplGenericoHelper para manter cada classe enxuta.
+     */
+    class TplGenericoSanitizer
+    {
+        /**
+         * Neutraliza um valor antes de imprimi-lo numa declaracao CSS inline.
+         * Remove o que permitiria escapar do valor: "<" e ">" (fechar a tag
+         * <style>), "{" e "}" (abrir/fechar blocos), ";" (encadear declaracoes),
+         * a barra invertida (escapes CSS), comentarios e quebras de linha.
+         * Aspas, virgulas, parenteses e "#" ficam — fontes ('Segoe UI',
+         * sans-serif) e cores (#FFF, rgb()) continuam funcionando.
+         *
+         * @param  mixed  $value  Valor cru do parametro
+         * @return string         Valor seguro (pode ser '')
+         */
+        public static function cssValue($value): string
+        {
+            if (!is_scalar($value)) {
+                return '';
+            }
+
+            $clean = preg_replace('~/\*|\*/|[<>{};\\\\\r\n]~', '', (string) $value);
+
+            return trim((string) $clean);
+        }
+
+        /**
+         * Valida um identificador vindo de parametro (GTM, Pixel, AdSense) contra
+         * um padrao. Retorna o valor aparado quando casa, ou '' quando invalido —
+         * nunca o valor cru, pois ele e impresso dentro de <script>/atributos.
+         *
+         * @param  mixed   $value    Valor cru do parametro
+         * @param  string  $pattern  Expressao regular (PCRE) completa
+         * @return string
+         */
+        public static function validId($value, string $pattern): string
+        {
+            $value = is_scalar($value) ? trim((string) $value) : '';
+
+            return ($value !== '' && preg_match($pattern, $value) === 1) ? $value : '';
+        }
+
+        /**
+         * Limpa um HTML livre do admin (texto do aviso de cookies/newsletter) com
+         * o filtro do core: remove <script>, atributos on*, javascript: etc.
+         * Defesa em profundidade — o campo e filter="raw" por permitir
+         * links/negrito.
+         *
+         * @param  string  $html  HTML cru
+         * @return string
+         */
+        public static function cleanHtml(string $html): string
+        {
+            if ($html === '') {
+                return '';
+            }
+
+            try {
+                return (string) \Joomla\CMS\Filter\InputFilter::getInstance()->clean($html, 'html');
+            } catch (\Throwable $e) {
+                return htmlspecialchars(strip_tags($html), ENT_QUOTES, 'UTF-8');
+            }
+        }
+    }
+}
+
+if (!class_exists('TplGenericoColor', false)) {
+    /**
+     * Calculos de cor (contraste WCAG) usados pelo helper para gerar variaveis
+     * CSS que dependem de uma cor escolhida no admin.
+     */
+    class TplGenericoColor
+    {
+        private const TEXT_LIGHT = '#CBD5E1';
+        private const TEXT_DARK  = '#1F2937';
+        private const HEAD_DARK  = '#111827';
+
+        /** Acima desta luminancia o fundo e considerado claro (texto escuro). */
+        private const LIGHT_BG_THRESHOLD = 0.4;
+
+        /**
+         * Cor de texto legivel sobre um fundo (contraste >= AA). Fundo escuro ->
+         * texto claro; fundo claro -> texto escuro. Hex invalido e tratado como
+         * fundo escuro (o padrao do rodape).
+         *
+         * @param  string   $background  Cor de fundo em hex (#RGB/#RRGGBB)
+         * @param  boolean  $strong      true = titulo/link (maximo contraste);
+         *                               false = texto corrido (tom mais suave)
+         * @return string                Hex do texto
+         */
+        public static function readableTextOn(string $background, bool $strong): string
+        {
+            if (self::relativeLuminance($background) > self::LIGHT_BG_THRESHOLD) {
+                return $strong ? self::HEAD_DARK : self::TEXT_DARK;
+            }
+
+            return $strong ? TplGenericoHelper::WHITE_HEX : self::TEXT_LIGHT;
+        }
+
+        /**
+         * Luminancia relativa WCAG (0 = preto, 1 = branco) de um hex. Hex
+         * invalido retorna 0 (escuro).
+         *
+         * @param  string  $hex  Cor em hex (#RGB/#RRGGBB)
+         * @return float
+         */
+        public static function relativeLuminance(string $hex): float
+        {
+            $rgb = array_map('trim', explode(',', TplGenericoHelper::hexToRgb($hex)));
+            if (count($rgb) !== 3) {
+                return 0.0;
+            }
+
+            $lin = array_map(static function ($v): float {
+                $c = ((int) $v) / 255;
+                return $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+            }, $rgb);
+
+            return 0.2126 * $lin[0] + 0.7152 * $lin[1] + 0.0722 * $lin[2];
         }
     }
 }

@@ -71,11 +71,11 @@ try {
                 <fieldset>
                     <div class="mb-3">
                         <label for="username" class="form-label"><?php echo Text::_('JGLOBAL_USERNAME'); ?></label>
-                        <input name="username" class="form-control" id="username" type="text">
+                        <input name="username" class="form-control" id="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label"><?php echo Text::_('JGLOBAL_PASSWORD'); ?></label>
-                        <input name="password" class="form-control" id="password" type="password">
+                        <input name="password" class="form-control" id="password" type="password" autocomplete="current-password" required>
                     </div>
                     <div class="mb-3">
                         <button type="submit" name="Submit" class="btn btn-primary w-100"><?php echo Text::_('JLOGIN'); ?></button>

@@ -47,7 +47,14 @@ $this->setMetaData('viewport', 'width=device-width, initial-scale=1');
 // configurada no PAINEL do Google — AdSense (ou Ad Manager) -> Privacidade e
 // mensagens -> Mensagens de consentimento da UE. Sem uma mensagem publicada
 // la, este script nao exibe nada (fail-safe).
-$adsensePubId = trim((string) $this->params->get('adsensePubId', ''));
+// Valida o formato do ID (pub-1234...; aceita o prefixo "ca-pub-" do AdSense e o
+// normaliza): o valor e impresso numa URL e num <script>, entao nunca entra cru.
+// ID invalido equivale a "nao configurado" (fail-safe: nada e emitido).
+$adsensePubId = preg_replace(
+    '/^ca-/i',
+    '',
+    TplGenericoSanitizer::validId($this->params->get('adsensePubId', ''), '/^(?:ca-)?pub-\d{6,32}$/i')
+);
 $consentModeHead = '';
 if ($adsensePubId !== '') {
     $consentModeHead =
@@ -74,6 +81,10 @@ $cssVars = TplGenericoHelper::buildCssVars($this->params);
 // Enable assets
 HTMLHelper::_('bootstrap.framework');
 $wa->usePreset('tpl_generico.preset');
+// O preset carrega o bootstrap-icons (CSS bloqueante de renderizacao) do CDN
+// jsDelivr: o preconnect antecipa DNS+TLS (com crossorigin, igual ao <link>) e
+// tira esse handshake do caminho critico.
+$this->getPreloadManager()->preconnect('https://cdn.jsdelivr.net', ['crossorigin' => 'anonymous']);
 // addStyleDeclaration entra no buffer de inline styles do documento, garantindo
 // que estas variaveis sejam renderizadas DEPOIS de bootstrap.css/template.css,
 // vencendo qualquer :root anterior e fazendo as cores do admin de fato valerem.
@@ -99,7 +110,8 @@ $layout   = $input->getCmd('layout', '');
 $menu        = method_exists($app, 'getMenu') ? $app->getMenu() : null;
 $activeMenu  = $menu ? $menu->getActive() : null;
 $activeParams = ($activeMenu && method_exists($activeMenu, 'getParams')) ? $activeMenu->getParams() : null;
-$pageclass   = $activeParams ? (string) $activeParams->get('pageclass_sfx', '') : '';
+// Sufixo de classe do item de menu: texto livre do admin, vai para class="".
+$pageclass   = $activeParams ? htmlspecialchars((string) $activeParams->get('pageclass_sfx', ''), ENT_QUOTES, 'UTF-8') : '';
 
 // SEO: canonical, fallback de meta description, theme-color, Open Graph e
 // Twitter Cards (B1/B2/A1/A2/I2) + schemas globais Organization/WebSite na home
@@ -122,7 +134,9 @@ $stickyHeader = $this->params->get('stickyHeader', '1') === '1' ? 'sticky-top' :
 $headerShadow = $this->params->get('headerShadow', '1') === '1' ? 'shadow-sm' : '';
 $headerSeparator = $this->params->get('headerSeparator', '1') === '1' ? 'border-bottom' : '';
 // Default alinhado ao templateDetails.xml (compact).
-$headerHeightClass = 'header-' . $this->params->get('headerHeight', 'compact');
+// Lista fechada: o valor vai direto para o atributo class.
+$headerHeight = $this->params->get('headerHeight', 'compact');
+$headerHeightClass = 'header-' . (in_array($headerHeight, ['compact', 'normal'], true) ? $headerHeight : 'compact');
 
 // Posicao da busca: 'inline' (dentro da navbar) ou 'below' (barra abaixo do header).
 $searchPosition = $this->params->get('searchPosition', 'below');
@@ -156,13 +170,15 @@ $bottomB = $this->countModules('bottom-b', true);
 // cookies nesse caso; mostrar os dois seria 2 avisos conflitantes na tela.
 $cookieNotice  = $this->params->get('cookieNotice', '1') === '1' && $adsensePubId === '';
 $cookieTimeout = (int) $this->params->get('cookieNoticeTimeout', 20);
-$cookieText    = trim((string) $this->params->get('cookieNoticeText', ''));
+// Texto livre (HTML) do admin: passa pelo filtro do core (sem <script>/on*=).
+$cookieText    = TplGenericoSanitizer::cleanHtml(trim((string) $this->params->get('cookieNoticeText', '')));
 
 // Loader de navegacao: overlay central com spinner quando o usuario sai da
 // pagina (clique em link interno, envio de formulario ou unload).
 $pageLoader = $this->params->get('pageLoader', '1') === '1';
 // Personalizacao do loader: cor do spinner e/ou imagem (GIF) que o substitui.
-$pageLoaderColor = trim((string) $this->params->get('pageLoaderColor', ''));
+// Cor so como hex (#RGB/#RRGGBB/#RRGGBBAA): vai para um atributo style="".
+$pageLoaderColor = TplGenericoSanitizer::validId($this->params->get('pageLoaderColor', ''), '/^#[0-9a-f]{3,8}$/i');
 $pageLoaderImage = trim((string) $this->params->get('pageLoaderImage', ''));
 if ($pageLoaderImage !== '') {
     // O campo media pode retornar "images/x.gif#joomlaImage://..."; usa so o caminho.
@@ -180,7 +196,7 @@ if ($newsletterDelay < 0) {
     $newsletterDelay = 60;
 }
 $newsletterTitle = trim((string) $this->params->get('newsletterModalTitle', ''));
-$newsletterText  = trim((string) $this->params->get('newsletterModalText', ''));
+$newsletterText  = TplGenericoSanitizer::cleanHtml(trim((string) $this->params->get('newsletterModalText', '')));
 // Destino do cadastro: rota do Joomla (padrao = registo de utilizadores) ou
 // URL completa para a pagina de newsletter do site. O e-mail vai como query.
 $newsletterUrl   = trim((string) $this->params->get('newsletterModalUrl', 'index.php?option=com_users&view=registration'));
@@ -197,7 +213,11 @@ if ($newsletterEmailParam === '') {
 }
 
 // Esquema de cores: light | dark | auto (auto segue o sistema do visitante).
+// Lista fechada: $colorScheme e impresso dentro de um <script> inline abaixo.
 $colorScheme = $this->params->get('colorScheme', 'light');
+if (!in_array($colorScheme, ['light', 'dark', 'auto'], true)) {
+    $colorScheme = 'light';
+}
 $htmlTheme   = in_array($colorScheme, ['light', 'dark'], true) ? $colorScheme : 'light';
 // Define o tema antes da pintura (evita flash). Respeita uma escolha manual
 // salva em localStorage quando o botao de tema esta ativo e segue o sistema no
@@ -219,8 +239,10 @@ if ($themeToggle || $colorScheme === 'auto') {
 }
 
 // Integrations
-$gtmId = $this->params->get('gtmId');
-$fbPixelId = $this->params->get('fbPixelId');
+// IDs validados por formato (GTM-XXXX; Pixel numerico): sao impressos dentro de
+// <script>, URLs e atributos — um valor fora do padrao e descartado.
+$gtmId = TplGenericoSanitizer::validId($this->params->get('gtmId'), '/^GTM-[A-Z0-9]{4,12}$/i');
+$fbPixelId = TplGenericoSanitizer::validId($this->params->get('fbPixelId'), '/^\d{5,20}$/');
 // Handshake antecipado com os dominios de terceiros (reduz latencia do tracking).
 if ($gtmId || $fbPixelId) {
     $preload = $this->getPreloadManager();
@@ -270,7 +292,7 @@ if ($customHeadCode !== '') {
 
     <header id="header" class="header <?php echo $stickyHeader . ' ' . $headerShadow . ' ' . $headerSeparator . ' ' . $headerHeightClass; ?>" role="banner">
         <?php if ($this->countModules('topbar', true)) : ?>
-        <div id="topbar" class="bg-light"><div class="<?php echo $containerClass; ?>"><jdoc:include type="modules" name="topbar" style="none" /></div></div>
+        <div id="topbar" class="topbar"><div class="<?php echo $containerClass; ?>"><jdoc:include type="modules" name="topbar" style="none" /></div></div>
         <?php endif; ?>
         <?php if ($this->countModules('below-top', true)) : ?>
         <div id="below-top"><div class="<?php echo $containerClass; ?>"><jdoc:include type="modules" name="below-top" style="none" /></div></div>
@@ -292,7 +314,8 @@ if ($customHeadCode !== '') {
                     <?php endif; ?>
 
                     <?php if ($this->countModules('menu', true)) :
-                        $mobileMenuBehavior = $this->params->get('mobileMenuBehavior', 'offcanvas');
+                        // Lista fechada: vai para data-bs-toggle e define o id do alvo.
+                        $mobileMenuBehavior = $this->params->get('mobileMenuBehavior', 'offcanvas') === 'collapse' ? 'collapse' : 'offcanvas';
                         // Id unico por comportamento: evita "duplicate id" (o collapse e o
                         // offcanvas usam a mesma posicao 'menu', mas so um renderiza por vez).
                         $menuTargetId       = $mobileMenuBehavior === 'collapse' ? 'mobileMenuCollapse' : 'mobileMenuOffcanvas';

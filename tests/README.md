@@ -53,9 +53,13 @@ tests/
 │   ├── navbar.html            # menu principal (html/mod_menu/default.php)
 │   ├── metismenu.html         # menu offcanvas/sidebar (dropdown-metismenu)
 │   ├── newsletter.html        # modal de newsletter (index.php + template.js)
+│   ├── dark-theme.html        # modo escuro na ORDEM real de produção (:root inline depois do CSS)
+│   ├── sidebars-layout.html   # grid com as duas sidebars (#sidebar-left/-right + #component-area)
 │   └── registration-stub.html # destino do redirect (valida o e-mail na URL)
 └── specs/
     ├── menu-active.spec.js
+    ├── dark-theme.spec.js      # cores trocam no escuro + contraste WCAG AA (título, link, rodapé, erro)
+    ├── sidebars-layout.spec.js # 992–1440px sem quebra da sidebar; .col-lg-3 de artigo fica livre
     └── newsletter-modal.spec.js
 ```
 
